@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36408.4
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.API", "ThreatFramework.API\ThreatFramework.API.csproj", "{226E5DBA-CD41-45D9-9030-589CACF30424}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Infrastructure", "ThreatFramework.Infrastructure\ThreatFramework.Infrastructure.csproj", "{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{226E5DBA-CD41-45D9-9030-589CACF30424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{226E5DBA-CD41-45D9-9030-589CACF30424}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{226E5DBA-CD41-45D9-9030-589CACF30424}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{226E5DBA-CD41-45D9-9030-589CACF30424}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {30A66001-2663-4669-90DC-D04309BFD411}
+	EndGlobalSection
+EndGlobal
