@@ -12,4 +12,9 @@
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ThreatFramework.Core\ThreatFramework.Core.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Infra.Contract\ThreatFramework.Infra.Contract.csproj" />
+  </ItemGroup>
+
 </Project>

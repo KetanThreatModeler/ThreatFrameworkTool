@@ -7,9 +7,4 @@
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
-
-    public class IndexData
-    {
-        public List<IndexItem> items { get; set; } = new();
-    }
 }

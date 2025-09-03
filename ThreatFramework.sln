@@ -7,6 +7,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.API", "Thre
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Infrastructure", "ThreatFramework.Infrastructure\ThreatFramework.Infrastructure.csproj", "{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.YamlFileGenerator.Contract", "ThreatFramework.YamlFileGenerator.Contract\ThreatFramework.YamlFileGenerator.Contract.csproj", "{EF2D19F6-C7A5-46EF-9D33-D5FE62E65E57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.YamlFileGenerator.Impl", "ThreatFramework.YamlFileGenerator.Impl\ThreatFramework.YamlFileGenerator.Impl.csproj", "{15CA9AA8-0A43-4A29-A54B-58F12E8CABB9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Core", "ThreatFramework.Core\ThreatFramework.Core.csproj", "{0CCCCDE6-FA9E-4283-9A6B-D0D3AEA92196}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Infra.Contract", "ThreatFramework.Infra.Contract\ThreatFramework.Infra.Contract.csproj", "{67A9CE05-5EEA-4C6D-93D7-D0FE328A2D45}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Resources", "ThreatFramework.Resources\ThreatFramework.Resources.csproj", "{004B7E33-DB20-4ED6-8B6F-C7FDD947493E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +31,26 @@ Global
 		{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E870B6F7-BB66-4E8E-A2D7-3BED6BD4AE0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF2D19F6-C7A5-46EF-9D33-D5FE62E65E57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF2D19F6-C7A5-46EF-9D33-D5FE62E65E57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF2D19F6-C7A5-46EF-9D33-D5FE62E65E57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF2D19F6-C7A5-46EF-9D33-D5FE62E65E57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15CA9AA8-0A43-4A29-A54B-58F12E8CABB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15CA9AA8-0A43-4A29-A54B-58F12E8CABB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15CA9AA8-0A43-4A29-A54B-58F12E8CABB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15CA9AA8-0A43-4A29-A54B-58F12E8CABB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CCCCDE6-FA9E-4283-9A6B-D0D3AEA92196}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CCCCDE6-FA9E-4283-9A6B-D0D3AEA92196}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CCCCDE6-FA9E-4283-9A6B-D0D3AEA92196}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CCCCDE6-FA9E-4283-9A6B-D0D3AEA92196}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67A9CE05-5EEA-4C6D-93D7-D0FE328A2D45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67A9CE05-5EEA-4C6D-93D7-D0FE328A2D45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67A9CE05-5EEA-4C6D-93D7-D0FE328A2D45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67A9CE05-5EEA-4C6D-93D7-D0FE328A2D45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{004B7E33-DB20-4ED6-8B6F-C7FDD947493E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{004B7E33-DB20-4ED6-8B6F-C7FDD947493E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{004B7E33-DB20-4ED6-8B6F-C7FDD947493E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{004B7E33-DB20-4ED6-8B6F-C7FDD947493E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

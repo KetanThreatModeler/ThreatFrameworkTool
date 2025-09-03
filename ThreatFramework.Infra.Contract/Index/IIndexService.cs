@@ -1,3 +1,4 @@
+
 using ThreatFramework.Infrastructure.Models;
 
 namespace ThreatFramework.Infrastructure.Interfaces
