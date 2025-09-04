@@ -2,12 +2,12 @@
 {
     public interface IYamlFileGenerator
     {
-        Task<string> GenerateYamlFilesForThreats(string path);
-        Task<string> GenerateYamlFilesForComponents(string path);
-        Task<string> GenerateYamlFilesForLibraries(string path);
-        Task<string> GenerateYamlFilesForSecurityRequirements(string path);
-        Task<string> GenerateYamlFilesForProperties(string path);
-        Task<string> GenerateYamlFilesForPropertyOptions(string path);
-        Task<string> GenerateYamlFilesForTestCases(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForThreats(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForComponents(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForLibraries(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForSecurityRequirements(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForProperties(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForPropertyOptions(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForTestCases(string path);
     }
 }

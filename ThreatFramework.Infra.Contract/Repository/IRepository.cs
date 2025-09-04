@@ -1,4 +1,6 @@
-﻿using ThreatFramework.Core.Models;
+﻿using ThreatFramework.Core.Models.ComponentMapping;
+using ThreatFramework.Core.Models.CoreEntities;
+using ThreatFramework.Core.Models.PropertyMapping;
 
 namespace ThreatFramework.Infrastructure.Interfaces.Repositories
 {

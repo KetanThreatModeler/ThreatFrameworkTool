@@ -1,7 +1,7 @@
-﻿using ThreatFramework.Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ThreatFramework.Core.Models.CoreEntities;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {

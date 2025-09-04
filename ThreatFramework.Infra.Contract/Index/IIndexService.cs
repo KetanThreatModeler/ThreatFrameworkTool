@@ -1,5 +1,5 @@
 
-using ThreatFramework.Infrastructure.Models;
+using ThreatFramework.Core.Models.IndexModel;
 
 namespace ThreatFramework.Infrastructure.Interfaces
 {

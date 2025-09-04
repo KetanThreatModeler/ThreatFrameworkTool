@@ -1,4 +1,4 @@
-﻿using ThreatFramework.Core.Models;
+﻿using ThreatFramework.Core.Models.CoreEntities;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ThreatFramework.Infrastructure.Interfaces;
+﻿using ThreatFramework.Infrastructure.Interfaces;
 using ThreatFramework.Infrastructure.Interfaces.Repositories;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl.Templates;
 
 namespace ThreatFramework.YamlFileGenerator.Impl
+
 {
     public class YamlFilesGenerator : IYamlFileGenerator
     {
@@ -41,7 +37,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
         }
 
-        public async Task<string> GenerateYamlFilesForComponents(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForComponents(string path)
         {
             var components = await _componentRepository.GetAllComponentsAsync();
             return await GenerateYamlFiles(
@@ -49,12 +45,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 components,
                 "Component",
                 c => c.Guid,
-                ComponentYamlTemplate.GenerateComponentYaml,
-                "components"
+                ComponentYamlTemplate.GenerateComponentYaml
             );
         }
 
-        public async Task<string> GenerateYamlFilesForThreats(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForThreats(string path)
         {
             var threats = await _threatRepository.GetAllThreatsAsync();
             return await GenerateYamlFiles(
@@ -62,12 +57,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 threats,
                 "Threat",
                 t => t.Guid,
-                ThreatYamlTemplate.GenerateThreatYaml,
-                "threats"
+                ThreatYamlTemplate.GenerateThreatYaml
             );
         }
 
-        public async Task<string> GenerateYamlFilesForLibraries(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForLibraries(string path)
         {
             var libraries = await _libraryRepository.GetAllLibrariesAsync();
             return await GenerateYamlFiles(
@@ -75,12 +69,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 libraries,
                 "Library",
                 l => l.Guid,
-                LibraryYamlTemplate.GenerateLibraryYaml,
-                "libraries"
+                LibraryYamlTemplate.GenerateLibraryYaml
             );
         }
 
-        public async Task<string> GenerateYamlFilesForSecurityRequirements(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForSecurityRequirements(string path)
         {
             var securityRequirements = await _securityRequirementRepository.GetAllSecurityRequirementsAsync();
             return await GenerateYamlFiles(
@@ -88,12 +81,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 securityRequirements,
                 "SecurityRequirement",
                 sr => sr.Guid,
-                SecurityRequirementYamlTemplate.GenerateSecurityRequirementYaml,
-                "security requirements"
+                SecurityRequirementYamlTemplate.GenerateSecurityRequirementYaml
             );
         }
 
-        public async Task<string> GenerateYamlFilesForProperties(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForProperties(string path)
         {
             var properties = await _propertyRepository.GetAllPropertiesAsync();
             return await GenerateYamlFiles(
@@ -101,12 +93,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 properties,
                 "Property",
                 p => p.Guid,
-                PropertyYamlTemplate.GeneratePropertyYaml,
-                "properties"
+                PropertyYamlTemplate.GeneratePropertyYaml
             );
         }
 
-        public async Task<string> GenerateYamlFilesForPropertyOptions(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForPropertyOptions(string path)
         {
             var propertyOptions = await _propertyOptionRepository.GetAllPropertyOptionsAsync();
             return await GenerateYamlFiles(
@@ -114,12 +105,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 propertyOptions,
                 "PropertyOption",
                 po => po.Guid.Value,
-                PropertyOptionYamlTemplate.GeneratePropertyOptionYaml,
-                "property options"
+                PropertyOptionYamlTemplate.GeneratePropertyOptionYaml
             );
         }
 
-        public async Task<string> GenerateYamlFilesForTestCases(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForTestCases(string path)
         {
             var testCases = await _testcaseRepository.GetAllTestcasesAsync();
             return await GenerateYamlFiles(
@@ -127,8 +117,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 testCases,
                 "TestCase",
                 tc => tc.Guid,
-                TestCaseYamlTemplate.GenerateTestCaseYaml,
-                "test cases"
+                TestCaseYamlTemplate.GenerateTestCaseYaml
             );
         }
 
@@ -144,13 +133,12 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 Directory.CreateDirectory(path);
         }
 
-        private async Task<string> GenerateYamlFiles<T>(
+        private async Task<(string path, int fileCount)> GenerateYamlFiles<T>(
             string path,
             IEnumerable<T> items,
             string kind,
             Func<T, Guid> guidSelector,
-            Func<T, string> yamlGenerator,
-            string itemTypeName)
+            Func<T, string> yamlGenerator)
         {
             ValidatePath(path);
             EnsureDirectoryExists(path);
@@ -168,7 +156,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 fileCount++;
             }
 
-            return $"Generated {fileCount} YAML files for {itemTypeName} in '{path}'";
+            return (path, fileCount);
         }
-    }   
+    }
 }

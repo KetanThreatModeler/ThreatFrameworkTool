@@ -1,19 +1,19 @@
-﻿namespace ThreatFramework.Core.Models
+﻿namespace ThreatFramework.Core.Models.CoreEntities
 {
-    public class Component
+    public class SecurityRequirement
     {
         public int Id { get; set; }
-        public Guid Guid { get; set; }
+        public int RiskId { get; set; }
         public int LibraryId { get; set; }
-        public int ComponentTypeId { get; set; }
+        public bool IsCompensatingControl { get; set; }
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? LastUpdated { get; set; }
+        public Guid Guid { get; set; }
         public string Name { get; set; }
-        public string? ImagePath { get; set; }
+        public string? ChineseName { get; set; }
         public string? Labels { get; set; }
-        public string? Version { get; set; }
         public string? Description { get; set; }
         public string? ChineseDescription { get; set; }
     }

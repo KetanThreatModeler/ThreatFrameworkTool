@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
+using ThreatFramework.Core.Models.IndexModel;
 using ThreatFramework.Infrastructure.Configuration;
 using ThreatFramework.Infrastructure.Interfaces;
-using ThreatFramework.Infrastructure.Models;
 using YamlDotNet.Serialization;
 
 namespace ThreatFramework.Infrastructure.Services
