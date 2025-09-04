@@ -19,7 +19,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
                     {
                         b.AddChild($"guid: \"{threat.Guid}\"");
                         b.AddChild($"name: \"{EscapeYamlValue(threat.Name)}\"");
-                        b.AddChild($"libraryGuid: \"{threat.LibraryId}\"");
+                        b.AddChild($"libraryGuid: \"{threat.LibraryGuid}\"");
                         b.AddChild($"labels: {labelsArray}");
                     })
                     .AddParent("spec:", b =>

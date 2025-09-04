@@ -7,6 +7,12 @@ namespace ThreatFramework.Infrastructure.Interfaces.Repositories
     public interface IThreatRepository
     {
         Task<IEnumerable<Threat>> GetAllThreatsAsync();
+        Task<IReadOnlyList<Threat>> GetByLibraryGuidsAsync(
+       IReadOnlyCollection<Guid> libraryGuids,
+       CancellationToken ct = default);
+
+       Task<IReadOnlyList<Threat>> GetWhereLibraryReadonlyAsync(
+            CancellationToken ct = default);
     }
 
     public interface IComponentRepository

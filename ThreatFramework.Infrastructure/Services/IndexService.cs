@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using ThreatFramework.Core.Models.IndexModel;
 using ThreatFramework.Infrastructure.Configuration;
 using ThreatFramework.Infrastructure.Interfaces;
 using YamlDotNet.Serialization;
+using Microsoft.Extensions.Options;
 
 namespace ThreatFramework.Infrastructure.Services
 {
