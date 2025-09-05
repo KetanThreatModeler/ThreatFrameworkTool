@@ -1,6 +1,6 @@
 ﻿using ThreatFramework.Core.Models.ComponentMapping;
 
-namespace ThreatFramework.Infrastructure.Interfaces.Repositories
+namespace ThreatFramework.Infra.Contract.Repository
 {
 
     public interface IComponentThreatSecurityRequirementMappingRepository

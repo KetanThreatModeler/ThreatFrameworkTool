@@ -5,9 +5,9 @@ using ThreatFramework.Core.Models.CoreEntities;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {
-        internal static class ThreatYamlTemplate
+        internal static class ThreatTemplate
         {
-            public static string GenerateThreatYaml(Threat threat)
+            public static string Generate(Threat threat)
             {
                 var labels = ParseLabels(threat.Labels);
                 var labelsArray = labels.Any() ? $"[{string.Join(", ", labels)}]" : "[]";

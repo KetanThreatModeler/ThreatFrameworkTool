@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.Models.ComponentMapping;
 
-namespace ThreatFramework.Infrastructure.Interfaces.Repositories
+namespace ThreatFramework.Infra.Contract.Repository
 {
     public interface IComponentSecurityRequirementMappingRepository
     {

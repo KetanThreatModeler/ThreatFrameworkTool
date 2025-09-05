@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using ThreatFramework.Core.Models.CoreEntities;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infrastructure.Interfaces.Repositories;
+using ThreatFramework.Infra.Contract.Repository;
 
 namespace ThreatFramework.Infrastructure.Repository
 {

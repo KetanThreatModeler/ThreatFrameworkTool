@@ -2,9 +2,9 @@
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
 {
-    public static class CTMappingYamlTemplate
+    public static class CTMappingTemplate
     {
-        public static string GenerateComponentThreatYaml(ComponentThreatMapping ctMapping)
+        public static string Generate(ComponentThreatMapping ctMapping)
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-threat")
@@ -15,8 +15,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
                 })
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"componentGuid: \"{ctMapping.ComponentId}\"");
-                    b.AddChild($"threatGuid: \"{ctMapping.ThreatId}\"");
+                    b.AddChild($"componentGuid: \"{ctMapping.ComponentGuid}\"");
+                    b.AddChild($"threatGuid: \"{ctMapping.ThreatGuid}\"");
                     b.AddParent("flags:", b2 =>
                     {
                         b2.AddChild($"isHidden: {ctMapping.IsHidden.ToString().ToLower()}");

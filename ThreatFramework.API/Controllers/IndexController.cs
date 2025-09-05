@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using ThreatFramework.Infrastructure.Interfaces;
+using ThreatFramework.Infra.Contract.Index;
 
 namespace ThreatFramework.API.Controllers
 {

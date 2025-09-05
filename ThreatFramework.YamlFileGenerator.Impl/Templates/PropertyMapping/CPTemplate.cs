@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.Models.PropertyMapping;
 
-namespace ThreatFramework.YamlFileGenerator.Impl.Templates.Mapping
+namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
 {
-    public static class CPYamlTemplate
+    public static class CPTemplate
     {
-        public static string GenerateComponentPropertyYaml(ComponentPropertyMapping componentProperty)
+        public static string Generate(ComponentPropertyMapping componentProperty)
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-property")
@@ -19,8 +19,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.Mapping
                 })
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"componentGuid: \"{componentProperty.ComponentId}\"");
-                    b.AddChild($"propertyGuid: \"{componentProperty.PropertyId}\"");
+                    b.AddChild($"componentGuid: \"{componentProperty.ComponentGuid}\"");
+                    b.AddChild($"propertyGuid: \"{componentProperty.PropertyGuid}\"");
                     b.AddParent("flags:", b2 =>
                     {
                         b2.AddChild($"isOptional: {componentProperty.IsOptional.ToString().ToLower()}");

@@ -2,9 +2,9 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using ThreatFramework.Core.Models.IndexModel;
 using ThreatFramework.Infrastructure.Configuration;
-using ThreatFramework.Infrastructure.Interfaces;
 using YamlDotNet.Serialization;
 using Microsoft.Extensions.Options;
+using ThreatFramework.Infra.Contract.Index;
 
 namespace ThreatFramework.Infrastructure.Services
 {

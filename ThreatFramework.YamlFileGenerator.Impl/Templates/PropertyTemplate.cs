@@ -7,41 +7,44 @@ using ThreatFramework.Core.Models.CoreEntities;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {
-    public static class ComponentYamlTemplate
+    public static class PropertyTemplate
     {
-        public static string GenerateComponentYaml(Component component)
+        public static string Generate(Property property)
         {
-            var labels = ParseLabels(component.Labels);
+            var labels = ParseLabels(property.Labels);
             var labelsArray = labels.Any() ? $"[{string.Join(", ", labels)}]" : "[]";
 
             var yaml = new YamlBuilder()
-                .AddChild("kind: component")
+                .AddChild("kind: property")
+                .AddChild("apiVersion: v1")
                 .AddParent("metadata:", b =>
                 {
-                    b.AddChild($"guid: \"{component.Guid}\"");
-                    b.AddChild($"name: \"{EscapeYamlValue(component.Name)}\"");
-                    b.AddChild($"libraryId: {component.LibraryId}");
+                    b.AddChild($"guid: \"{property.Guid}\"");
+                    b.AddChild($"name: \"{EscapeYamlValue(property.Name)}\"");
+                    b.AddChild($"libraryGuid: \"{property.LibraryId}\"");
                     b.AddChild($"labels: {labelsArray}");
-                    b.AddChild($"version: \"{EscapeYamlValue(component.Version ?? "")}\"");
                 })
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"description: \"{EscapeYamlValue(component.Description ?? "")}\"");
-                    b.AddChild($"imagePath: \"{EscapeYamlValue(component.ImagePath ?? "")}\"");
+                    b.AddChild($"propertyTypeGuid: \"{property.PropertyTypeId}\"");
                     b.AddParent("flags:", b2 =>
                     {
-                        b2.AddChild($"isHidden: {component.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {component.IsOverridden.ToString().ToLower()}");
+                        b2.AddChild($"isSelected: {property.IsSelected.ToString().ToLower()}");
+                        b2.AddChild($"isOptional: {property.IsOptional.ToString().ToLower()}");
+                        b2.AddChild($"isGlobal: {property.IsGlobal.ToString().ToLower()}");
+                        b2.AddChild($"isHidden: {property.IsHidden.ToString().ToLower()}");
+                        b2.AddChild($"isOverridden: {property.IsOverridden.ToString().ToLower()}");
                     });
+                    b.AddChild($"description: \"{EscapeYamlValue(property.Description ?? "")}\"");
 
-                    if (!string.IsNullOrEmpty(component.ChineseDescription))
+                    if (!string.IsNullOrEmpty(property.ChineseName) || !string.IsNullOrEmpty(property.ChineseDescription))
                     {
                         b.AddParent("i18n:", b2 =>
                         {
                             b2.AddParent("zh:", b3 =>
                             {
-                                b3.AddChild($"name: \"{EscapeYamlValue(component.ChineseDescription)}\"");
-                                b3.AddChild($"description: \"{EscapeYamlValue(component.ChineseDescription)}\"");
+                                b3.AddChild($"name: \"{EscapeYamlValue(property.ChineseName ?? "")}\"");
+                                b3.AddChild($"description: \"{EscapeYamlValue(property.ChineseDescription ?? "")}\"");
                             });
                         });
                     }
@@ -72,4 +75,3 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
         }
     }
 }
-

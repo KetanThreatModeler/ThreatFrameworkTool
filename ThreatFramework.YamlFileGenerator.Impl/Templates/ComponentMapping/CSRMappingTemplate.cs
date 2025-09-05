@@ -7,17 +7,17 @@ using ThreatFramework.Core.Models.ComponentMapping;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
 {
-    public static class CSRMappingYamlTemplate
+    public static class CSRMappingTemplate
     {
-        public static string GenerateComponentSecurityRequirementYaml(ComponentSecurityRequirementMapping csrMapping)
+        public static string Generate(ComponentSecurityRequirementMapping csrMapping)
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-sr")
                 .AddChild("apiVersion: v1")
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"componentGuid: \"{csrMapping.ComponentId}\"");
-                    b.AddChild($"securityRequirementGuid: \"{csrMapping.SecurityRequirementId}\"");
+                    b.AddChild($"componentGuid: \"{csrMapping.ComponentGuid}\"");
+                    b.AddChild($"securityRequirementGuid: \"{csrMapping.SecurityRequirementGuid}\"");
                     b.AddParent("flags:", b2 =>
                     {
                         b2.AddChild($"isHidden: {csrMapping.IsHidden.ToString().ToLower()}");

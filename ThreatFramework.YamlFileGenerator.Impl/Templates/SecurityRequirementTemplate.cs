@@ -7,44 +7,40 @@ using ThreatFramework.Core.Models.CoreEntities;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {
-    public static class PropertyYamlTemplate
+    public static class SecurityRequirementTemplate
     {
-        public static string GeneratePropertyYaml(Property property)
+        public static string Generate(SecurityRequirement securityRequirement)
         {
-            var labels = ParseLabels(property.Labels);
+            var labels = ParseLabels(securityRequirement.Labels);
             var labelsArray = labels.Any() ? $"[{string.Join(", ", labels)}]" : "[]";
 
             var yaml = new YamlBuilder()
-                .AddChild("kind: property")
-                .AddChild("apiVersion: v1")
+                .AddChild("kind: security-requirement")
                 .AddParent("metadata:", b =>
                 {
-                    b.AddChild($"guid: \"{property.Guid}\"");
-                    b.AddChild($"name: \"{EscapeYamlValue(property.Name)}\"");
-                    b.AddChild($"libraryGuid: \"{property.LibraryId}\"");
+                    b.AddChild($"guid: \"{securityRequirement.Guid}\"");
+                    b.AddChild($"name: \"{EscapeYamlValue(securityRequirement.Name)}\"");
+                    b.AddChild($"libraryGuid: \"{securityRequirement.LibraryId}\"");
                     b.AddChild($"labels: {labelsArray}");
                 })
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"propertyTypeGuid: \"{property.PropertyTypeId}\"");
+                    b.AddChild($"description: \"{EscapeYamlValue(securityRequirement.Description ?? "")}\"");
                     b.AddParent("flags:", b2 =>
                     {
-                        b2.AddChild($"isSelected: {property.IsSelected.ToString().ToLower()}");
-                        b2.AddChild($"isOptional: {property.IsOptional.ToString().ToLower()}");
-                        b2.AddChild($"isGlobal: {property.IsGlobal.ToString().ToLower()}");
-                        b2.AddChild($"isHidden: {property.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {property.IsOverridden.ToString().ToLower()}");
+                        b2.AddChild($"isCompensatingControl: {securityRequirement.IsCompensatingControl.ToString().ToLower()}");
+                        b2.AddChild($"isHidden: {securityRequirement.IsHidden.ToString().ToLower()}");
+                        b2.AddChild($"isOverridden: {securityRequirement.IsOverridden.ToString().ToLower()}");
                     });
-                    b.AddChild($"description: \"{EscapeYamlValue(property.Description ?? "")}\"");
 
-                    if (!string.IsNullOrEmpty(property.ChineseName) || !string.IsNullOrEmpty(property.ChineseDescription))
+                    if (!string.IsNullOrEmpty(securityRequirement.ChineseName) || !string.IsNullOrEmpty(securityRequirement.ChineseDescription))
                     {
                         b.AddParent("i18n:", b2 =>
                         {
                             b2.AddParent("zh:", b3 =>
                             {
-                                b3.AddChild($"name: \"{EscapeYamlValue(property.ChineseName ?? "")}\"");
-                                b3.AddChild($"description: \"{EscapeYamlValue(property.ChineseDescription ?? "")}\"");
+                                b3.AddChild($"name: \"{EscapeYamlValue(securityRequirement.ChineseName ?? "")}\"");
+                                b3.AddChild($"description: \"{EscapeYamlValue(securityRequirement.ChineseDescription ?? "")}\"");
                             });
                         });
                     }

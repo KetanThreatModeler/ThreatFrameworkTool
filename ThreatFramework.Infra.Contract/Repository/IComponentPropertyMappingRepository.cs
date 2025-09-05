@@ -1,9 +1,14 @@
-﻿using ThreatFramework.Core.Models.PropertyMapping;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ThreatFramework.Core.Models.PropertyMapping;
 
-namespace ThreatFramework.Infrastructure.Interfaces.Repositories
+namespace ThreatFramework.Infra.Contract.Repository
 {
     public interface IComponentPropertyMappingRepository
     {
-        Task<IEnumerable<ComponentPropertyMapping>> GetAllComponentPropertyMappingsAsync();
+        Task<IEnumerable<ComponentPropertyMapping>> GetMappingsByLibraryIdAsync(IEnumerable<Guid> libraryGuids);
+        Task<IEnumerable<ComponentPropertyMapping>> GetReadOnlyMappingsAsync();
     }
 }

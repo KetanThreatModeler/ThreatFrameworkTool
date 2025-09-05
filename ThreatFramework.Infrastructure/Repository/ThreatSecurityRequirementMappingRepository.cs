@@ -81,8 +81,8 @@ namespace ThreatFramework.Infrastructure.Repository
             {
                 mappings.Add(new ThreatSecurityRequirementMapping
                 {
-                    ThreatId = (Guid)reader["ThreatGuid"],
-                    SecurityRequirementId = (Guid)reader["SecurityRequirementGuid"],
+                    ThreatGuid = (Guid)reader["ThreatGuid"],
+                    SecurityRequirementGuid = (Guid)reader["SecurityRequirementGuid"],
                     IsHidden = (bool)reader["isHidden"],
                     IsOverridden = (bool)reader["IsOverridden"]
                 });

@@ -7,9 +7,9 @@ using ThreatFramework.Core.Models.CoreEntities;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {
-    public static class PropertyOptionYamlTemplate
+    public static class PropertyOptionTemplate
     {
-        public static string GeneratePropertyOptionYaml(PropertyOption propertyOption)
+        public static string Generate(PropertyOption propertyOption)
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: property-option")

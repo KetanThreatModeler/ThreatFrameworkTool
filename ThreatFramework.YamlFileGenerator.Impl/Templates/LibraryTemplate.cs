@@ -2,9 +2,9 @@
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {
-    public static class LibraryYamlTemplate
+    public static class LibraryTemplate
     {
-        public static string GenerateLibraryYaml(Library library)
+        public static string Generate(Library library)
         {
             var labels = ParseLabels(library.Labels);
             var labelsArray = labels.Any() ? $"[{string.Join(", ", labels)}]" : "[]";

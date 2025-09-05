@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infrastructure.Interfaces.Repositories;
+using ThreatFramework.Infra.Contract.Repository;
 
 namespace ThreatFramework.Infrastructure.Services
 {
@@ -39,7 +39,7 @@ namespace ThreatFramework.Infrastructure.Services
         public async Task<Guid> GetGuidByIdAsync(int libraryId)
         {
             await EnsureCacheInitializedAsync();
-            return _idToGuidCache.TryGetValue(libraryId, out var guid) ? guid : null;
+            return _idToGuidCache.TryGetValue(libraryId, out var guid) ? guid : Guid.Empty;
         }
 
         public async Task<bool> IsLibraryReadonlyAsync(Guid libraryGuid)

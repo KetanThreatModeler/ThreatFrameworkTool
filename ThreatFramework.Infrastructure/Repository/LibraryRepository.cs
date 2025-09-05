@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.Models.Cache;
 using ThreatFramework.Core.Models.CoreEntities;
-using ThreatFramework.Infrastructure.Interfaces.Repositories;
+using ThreatFramework.Infra.Contract.Repository;
 
 namespace ThreatFramework.Infrastructure.Repository
 {

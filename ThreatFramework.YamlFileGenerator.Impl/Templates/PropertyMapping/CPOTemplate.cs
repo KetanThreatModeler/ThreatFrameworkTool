@@ -1,21 +1,18 @@
 ﻿using ThreatFramework.Core.Models.PropertyMapping;
 
-namespace ThreatFramework.YamlFileGenerator.Impl.Templates.Mapping
+namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
 {
-    public static class CPOYamlTemplate
+    public static class CPOTemplate
     {
-        public static string GenerateComponentPropertyOptionYaml(ComponentPropertyOptionMapping componentPropertyOption)
+        public static string Generate(ComponentPropertyOptionMapping componentPropertyOption)
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-property-option")
-                .AddParent("metadata:", b =>
-                {
-                    b.AddChild($"id: {componentPropertyOption.Id}");
-                })
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"componentPropertyId: {componentPropertyOption.ComponentPropertyId}");
-                    b.AddChild($"propertyOptionId: {componentPropertyOption.PropertyOptionId}");
+                    b.AddChild($"componentGuid: {componentPropertyOption.ComponentGuid}");
+                    b.AddChild($"propertyGuid: {componentPropertyOption.PropertyGuid}");
+                    b.AddChild($"propertyOptionId: {componentPropertyOption.PropertyOptionGuid}");
                     b.AddParent("flags:", b2 =>
                     {
                         b2.AddChild($"isDefault: {componentPropertyOption.IsDefault.ToString().ToLower()}");

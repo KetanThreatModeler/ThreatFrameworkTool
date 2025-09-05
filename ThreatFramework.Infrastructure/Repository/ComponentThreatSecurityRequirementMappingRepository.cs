@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using ThreatFramework.Core.Models.ComponentMapping;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infrastructure.Interfaces.Repositories;
+using ThreatFramework.Infra.Contract.Repository;
 
 namespace ThreatFramework.Infrastructure.Repository
 {

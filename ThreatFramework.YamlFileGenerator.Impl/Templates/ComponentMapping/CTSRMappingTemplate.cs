@@ -7,9 +7,9 @@ using ThreatFramework.Core.Models.ComponentMapping;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
 {
-    public static class CTSRMappingYamlTemplate
+    public static class CTSRMappingTemplate
     {
-        public static string GenerateComponentThreatSecurityRequirementYaml(ComponentThreatSecurityRequirementMapping ctsrMapping)
+        public static string Generate(ComponentThreatSecurityRequirementMapping ctsrMapping)
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-threat-sr")
@@ -20,8 +20,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
                 })
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"componentThreatId: {ctsrMapping.ComponentThreatId}");
-                    b.AddChild($"securityRequirementGuid: \"{ctsrMapping.SecurityRequirementId}\"");
+                    b.AddChild($"componentThreatGuid: {ctsrMapping.ComponentGuid}");
+                    b.AddChild($"securityRequirementGuid: \"{ctsrMapping.SecurityRequirementGuid}\"");
                     b.AddParent("flags:", b2 =>
                     {
                         b2.AddChild($"isHidden: {ctsrMapping.IsHidden.ToString().ToLower()}");

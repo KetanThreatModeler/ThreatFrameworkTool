@@ -1,7 +1,6 @@
-
 using ThreatFramework.Core.Models.IndexModel;
 
-namespace ThreatFramework.Infrastructure.Interfaces
+namespace ThreatFramework.Infra.Contract.Index
 {
     public interface IIndexService
     {
