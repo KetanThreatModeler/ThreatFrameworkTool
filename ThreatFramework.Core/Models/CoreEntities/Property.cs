@@ -3,7 +3,7 @@
     public class Property
     {
         public int Id { get; set; }
-        public int LibraryId { get; set; }
+        public Guid LibraryId { get; set; }
         public int PropertyTypeId { get; set; }
         public bool IsSelected { get; set; }
         public bool IsOptional { get; set; }

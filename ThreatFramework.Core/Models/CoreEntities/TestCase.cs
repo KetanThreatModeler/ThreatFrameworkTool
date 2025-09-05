@@ -3,7 +3,7 @@
     public class TestCase
     {
         public int Id { get; set; }
-        public int LibraryId { get; set; }
+        public Guid LibraryId { get; set; }
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
         public DateTime CreatedDate { get; set; }

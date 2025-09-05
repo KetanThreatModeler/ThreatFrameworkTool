@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public int RiskId { get; set; }
-        public int LibraryId { get; set; }
+        public Guid LibraryId { get; set; }
         public bool IsCompensatingControl { get; set; }
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
