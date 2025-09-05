@@ -5,6 +5,7 @@ namespace ThreatFramework.Infrastructure.Interfaces.Repositories
 
     public interface IComponentThreatSecurityRequirementMappingRepository
     {
-        Task<IEnumerable<ComponentThreatSecurityRequirementMapping>> GetAllComponentThreatSecurityRequirementMappingsAsync();
+        Task<IEnumerable<ComponentThreatSecurityRequirementMapping>> GetMappingsByLibraryIdAsync(IEnumerable<Guid> libraryGuids);
+        Task<IEnumerable<ComponentThreatSecurityRequirementMapping>> GetReadOnlyMappingsAsync();
     }
 }

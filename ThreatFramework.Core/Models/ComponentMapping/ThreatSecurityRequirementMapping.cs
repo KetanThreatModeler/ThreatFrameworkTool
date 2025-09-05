@@ -2,8 +2,8 @@
 {
     public class ThreatSecurityRequirementMapping
     {
-        public int SecurityRequirementId { get; set; }
-        public int ThreatId { get; set; }
+        public Guid SecurityRequirementId { get; set; }
+        public Guid ThreatId { get; set; }
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
     }
