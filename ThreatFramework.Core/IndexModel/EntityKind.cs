@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatFramework.Core.Models.IndexModel
+namespace ThreatFramework.Core.IndexModel
 {
     public enum EntityKind
     {

@@ -1,9 +1,11 @@
-﻿namespace ThreatFramework.Core.Models.ComponentMapping
+﻿namespace ThreatFramework.Core.PropertyMapping
 {
-    public class ComponentThreatSecurityRequirementMapping
+    public class ComponentPropertyOptionThreatSecurityRequirementMapping
     {
         public int Id { get; set; }
         public Guid ComponentGuid { get; set; }
+        public Guid PropertyGuid { get; set; }
+        public Guid PropertyOptionGuid { get; set; }
         public Guid ThreatGuid { get; set; }
         public Guid SecurityRequirementGuid { get; set; }
         public bool IsHidden { get; set; }

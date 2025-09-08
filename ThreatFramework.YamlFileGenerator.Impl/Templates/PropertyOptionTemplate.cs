@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Core.Models.CoreEntities;
+using ThreatFramework.Core.CoreEntities;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
 {

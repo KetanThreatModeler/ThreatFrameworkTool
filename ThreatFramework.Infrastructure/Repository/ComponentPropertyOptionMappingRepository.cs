@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using ThreatFramework.Core.Models.PropertyMapping;
+using ThreatFramework.Core.PropertyMapping;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
 
@@ -69,7 +69,7 @@ namespace ThreatFramework.Infrastructure.Repository
             return @"SELECT cpom.Id, cpom.IsDefault, cpom.isHidden, cpom.IsOverridden, 
                             c.Guid as ComponentGuid, p.Guid as PropertyGuid, po.Guid as PropertyOptionGuid
                         FROM ComponentPropertyOptionMapping cpom
-                        INNER JOIN ComponentProperty cp ON cpom.ComponentPropertyId = cp.Id
+                        INNER JOIN ComponentPropertyMapping cp ON cpom.ComponentPropertyId = cp.Id
                         INNER JOIN Components c ON cp.ComponentId = c.Id
                         INNER JOIN Properties p ON cp.PropertyId = p.Id
                         INNER JOIN PropertyOptions po ON cpom.PropertyOptionId = po.Id";

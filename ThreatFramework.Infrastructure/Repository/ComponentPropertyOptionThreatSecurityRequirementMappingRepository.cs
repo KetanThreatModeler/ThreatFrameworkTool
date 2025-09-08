@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using ThreatFramework.Core.Models.PropertyMapping;
+using ThreatFramework.Core.PropertyMapping;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
 
@@ -77,7 +77,7 @@ namespace ThreatFramework.Infrastructure.Repository
                         FROM ComponentPropertyOptionThreatSecurityRequirementMapping cpotsrm
                         INNER JOIN ComponentPropertyOptionThreatMapping cpotm ON cpotsrm.ComponentPropertyOptionThreatId = cpotm.Id
                         INNER JOIN ComponentPropertyOptionMapping cpom ON cpotm.ComponentPropertyOptionId = cpom.Id
-                        INNER JOIN ComponentProperty cp ON cpom.ComponentPropertyId = cp.Id
+                        INNER JOIN ComponentPropertyMapping cp ON cpom.ComponentPropertyId = cp.Id
                         INNER JOIN Components c ON cp.ComponentId = c.Id
                         INNER JOIN Properties p ON cp.PropertyId = p.Id
                         INNER JOIN PropertyOptions po ON cpom.PropertyOptionId = po.Id

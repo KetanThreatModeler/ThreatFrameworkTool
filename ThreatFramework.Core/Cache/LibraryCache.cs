@@ -1,4 +1,4 @@
-﻿namespace ThreatFramework.Core.Models.Cache
+﻿namespace ThreatFramework.Core.Cache
 {
     public class LibraryCache
     {

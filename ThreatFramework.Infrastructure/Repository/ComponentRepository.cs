@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using ThreatFramework.Core.Models.CoreEntities;
+using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
 

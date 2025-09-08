@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using ThreatFramework.Core.IndexModel;
 using ThreatFramework.Infra.Contract.Index;
 
 namespace ThreatFramework.API.Controllers
@@ -133,7 +134,12 @@ namespace ThreatFramework.API.Controllers
                     return BadRequest(new { Message = "Kind parameter cannot be empty" });
                 }
 
-                var id = _indexService.GetIdByKindAndGuid(kind, guid);
+                if (!Enum.TryParse<EntityKind>(kind, true, out var entityKind))
+                {
+                    return BadRequest(new { Message = $"Invalid kind '{kind}'. Valid values are: {string.Join(", ", Enum.GetNames<EntityKind>())}" });
+                }
+
+                var id = _indexService.GetIdByKindAndGuid(entityKind, guid);
                 
                 if (id.HasValue)
                 {
@@ -202,7 +208,12 @@ namespace ThreatFramework.API.Controllers
                     return BadRequest(new { Message = "Kind parameter cannot be empty" });
                 }
 
-                var items = _indexService.GetItemsByKind(kind);
+                if (!Enum.TryParse<EntityKind>(kind, true, out var entityKind))
+                {
+                    return BadRequest(new { Message = $"Invalid kind '{kind}'. Valid values are: {string.Join(", ", Enum.GetNames<EntityKind>())}" });
+                }
+
+                var items = _indexService.GetItemsByKind(entityKind);
                 return Ok(new { Kind = kind, Items = items, Count = items.Count() });
             }
             catch (Exception ex)

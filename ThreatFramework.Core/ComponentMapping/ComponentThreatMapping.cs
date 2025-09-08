@@ -1,4 +1,4 @@
-﻿namespace ThreatFramework.Core.Models.ComponentMapping
+﻿namespace ThreatFramework.Core.ComponentMapping
 {
     public class ComponentThreatMapping
     {

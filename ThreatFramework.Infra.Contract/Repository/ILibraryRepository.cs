@@ -1,5 +1,5 @@
-﻿using ThreatFramework.Core.Models.Cache;
-using ThreatFramework.Core.Models.CoreEntities;
+﻿using ThreatFramework.Core.Cache;
+using ThreatFramework.Core.CoreEntities;
 
 namespace ThreatFramework.Infra.Contract.Repository
 {

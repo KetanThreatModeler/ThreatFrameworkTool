@@ -2,6 +2,7 @@
 {
     public interface IYamlFileGenerator
     {
+        Task GenerateFilesToPathAsync(string path);
         Task<(string path, int fileCount)> GenerateYamlFilesForSpecificLibraries(string path, List<Guid> libraryIds);
         Task<(string path, int fileCount)> GenerateYamlFilesForSpecificThreats(string path, List<Guid> libraryIds);
         Task<(string path, int fileCount)> GenerateYamlFilesForSpecificComponents(string path, List<Guid> libraryIds);

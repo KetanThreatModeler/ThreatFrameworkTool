@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ThreatFramework.Core.Models.CoreEntities
+namespace ThreatFramework.Core.CoreEntities
 {
 
     public class PropertyOption

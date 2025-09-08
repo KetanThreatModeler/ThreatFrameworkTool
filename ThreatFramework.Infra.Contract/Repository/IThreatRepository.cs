@@ -1,4 +1,4 @@
-﻿using ThreatFramework.Core.Models.CoreEntities;
+﻿using ThreatFramework.Core.CoreEntities;
 
 namespace ThreatFramework.Infra.Contract.Repository
 {

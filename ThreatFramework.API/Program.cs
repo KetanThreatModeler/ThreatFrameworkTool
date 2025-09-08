@@ -5,6 +5,8 @@ using ThreatFramework.Infrastructure;
 using ThreatFramework.Infrastructure.Configuration;
 using ThreatFramework.Infrastructure.Repository;
 using ThreatFramework.Infrastructure.Services;
+using ThreatFramework.YamlFileGenerator.Contract;
+using ThreatFramework.YamlFileGenerator.Impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,9 +21,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<ThreatModelingOptions>(
     builder.Configuration.GetSection(ThreatModelingOptions.SectionName));
 
+// Core services
 builder.Services.AddSingleton<IIndexService, IndexService>();
-builder.Services.AddSingleton<ILibraryCacheService, LibraryCacheService>();
+builder.Services.AddScoped<ILibraryCacheService, LibraryCacheService>();
 builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>(); 
+
+// Repository registrations
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<IComponentRepository, ComponentRepository>();
 builder.Services.AddScoped<IThreatRepository, ThreatRepository>();
@@ -29,6 +34,8 @@ builder.Services.AddScoped<ISecurityRequirementRepository, SecurityRequirementRe
 builder.Services.AddScoped<ITestcaseRepository, TestcaseRepository>();
 builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
 builder.Services.AddScoped<IPropertyOptionRepository, PropertyOptionRepository>();
+
+// Mapping repository registrations
 builder.Services.AddScoped<IComponentPropertyMappingRepository, ComponentPropertyMappingRepository>();
 builder.Services.AddScoped<IComponentPropertyOptionMappingRepository, ComponentPropertyOptionMappingRepository>();
 builder.Services.AddScoped<IComponentPropertyOptionThreatMappingRepository, ComponentPropertyOptionThreatMappingRepository>();
@@ -36,6 +43,10 @@ builder.Services.AddScoped<IComponentPropertyOptionThreatSecurityRequirementMapp
 builder.Services.AddScoped<IThreatSecurityRequirementMappingRepository, ThreatSecurityRequirementMappingRepository>();
 builder.Services.AddScoped<IComponentThreatMappingRepository, ComponentThreatMappingRepository>();
 builder.Services.AddScoped<IComponentThreatSecurityRequirementMappingRepository, ComponentThreatSecurityRequirementMappingRepository>();
+builder.Services.AddScoped<IComponentSecurityRequirementMappingRepository, ComponentSecurityRequirementMappingRepository>();
+
+// YAML generator service
+builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();
 
 var app = builder.Build();
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using ThreatFramework.Core.Models.ComponentMapping;
+using ThreatFramework.Core.ComponentMapping;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
 

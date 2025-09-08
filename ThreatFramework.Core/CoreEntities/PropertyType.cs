@@ -1,4 +1,4 @@
-﻿namespace ThreatFramework.Core.Models.CoreEntities
+﻿namespace ThreatFramework.Core.CoreEntities
 {
     public class PropertyType
     {

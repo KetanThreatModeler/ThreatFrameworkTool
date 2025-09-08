@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ThreatFramework.Infrastructure\ThreatFramework.Infrastructure.csproj" />
+    <ProjectReference Include="..\ThreatFramework.YamlFileGenerator.Contract\ThreatFramework.YamlFileGenerator.Contract.csproj" />
+    <ProjectReference Include="..\ThreatFramework.YamlFileGenerator.Impl\ThreatFramework.YamlFileGenerator.Impl.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Core.Models.PropertyMapping;
+using ThreatFramework.Core.PropertyMapping;
 
 namespace ThreatFramework.Infra.Contract.Repository
 {

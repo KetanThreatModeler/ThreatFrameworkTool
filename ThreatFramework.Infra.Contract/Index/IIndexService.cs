@@ -1,5 +1,5 @@
-using ThreatFramework.Core.Models.IndexModel;
 using ThreatFramework.Core;
+using ThreatFramework.Core.IndexModel;
 
 namespace ThreatFramework.Infra.Contract.Index
 {

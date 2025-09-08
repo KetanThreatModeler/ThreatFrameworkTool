@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using ThreatFramework.Core.Models.CoreEntities;
+using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
 
@@ -42,7 +42,7 @@ namespace ThreatFramework.Infrastructure.Repository
                     IsOverridden = (bool)reader["IsOverridden"],
                     CreatedDate = (DateTime)reader["CreatedDate"],
                     LastUpdated = reader["LastUpdated"] as DateTime?,
-                    Guid = reader["Guid"] as Guid?,
+                    Guid = (Guid)reader["Guid"],
                     OptionText = reader["OptionText"] as string,
                     ChineseOptionText = reader["ChineseOptionText"] as string
                 });

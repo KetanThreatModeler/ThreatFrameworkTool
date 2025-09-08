@@ -1,4 +1,4 @@
-﻿namespace ThreatFramework.Core.Models.IndexModel
+﻿namespace ThreatFramework.Core.IndexModel
 {
     public class IndexItem
     {

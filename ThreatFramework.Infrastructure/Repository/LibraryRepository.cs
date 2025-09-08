@@ -4,9 +4,9 @@ using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Core.Models.Cache;
-using ThreatFramework.Core.Models.CoreEntities;
 using ThreatFramework.Infra.Contract.Repository;
+using ThreatFramework.Core.Cache;
+using ThreatFramework.Core.CoreEntities;
 
 namespace ThreatFramework.Infrastructure.Repository
 {
