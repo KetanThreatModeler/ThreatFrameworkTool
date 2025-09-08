@@ -4,7 +4,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
 {
     public static class CPOTSRTemplate
     {
-        public static string GenerateCPOTSR(ComponentPropertyOptionThreatSecurityRequirementMapping cpoSecurityRequirement)
+        public static string Generate(ComponentPropertyOptionThreatSecurityRequirementMapping cpoSecurityRequirement)
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.cpo-threat-sr")

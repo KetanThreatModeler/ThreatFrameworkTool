@@ -2,7 +2,7 @@
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
 {
-    public static class CTMappingTemplate
+    public static class CTHMappingTemplate
     {
         public static string Generate(ComponentThreatMapping ctMapping)
         {

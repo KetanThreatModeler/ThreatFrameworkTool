@@ -20,6 +20,10 @@ namespace ThreatFramework.Infrastructure.Services
         private volatile ConcurrentDictionary<string, ConcurrentDictionary<Guid, int>> _kindGuidToIdMap = new();
         private volatile ConcurrentDictionary<string, List<IndexItem>> _kindToItemsMap = new();
         
+        // Enum-based optimized dictionaries for minimal memory usage
+        private volatile ConcurrentDictionary<EntityKind, ConcurrentDictionary<Guid, int>> _entityKindGuidToIdMap = new();
+        private volatile ConcurrentDictionary<EntityKind, IndexItem[]> _entityKindToItemsMap = new();
+        
         private DateTime _lastRefreshed = DateTime.MinValue;
         private readonly object _refreshLock = new object();
 
@@ -53,6 +57,12 @@ namespace ThreatFramework.Infrastructure.Services
                    kindMap.TryGetValue(guid, out var id) ? id : null;
         }
 
+        public int? GetIdByKindAndGuid(EntityKind kind, Guid guid)
+        {
+            return _entityKindGuidToIdMap.TryGetValue(kind, out var kindMap) && 
+                   kindMap.TryGetValue(guid, out var id) ? id : null;
+        }
+
         public IndexItem? GetItemByGuid(Guid guid)
         {
             return _guidToItemMap.TryGetValue(guid, out var item) ? item : null;
@@ -65,6 +75,13 @@ namespace ThreatFramework.Infrastructure.Services
 
             return _kindToItemsMap.TryGetValue(kind.ToLowerInvariant(), out var items) 
                 ? items.AsReadOnly() 
+                : Enumerable.Empty<IndexItem>();
+        }
+
+        public IEnumerable<IndexItem> GetItemsByKind(EntityKind kind)
+        {
+            return _entityKindToItemsMap.TryGetValue(kind, out var items) 
+                ? items 
                 : Enumerable.Empty<IndexItem>();
         }
 
@@ -127,6 +144,8 @@ namespace ThreatFramework.Infrastructure.Services
                 var newGuidToIdMap = new ConcurrentDictionary<Guid, int>();
                 var newKindGuidToIdMap = new ConcurrentDictionary<string, ConcurrentDictionary<Guid, int>>();
                 var newKindToItemsMap = new ConcurrentDictionary<string, List<IndexItem>>();
+                var newEntityKindGuidToIdMap = new ConcurrentDictionary<EntityKind, ConcurrentDictionary<Guid, int>>();
+                var entityKindItemsTemp = new Dictionary<EntityKind, List<IndexItem>>();
 
                 int processedCount = 0;
                 int skippedCount = 0;
@@ -153,7 +172,7 @@ namespace ThreatFramework.Infrastructure.Services
                     // GUID to ID mapping
                     newGuidToIdMap[item.Guid] = item.Id;
 
-                    // Kind + GUID to ID mapping
+                    // String-based mappings (for backward compatibility)
                     var normalizedKind = item.Kind?.ToLowerInvariant() ?? string.Empty;
                     if (!newKindGuidToIdMap.ContainsKey(normalizedKind))
                     {
@@ -161,14 +180,36 @@ namespace ThreatFramework.Infrastructure.Services
                     }
                     newKindGuidToIdMap[normalizedKind][item.Guid] = item.Id;
 
-                    // Kind to Items mapping
                     if (!newKindToItemsMap.ContainsKey(normalizedKind))
                     {
                         newKindToItemsMap[normalizedKind] = new List<IndexItem>();
                     }
                     newKindToItemsMap[normalizedKind].Add(item);
+
+                    // Enum-based mappings (optimized)
+                    if (Enum.TryParse<EntityKind>(item.Kind, true, out var entityKind))
+                    {
+                        if (!newEntityKindGuidToIdMap.ContainsKey(entityKind))
+                        {
+                            newEntityKindGuidToIdMap[entityKind] = new ConcurrentDictionary<Guid, int>();
+                        }
+                        newEntityKindGuidToIdMap[entityKind][item.Guid] = item.Id;
+
+                        if (!entityKindItemsTemp.ContainsKey(entityKind))
+                        {
+                            entityKindItemsTemp[entityKind] = new List<IndexItem>();
+                        }
+                        entityKindItemsTemp[entityKind].Add(item);
+                    }
                     
                     processedCount++;
+                }
+
+                // Convert lists to arrays for minimal memory footprint
+                var newEntityKindToItemsMap = new ConcurrentDictionary<EntityKind, IndexItem[]>();
+                foreach (var kvp in entityKindItemsTemp)
+                {
+                    newEntityKindToItemsMap[kvp.Key] = kvp.Value.ToArray();
                 }
 
                 _logger.LogInformation("Processing complete. Processed: {ProcessedCount}, Skipped: {SkippedCount}", processedCount, skippedCount);
@@ -178,6 +219,8 @@ namespace ThreatFramework.Infrastructure.Services
                 _guidToIdMap = newGuidToIdMap;
                 _kindGuidToIdMap = newKindGuidToIdMap;
                 _kindToItemsMap = newKindToItemsMap;
+                _entityKindGuidToIdMap = newEntityKindGuidToIdMap;
+                _entityKindToItemsMap = newEntityKindToItemsMap;
                 _lastRefreshed = DateTime.UtcNow;
 
                 _logger.LogInformation("Successfully refreshed index cache with {ItemCount} items from {FilePath}", 
@@ -201,9 +244,9 @@ namespace ThreatFramework.Infrastructure.Services
                 YamlFilePath = GetResolvedYamlPath()
             };
 
-            foreach (var kvp in _kindToItemsMap)
+            foreach (var kvp in _entityKindToItemsMap)
             {
-                stats.ItemsByKind[kvp.Key] = kvp.Value.Count;
+                stats.ItemsByKind[kvp.Key] = kvp.Value.Length;
             }
 
             return stats;
@@ -220,5 +263,5 @@ namespace ThreatFramework.Infrastructure.Services
             var basePath = AppDomain.CurrentDomain.BaseDirectory;
             return Path.GetFullPath(Path.Combine(basePath, _options.IndexYamlPath));
         }
-    }
+        }
 }

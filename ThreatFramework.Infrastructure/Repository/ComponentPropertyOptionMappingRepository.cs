@@ -16,9 +16,9 @@ namespace ThreatFramework.Infrastructure.Repository
             _libraryCacheService = libraryCacheService;
         }
 
-        public async Task<IEnumerable<ComponentPropertyOptionMapping>> GetMappingsByLibraryGuidAsync(Guid libraryGuid)
+        public async Task<IEnumerable<ComponentPropertyOptionMapping>> GetMappingsByLibraryGuidAsync(IEnumerable<Guid> libraryGuids)
         {
-            var libraryIds = await _libraryCacheService.GetIdsFromGuid(new[] { libraryGuid });
+            var libraryIds = await _libraryCacheService.GetIdsFromGuid(libraryGuids);
 
             if (!libraryIds.Any())
                 return Enumerable.Empty<ComponentPropertyOptionMapping>();
