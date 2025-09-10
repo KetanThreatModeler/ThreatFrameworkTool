@@ -5,51 +5,40 @@ using ThreatFramework.Git.Contract;
 
 namespace ThreatFramework.Git.Impl
 {
-    public class RemoteVsFolderDiffService : IDiffSummaryService
+    public class FolderToFolderDiffService : IFolderToFolderDiffService
     {
-        private readonly ILogger<RemoteVsFolderDiffService> _log;
+        private readonly ILogger<FolderToFolderDiffService> _log;
 
-        public RemoteVsFolderDiffService(ILogger<RemoteVsFolderDiffService> log)
+        public FolderToFolderDiffService(ILogger<FolderToFolderDiffService> log)
         {
             _log = log;
         }
 
-        public async Task<DiffSummaryResponse> CompareAsync(DiffSummaryRequest request, CancellationToken ct)
+        public async Task<DiffSummaryResponse> CompareAsync(FolderToFolderDiffRequest request, CancellationToken ct)
         {
             ValidatePaths(request);
 
-            // 1) Clone the remote baseline repo to a temp working dir (to read files)
-            var baselineCloneDir = Path.Combine(Path.GetTempPath(), $"baseline-{Guid.NewGuid()}");
-            Repository.Clone(request.RemoteRepoUrl, baselineCloneDir);
-            using var baselineRepo = new Repository(baselineCloneDir);
-
-            // (Optional) choose a specific branch/commit here if you want:
-            // var baselineCommit = baselineRepo.Lookup<Commit>("origin/main"); // or a SHA/branch/tag
-            var baselineCommit = baselineRepo.Head.Tip;
-
-            // 2) Create ONE temp repo where we will create TWO commits:
-            //    A) baseline snapshot    B) target snapshot
+            // Create ONE temp repo where we will create TWO commits:
+            // A) baseline folder snapshot    B) target folder snapshot
             var arenaDir = Path.Combine(Path.GetTempPath(), $"arena-{Guid.NewGuid()}");
             Repository.Init(arenaDir);
             using var arenaRepo = new Repository(arenaDir);
             var sig = new Signature("DiffBot", "diff@local", DateTimeOffset.Now);
 
-            // 2A) Commit A: snapshot files from the baseline clone's worktree
-            var baselineWorktreePath = baselineCloneDir;
-            // copy everything EXCEPT its .git folder
-            CopyFiles(baselineWorktreePath, arenaDir, excludeGitFolder: true);
+            // Commit A: snapshot files from the baseline folder
+            CopyFiles(request.BaselineFolderPath, arenaDir, excludeGitFolder: true);
             Commands.Stage(arenaRepo, "*");
-            var commitA = arenaRepo.Commit("baseline snapshot", sig, sig);
+            var commitA = arenaRepo.Commit("baseline folder snapshot", sig, sig);
 
-            // clean working directory for next snapshot (keep .git)
+            // Clean working directory for next snapshot (keep .git)
             ResetWorkingTreeToEmpty(arenaDir);
 
-            // 2B) Commit B: snapshot files from the target folder
-            CopyFiles(request.TargetPath, arenaDir, excludeGitFolder: true);
+            // Commit B: snapshot files from the target folder
+            CopyFiles(request.TargetFolderPath, arenaDir, excludeGitFolder: true);
             Commands.Stage(arenaRepo, "*");
-            var commitB = arenaRepo.Commit("target snapshot", sig, sig);
+            var commitB = arenaRepo.Commit("target folder snapshot", sig, sig);
 
-            // 3) Diff inside the SAME repo (commitA -> commitB)
+            // Diff inside the SAME repo (commitA -> commitB)
             var patch = arenaRepo.Diff.Compare<Patch>(commitA.Tree, commitB.Tree);
 
             var addedFiles = new List<string>();
@@ -76,13 +65,12 @@ namespace ThreatFramework.Git.Impl
                 }
             }
 
-            // 4) Cleanup temp dirs
-            TryDeleteDir(baselineCloneDir);
+            // Cleanup temp dirs
             TryDeleteDir(arenaDir);
 
             return await Task.FromResult(new DiffSummaryResponse(
-                request.RemoteRepoUrl,
-                request.TargetPath,
+                request.BaselineFolderPath,
+                request.TargetFolderPath,
                 addedFiles.Count,
                 removedFiles.Count,
                 modifiedFiles.Count,
@@ -96,12 +84,12 @@ namespace ThreatFramework.Git.Impl
 
         private static string Norm(string p) => p.Replace('\\', '/');
 
-        private static void ValidatePaths(DiffSummaryRequest req)
+        private static void ValidatePaths(FolderToFolderDiffRequest req)
         {
-            if (string.IsNullOrWhiteSpace(req.RemoteRepoUrl))
-                throw new ArgumentException("RemoteRepoUrl must not be empty.");
-            if (string.IsNullOrWhiteSpace(req.TargetPath) || !Directory.Exists(req.TargetPath))
-                throw new DirectoryNotFoundException($"Target folder not found: {req.TargetPath}");
+            if (string.IsNullOrWhiteSpace(req.BaselineFolderPath) || !Directory.Exists(req.BaselineFolderPath))
+                throw new DirectoryNotFoundException($"Baseline folder not found: {req.BaselineFolderPath}");
+            if (string.IsNullOrWhiteSpace(req.TargetFolderPath) || !Directory.Exists(req.TargetFolderPath))
+                throw new DirectoryNotFoundException($"Target folder not found: {req.TargetFolderPath}");
         }
 
         private static void CopyFiles(string source, string dest, bool excludeGitFolder)

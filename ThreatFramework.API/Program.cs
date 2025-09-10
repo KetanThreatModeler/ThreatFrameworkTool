@@ -50,6 +50,7 @@ builder.Services.AddScoped<IComponentThreatSecurityRequirementMappingRepository,
 builder.Services.AddScoped<IComponentSecurityRequirementMappingRepository, ComponentSecurityRequirementMappingRepository>();
 
 builder.Services.AddScoped<IDiffSummaryService, RemoteVsFolderDiffService>();
+builder.Services.AddScoped<IFolderToFolderDiffService, FolderToFolderDiffService>();
 
 // YAML generator service
 builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();
