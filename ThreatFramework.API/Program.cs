@@ -1,3 +1,7 @@
+using Microsoft.Extensions.Options;
+using ThreatFramework.Core.Git;
+using ThreatFramework.Git.Contract;
+using ThreatFramework.Git.Impl;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
@@ -44,6 +48,8 @@ builder.Services.AddScoped<IThreatSecurityRequirementMappingRepository, ThreatSe
 builder.Services.AddScoped<IComponentThreatMappingRepository, ComponentThreatMappingRepository>();
 builder.Services.AddScoped<IComponentThreatSecurityRequirementMappingRepository, ComponentThreatSecurityRequirementMappingRepository>();
 builder.Services.AddScoped<IComponentSecurityRequirementMappingRepository, ComponentSecurityRequirementMappingRepository>();
+
+builder.Services.AddScoped<IDiffSummaryService, RemoteVsFolderDiffService>();
 
 // YAML generator service
 builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();

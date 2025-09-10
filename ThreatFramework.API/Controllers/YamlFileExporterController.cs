@@ -22,7 +22,9 @@ namespace ThreatFramework.API.Controllers
         [HttpPost("generate")]
         public async Task<IActionResult> GenerateYamlFiles([FromBody] YamlGenerationRequest request)
         {
-            _logger.LogInformation("Starting YAML file generation request for path: {OutputPath}", request?.OutputPath);
+            var startTime = DateTime.UtcNow;
+            _logger.LogInformation("Starting YAML file generation request for path: {OutputPath} at {StartTime}", 
+                request?.OutputPath, startTime);
 
             try
             {
@@ -35,11 +37,16 @@ namespace ThreatFramework.API.Controllers
                 _logger.LogInformation("Calling YAML file generator for path: {OutputPath}", request.OutputPath);
                 await _yamlFileGenerator.GenerateFilesToPathAsync(request.OutputPath);
                 
-                _logger.LogInformation("YAML file generation completed successfully for path: {OutputPath}", request.OutputPath);
+                var endTime = DateTime.UtcNow;
+                var elapsedTime = endTime - startTime;
+                
+                _logger.LogInformation("YAML file generation completed successfully for path: {OutputPath} in {ElapsedTime}ms", 
+                    request.OutputPath, elapsedTime.TotalMilliseconds);
+                
                 return Ok(new YamlGenerationResponse
                 {
                     Success = true,
-                    Message = "YAML files generated successfully",
+                    Message = $"YAML files generated successfully in {elapsedTime.TotalSeconds:F2} seconds",
                 });
             }
             catch (DirectoryNotFoundException dnfEx)
