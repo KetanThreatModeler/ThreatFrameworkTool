@@ -28,7 +28,17 @@ namespace ThreatFramework.Git.Impl
             // Commit A: snapshot files from the baseline folder
             CopyFiles(request.BaselineFolderPath, arenaDir, excludeGitFolder: true);
             Commands.Stage(arenaRepo, "*");
-            var commitA = arenaRepo.Commit("baseline folder snapshot", sig, sig);
+            
+            Commit commitA;
+            try
+            {
+                commitA = arenaRepo.Commit("baseline folder snapshot", sig, sig);
+            }
+            catch (EmptyCommitException)
+            {
+                // Handle empty baseline folder
+                commitA = arenaRepo.Commit("baseline folder snapshot", sig, sig, new CommitOptions { AllowEmptyCommit = true });
+            }
 
             // Clean working directory for next snapshot (keep .git)
             ResetWorkingTreeToEmpty(arenaDir);
@@ -36,7 +46,17 @@ namespace ThreatFramework.Git.Impl
             // Commit B: snapshot files from the target folder
             CopyFiles(request.TargetFolderPath, arenaDir, excludeGitFolder: true);
             Commands.Stage(arenaRepo, "*");
-            var commitB = arenaRepo.Commit("target folder snapshot", sig, sig);
+            
+            Commit commitB;
+            try
+            {
+                commitB = arenaRepo.Commit("target folder snapshot", sig, sig);
+            }
+            catch (EmptyCommitException)
+            {
+                // Handle empty target folder
+                commitB = arenaRepo.Commit("target folder snapshot", sig, sig, new CommitOptions { AllowEmptyCommit = true });
+            }
 
             // Diff inside the SAME repo (commitA -> commitB)
             var patch = arenaRepo.Diff.Compare<Patch>(commitA.Tree, commitB.Tree);
