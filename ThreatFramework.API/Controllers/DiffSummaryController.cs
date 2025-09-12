@@ -22,14 +22,28 @@ namespace ThreatFramework.API.Controllers
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var requestId = Guid.NewGuid().ToString("N")[..8];
+
+            _log.LogInformation("Starting diff comparison {RequestId} for RemoteRepo: {RemoteRepo}, TargetPath: {TargetPath}",
+                requestId, request.RemoteRepoUrl, request.TargetPath);
+
             try
             {
                 var result = await _service.CompareAsync(request, ct);
+
+                stopwatch.Stop();
+                _log.LogInformation("Diff comparison {RequestId} completed successfully in {ElapsedMs}ms",
+                    requestId, stopwatch.ElapsedMilliseconds);
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "Error running diff");
+                stopwatch.Stop();
+                _log.LogError(ex, "Error running diff comparison {RequestId} after {ElapsedMs}ms. RemoteRepo: {RemoteRepo}, TargetPath: {TargetPath}",
+                    requestId, stopwatch.ElapsedMilliseconds, request.RemoteRepoUrl, request.TargetPath);
+
                 return StatusCode(500, new { error = ex.Message });
             }
         }
