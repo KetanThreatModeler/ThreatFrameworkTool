@@ -5,10 +5,12 @@ using ThreatFramework.Git.Impl;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
+using ThreatFramework.Infra.Contract.YamlRepository;
 using ThreatFramework.Infrastructure;
 using ThreatFramework.Infrastructure.Configuration;
 using ThreatFramework.Infrastructure.Repository;
 using ThreatFramework.Infrastructure.Services;
+using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
 
@@ -48,6 +50,16 @@ builder.Services.AddScoped<IThreatSecurityRequirementMappingRepository, ThreatSe
 builder.Services.AddScoped<IComponentThreatMappingRepository, ComponentThreatMappingRepository>();
 builder.Services.AddScoped<IComponentThreatSecurityRequirementMappingRepository, ComponentThreatSecurityRequirementMappingRepository>();
 builder.Services.AddScoped<IComponentSecurityRequirementMappingRepository, ComponentSecurityRequirementMappingRepository>();
+
+builder.Services.AddScoped<IYamlComponentThreatReader, YamlComponentThreatReader>();
+builder.Services.AddScoped<IYamlComponentThreatSRReader, YamlComponentThreatSRsReader>();
+builder.Services.AddScoped<IYamlComponentSRReader, YamlComponentSRReaders>();
+builder.Services.AddScoped<IYamlThreatSrReader, YamlThreatSrReader>();
+builder.Services.AddScoped<IYamlComponentPropertyReader, YamlComponentPropertyReader>();
+builder.Services.AddScoped<IYamlComponentPropertyOptionReader, YamlComponentPropertyOptionReader>();
+builder.Services.AddScoped<IYamlComponentPropertyOptionThreatReader, YamlCpoThreatReader>();
+builder.Services.AddScoped<IYamlCpoThreatSrReader, YamlCpoThreatSrReader>();
+
 
 builder.Services.AddScoped<IDiffSummaryService, RemoteVsFolderDiffService>();
 builder.Services.AddScoped<IFolderToFolderDiffService, FolderToFolderDiffService>();

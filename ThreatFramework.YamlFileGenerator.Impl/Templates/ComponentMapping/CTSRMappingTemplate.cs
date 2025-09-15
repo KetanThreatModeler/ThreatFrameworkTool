@@ -20,7 +20,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
                 })
                 .AddParent("spec:", b =>
                 {
-                    b.AddChild($"componentThreatGuid: {ctsrMapping.ComponentGuid}");
+                    b.AddChild($"componentGuid: {ctsrMapping.ComponentGuid}");
+                    b.AddChild($"threatGuid: {ctsrMapping.ThreatGuid}");
                     b.AddChild($"securityRequirementGuid: \"{ctsrMapping.SecurityRequirementGuid}\"");
                     b.AddParent("flags:", b2 =>
                     {

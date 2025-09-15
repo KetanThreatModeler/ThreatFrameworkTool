@@ -12,7 +12,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
                 {
                     b.AddChild($"componentGuid: {componentPropertyOption.ComponentGuid}");
                     b.AddChild($"propertyGuid: {componentPropertyOption.PropertyGuid}");
-                    b.AddChild($"propertyOptionId: {componentPropertyOption.PropertyOptionGuid}");
+                    b.AddChild($"propertyOptionGuid: {componentPropertyOption.PropertyOptionGuid}");
                     b.AddParent("flags:", b2 =>
                     {
                         b2.AddChild($"isDefault: {componentPropertyOption.IsDefault.ToString().ToLower()}");
