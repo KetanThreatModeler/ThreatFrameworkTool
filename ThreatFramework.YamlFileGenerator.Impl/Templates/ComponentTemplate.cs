@@ -20,7 +20,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
                 {
                     b.AddChild($"guid: \"{component.Guid}\"");
                     b.AddChild($"name: \"{EscapeYamlValue(component.Name)}\"");
-                    b.AddChild($"libraryId: {component.LibraryId}");
+                    b.AddChild($"libraryId: {component.LibraryGuid}");
                     b.AddChild($"labels: {labelsArray}");
                     b.AddChild($"version: \"{EscapeYamlValue(component.Version ?? "")}\"");
                 })

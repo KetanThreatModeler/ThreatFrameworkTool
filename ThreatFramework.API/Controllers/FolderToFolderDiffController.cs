@@ -3,7 +3,7 @@ using System.Diagnostics;
 using ThreatFramework.Core.Git;
 using ThreatFramework.Git.Contract;
 
-namespace ThreatFramework.API
+namespace ThreatFramework.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

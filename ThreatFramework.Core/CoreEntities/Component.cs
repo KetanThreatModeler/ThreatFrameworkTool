@@ -1,10 +1,10 @@
 ﻿namespace ThreatFramework.Core.CoreEntities
 {
-    public class Component
+    public class Component : IFieldComparable<Component>
     {
         public int Id { get; set; }
         public Guid Guid { get; set; }
-        public Guid LibraryId { get; set; }
+        public Guid LibraryGuid { get; set; }
         public int ComponentTypeId { get; set; }
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
@@ -16,5 +16,8 @@
         public string? Version { get; set; }
         public string? Description { get; set; }
         public string? ChineseDescription { get; set; }
+
+        public IReadOnlyList<FieldChange> CompareFields(Component other, IEnumerable<string> fields)
+       => FieldComparer.CompareByNames(this, other, fields);
     }
 }

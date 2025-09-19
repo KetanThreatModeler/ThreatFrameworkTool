@@ -21,7 +21,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
                 {
                     b.AddChild($"guid: \"{property.Guid}\"");
                     b.AddChild($"name: \"{EscapeYamlValue(property.Name)}\"");
-                    b.AddChild($"libraryGuid: \"{property.LibraryId}\"");
+                    b.AddChild($"libraryGuid: \"{property.LibraryGuid}\"");
                     b.AddChild($"labels: {labelsArray}");
                 })
                 .AddParent("spec:", b =>

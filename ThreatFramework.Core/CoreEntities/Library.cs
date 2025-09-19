@@ -1,6 +1,6 @@
 ﻿namespace ThreatFramework.Core.CoreEntities
 {
-    public class Library
+    public class Library : IFieldComparable<Library>
     {
         public int Id { get; set; }
         public Guid Guid { get; set; }
@@ -16,5 +16,9 @@
         public string? Version { get; set; }
         public string? ReleaseNotes { get; set; }
         public string? ImageURL { get; set; }
+
+        public IReadOnlyList<FieldChange> CompareFields(Library other, IEnumerable<string> fields)
+       => FieldComparer.CompareByNames(this, other, fields);
     }
+     
 }

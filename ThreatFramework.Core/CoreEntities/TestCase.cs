@@ -1,6 +1,6 @@
 ﻿namespace ThreatFramework.Core.CoreEntities
 {
-    public class TestCase
+    public class TestCase : IFieldComparable<TestCase>
     {
         public int Id { get; set; }
         public Guid LibraryId { get; set; }
@@ -14,5 +14,8 @@
         public string? Labels { get; set; }
         public string? Description { get; set; }
         public string? ChineseDescription { get; set; }
+
+        public IReadOnlyList<FieldChange> CompareFields(TestCase other, IEnumerable<string> fields)
+      => FieldComparer.CompareByNames(this, other, fields);
     }
 }

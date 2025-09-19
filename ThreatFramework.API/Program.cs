@@ -1,16 +1,20 @@
 using Microsoft.Extensions.Options;
 using ThreatFramework.Core.Git;
+using ThreatFramework.Drift.Contract;
+using ThreatFramework.Drift.Impl;
 using ThreatFramework.Git.Contract;
 using ThreatFramework.Git.Impl;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatFramework.Infrastructure;
 using ThreatFramework.Infrastructure.Configuration;
 using ThreatFramework.Infrastructure.Repository;
 using ThreatFramework.Infrastructure.Services;
 using ThreatFramework.Infrastructure.YamlRepository;
+using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
 
@@ -51,6 +55,14 @@ builder.Services.AddScoped<IComponentThreatMappingRepository, ComponentThreatMap
 builder.Services.AddScoped<IComponentThreatSecurityRequirementMappingRepository, ComponentThreatSecurityRequirementMappingRepository>();
 builder.Services.AddScoped<IComponentSecurityRequirementMappingRepository, ComponentSecurityRequirementMappingRepository>();
 
+builder.Services.AddScoped<IYamlComponentReader, YamlComponentReader>();
+builder.Services.AddScoped<IYamlLibraryReader, YamlLibraryReader>();
+builder.Services.AddScoped<IYamlThreatReader, YamlThreatReader>();
+builder.Services.AddScoped<IYamlSecurityRequirementReader, YamlSecurityRequirementReader>();
+builder.Services.AddScoped<IYamlTestcaseReader, YamlTestcaseReader>();
+builder.Services.AddScoped<IYamlPropertyReader, YamlPropertyReader>();
+builder.Services.AddScoped<IYamlPropertyOptionReader, YamlPropertyOptionReader>();
+
 builder.Services.AddScoped<IYamlComponentThreatReader, YamlComponentThreatReader>();
 builder.Services.AddScoped<IYamlComponentThreatSRReader, YamlComponentThreatSRsReader>();
 builder.Services.AddScoped<IYamlComponentSRReader, YamlComponentSRReaders>();
@@ -64,8 +76,22 @@ builder.Services.AddScoped<IYamlCpoThreatSrReader, YamlCpoThreatSrReader>();
 builder.Services.AddScoped<IDiffSummaryService, RemoteVsFolderDiffService>();
 builder.Services.AddScoped<IFolderToFolderDiffService, FolderToFolderDiffService>();
 
+builder.Services.AddSingleton<IFileSystem, LocalFileSystem>();
+builder.Services.AddSingleton<IYamlSerializer, YamlDotNetSerializer>();
+builder.Services.AddSingleton<IFolderMap, DefaultFolderMap>();
+builder.Services.AddSingleton<IIdentityResolver, ReflectionIdentityResolver>();
+
+// Generic repository & engines
+builder.Services.AddSingleton(typeof(IEntityRepository<>), typeof(FileSystemEntityRepository<>));
+builder.Services.AddSingleton(typeof(IDiffEngine<>), typeof(ReflectionDiffEngine<>));
+builder.Services.AddScoped<IDriftService, DriftService1>();
+
 // YAML generator service
 builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();
+
+builder.Services.AddScoped<IYamlReaderRouter, YamlReaderRouter>();
+builder.Services.AddScoped<IYamlDriftBuilder, YamlDriftBuilder>();
+builder.Services.AddScoped<ILibraryDriftAggregator, LibraryDriftAggregator>();
 
 var app = builder.Build();
 

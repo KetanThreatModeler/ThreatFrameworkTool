@@ -82,7 +82,7 @@ namespace ThreatFramework.Infrastructure.Repository
                 properties.Add(new Property
                 {
                     Id = (int)reader["Id"],
-                    LibraryId = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
+                    LibraryGuid = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
                     PropertyTypeId = (int)reader["PropertyTypeId"],
                     IsSelected = (bool)reader["isSelected"],
                     IsOptional = (bool)reader["IsOptional"],

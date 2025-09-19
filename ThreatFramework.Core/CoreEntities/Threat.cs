@@ -1,6 +1,6 @@
 ﻿namespace ThreatFramework.Core.CoreEntities
 {
-    public class Threat
+    public class Threat : IFieldComparable<Threat>
     {
         public int Id { get; set; }
         public int RiskId { get; set; }
@@ -18,5 +18,8 @@
         public string? Reference { get; set; }
         public string? Intelligence { get; set; }
         public string? ChineseDescription { get; set; }
+
+        public IReadOnlyList<FieldChange> CompareFields(Threat other, IEnumerable<string> fields)
+      => FieldComparer.CompareByNames(this, other, fields);
     }
 }

@@ -83,7 +83,7 @@ namespace ThreatFramework.Infrastructure.Repository
                 {
                     Id = (int)reader["Id"],
                     Guid = (Guid)reader["Guid"],
-                    LibraryId = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
+                    LibraryGuid = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
                     ComponentTypeId = (int)reader["ComponentTypeId"],
                     IsHidden = (bool)reader["isHidden"],
                     IsOverridden = (bool)reader["IsOverriden"],

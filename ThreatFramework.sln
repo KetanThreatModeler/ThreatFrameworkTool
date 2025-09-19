@@ -21,7 +21,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Git.Contrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Git.Impl", "ThreatFramework.Git.Impl\ThreatFramework.Git.Impl.csproj", "{53772D26-EB2F-49EC-B74B-E4C297367818}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.DiffAnalyzer", "ThreatFramework.DiffAnalyzer\ThreatFramework.DiffAnalyzer.csproj", "{CBB97B1F-93DE-4DD6-80C9-93FAD44F85AA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Drift.Contract", "ThreatFramework.Drift.Contract\ThreatFramework.Drift.Contract.csproj", "{88B20211-BBAB-45EB-BF03-7664CD882A61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreatFramework.Drift.Impl", "ThreatFramework.Drift.Impl\ThreatFramework.Drift.Impl.csproj", "{23BC5E8E-453F-4856-B776-68DE8A0B5C9D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,10 +67,14 @@ Global
 		{53772D26-EB2F-49EC-B74B-E4C297367818}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53772D26-EB2F-49EC-B74B-E4C297367818}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53772D26-EB2F-49EC-B74B-E4C297367818}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CBB97B1F-93DE-4DD6-80C9-93FAD44F85AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBB97B1F-93DE-4DD6-80C9-93FAD44F85AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CBB97B1F-93DE-4DD6-80C9-93FAD44F85AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CBB97B1F-93DE-4DD6-80C9-93FAD44F85AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88B20211-BBAB-45EB-BF03-7664CD882A61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88B20211-BBAB-45EB-BF03-7664CD882A61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88B20211-BBAB-45EB-BF03-7664CD882A61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88B20211-BBAB-45EB-BF03-7664CD882A61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23BC5E8E-453F-4856-B776-68DE8A0B5C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23BC5E8E-453F-4856-B776-68DE8A0B5C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23BC5E8E-453F-4856-B776-68DE8A0B5C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23BC5E8E-453F-4856-B776-68DE8A0B5C9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
