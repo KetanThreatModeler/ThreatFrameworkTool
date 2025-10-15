@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ThreatFramework.Core\ThreatFramework.Core.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Drift.Contract\ThreatFramework.Drift.Contract.csproj" />
   </ItemGroup>
 
 </Project>

@@ -13,7 +13,7 @@ namespace ThreatFramework.Core
         /// Must throw if any requested field name is not found on the entity.
         /// Field names should be matched case-insensitively.
         /// </summary>
-        IReadOnlyList<FieldChange> CompareFields(T other, IEnumerable<string> fields);
+        List<FieldChange> CompareFields(T other, IEnumerable<string> fields);
     }
 
 }

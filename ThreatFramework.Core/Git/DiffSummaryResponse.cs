@@ -15,9 +15,9 @@ namespace ThreatFramework.Core.Git
         int RemovedCount,
         int ModifiedCount,
         int RenamedCount,
-        IReadOnlyList<string> AddedFiles,
-        IReadOnlyList<string> RemovedFiles,
-        IReadOnlyList<string> ModifiedFiles,
-        IReadOnlyList<RenamedFile> RenamedFiles
+        List<string> AddedFiles,
+        List<string> RemovedFiles,
+        List<string> ModifiedFiles,
+        List<RenamedFile> RenamedFiles
     );
 }

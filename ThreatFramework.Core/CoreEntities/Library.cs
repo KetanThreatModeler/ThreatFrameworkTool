@@ -17,7 +17,7 @@
         public string? ReleaseNotes { get; set; }
         public string? ImageURL { get; set; }
 
-        public IReadOnlyList<FieldChange> CompareFields(Library other, IEnumerable<string> fields)
+        public List<FieldChange> CompareFields(Library other, IEnumerable<string> fields)
        => FieldComparer.CompareByNames(this, other, fields);
     }
      

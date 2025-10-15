@@ -10,12 +10,15 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
         public YamlComponentThreatReader(ILogger<YamlComponentThreatReader> logger) => _logger = logger;
 
-        public async Task<IReadOnlyList<ComponentThreatMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
+        public async Task<List<ComponentThreatMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
         {
+
+            folderPath = Path.Combine(folderPath, "mappings", "component-threat");
+
             if (!Directory.Exists(folderPath))
             {
-                _logger.LogError("YAML folder not found: {Folder}", folderPath);
-                throw new DirectoryNotFoundException(folderPath);
+                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
+                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
             }
 
             var results = new List<ComponentThreatMapping>();

@@ -19,13 +19,15 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
         public YamlCpoThreatSrReader(ILogger<YamlCpoThreatSrReader> logger) => _logger = logger;
 
-        public async Task<IReadOnlyList<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(
+        public async Task<List<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(
             string folderPath, CancellationToken ct = default)
         {
+            folderPath = Path.Combine(folderPath, "mappings", "component-property-option-threat-security-requirement");
+
             if (!Directory.Exists(folderPath))
             {
-                _logger.LogError("YAML folder not found: {Folder}", folderPath);
-                throw new DirectoryNotFoundException(folderPath);
+                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
+                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
             }
 
             var results = new List<ComponentPropertyOptionThreatSecurityRequirementMapping>();

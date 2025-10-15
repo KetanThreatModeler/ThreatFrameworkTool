@@ -102,5 +102,22 @@ namespace ThreatFramework.Infrastructure.Repository
 
             return properties;
         }
+
+        public async Task<IEnumerable<Guid>> GetGuidsAsync()
+        {
+            var sql = "SELECT Guid FROM Properties";
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+            using var reader = await command.ExecuteReaderAsync();
+
+            var guids = new List<Guid>();
+            while (await reader.ReadAsync())
+            {
+                guids.Add((Guid)reader["Guid"]);
+            }
+
+            return guids;
+        }
     }
 }

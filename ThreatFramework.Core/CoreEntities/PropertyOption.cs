@@ -18,6 +18,6 @@ namespace ThreatFramework.Core.CoreEntities
         public string OptionText { get; set; }
         public string? ChineseOptionText { get; set; }
 
-        public IReadOnlyList<FieldChange> CompareFields(PropertyOption other, IEnumerable<string> fields)
+        public List<FieldChange> CompareFields(PropertyOption other, IEnumerable<string> fields)
        => FieldComparer.CompareByNames(this, other, fields);
     } }

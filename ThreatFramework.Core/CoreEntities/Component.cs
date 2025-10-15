@@ -17,7 +17,7 @@
         public string? Description { get; set; }
         public string? ChineseDescription { get; set; }
 
-        public IReadOnlyList<FieldChange> CompareFields(Component other, IEnumerable<string> fields)
+        public List<FieldChange> CompareFields(Component other, IEnumerable<string> fields)
        => FieldComparer.CompareByNames(this, other, fields);
     }
 }

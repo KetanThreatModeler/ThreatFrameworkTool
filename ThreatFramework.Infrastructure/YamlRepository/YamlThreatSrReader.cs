@@ -18,7 +18,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
         public YamlThreatSrReader(ILogger<YamlThreatSrReader> logger) => _logger = logger;
 
-        public async Task<IReadOnlyList<ThreatSecurityRequirementMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
+        public async Task<List<ThreatSecurityRequirementMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
         {
             if (!Directory.Exists(folderPath))
             {

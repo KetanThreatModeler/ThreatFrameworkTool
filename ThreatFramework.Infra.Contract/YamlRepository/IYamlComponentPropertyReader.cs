@@ -9,7 +9,7 @@ namespace ThreatFramework.Infra.Contract.YamlRepository
 {
     public interface IYamlComponentPropertyReader
     {
-        Task<IReadOnlyList<ComponentPropertyMapping>> GetAllAsync(
-           string folderPath, CancellationToken ct = default);
+        Task<List<ComponentPropertyMapping>> GetAllAsync(
+           string folderPath = null, CancellationToken ct = default);
     }
 }

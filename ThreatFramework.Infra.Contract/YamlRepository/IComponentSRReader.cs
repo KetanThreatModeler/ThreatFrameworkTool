@@ -9,6 +9,6 @@ namespace ThreatFramework.Infra.Contract.YamlRepository
 {
     public interface IYamlComponentSRReader
     {
-        Task<IReadOnlyList<ComponentSecurityRequirementMapping>> GetAllThreatSRAsync(string folderPath, CancellationToken ct = default);
+        Task<List<ComponentSecurityRequirementMapping>> GetAllComponentSRAsync(string folderPath = null, CancellationToken ct = default);
     }
 }

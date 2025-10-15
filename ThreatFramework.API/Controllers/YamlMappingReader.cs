@@ -39,7 +39,7 @@ namespace ThreatFramework.API.Controllers
         }
 
             [HttpGet("threat-sr")]
-            public async Task<ActionResult<IReadOnlyList<ComponentSecurityRequirementMapping>>> GetAllThreatSR(
+            public async Task<ActionResult<List<ComponentSecurityRequirementMapping>>> GetAllThreatSR(
                 [FromQuery] string folderPath,
                 CancellationToken ct = default)
             {
@@ -207,7 +207,7 @@ namespace ThreatFramework.API.Controllers
             }
 
             [HttpGet("component-sr")]
-            public async Task<ActionResult<IReadOnlyList<ComponentSecurityRequirementMapping>>> GetAllComponentSR(
+            public async Task<ActionResult<List<ComponentSecurityRequirementMapping>>> GetAllComponentSR(
                 [FromQuery] string folderPath,
                 CancellationToken ct = default)
             {
@@ -218,7 +218,7 @@ namespace ThreatFramework.API.Controllers
 
                 try
                 {
-                    var result = await _componentSecurityRequirementReader.GetAllThreatSRAsync(folderPath, ct);
+                    var result = await _componentSecurityRequirementReader.GetAllComponentSRAsync(folderPath, ct);
                     return Ok(result);
                 }
                 catch (Exception ex)

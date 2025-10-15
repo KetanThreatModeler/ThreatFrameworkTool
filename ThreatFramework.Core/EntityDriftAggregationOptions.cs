@@ -8,9 +8,8 @@ namespace ThreatFramework.Core
 {
     public sealed class EntityDriftAggregationOptions
     {
-        public IReadOnlyList<string> LibraryDefaultFields { get; init; } = new[]
+        public List<string> LibraryDefaultFields { get; init; } = new List<string>
         {
-            "Readonly",
             "IsDefault",
             "sharingtype",
             "version",
@@ -21,7 +20,7 @@ namespace ThreatFramework.Core
             "Description"
         };
 
-        public IReadOnlyList<string> ThreatDefaultFields { get; init; } = new[]
+        public List<string> ThreatDefaultFields { get; init; } = new List<string>
         {
             "RiskId",
             "LibraryGuid",
@@ -36,7 +35,7 @@ namespace ThreatFramework.Core
             "ChineseDescription"
         };
 
-        public IReadOnlyList<string> ComponentDefaultFields { get; init; } = new[]
+        public List<string> ComponentDefaultFields { get; init; } = new List<string>
         {
             "LibraryGuid",
             "ComponentTypeId",
@@ -48,7 +47,8 @@ namespace ThreatFramework.Core
             "Description",
             "ChineseDescription"
         };
-        public IReadOnlyList<string> SecurityRequirementDefaultFields { get; init; } = new[] {
+        public List<string> SecurityRequirementDefaultFields { get; init; } = new List<string>
+        {
             "RiskId",
             "LibraryId",
             "IsCompensatingControl",
@@ -61,11 +61,9 @@ namespace ThreatFramework.Core
             "ChineseDescription"
         };
 
-        public IReadOnlyList<string> TestCaseDefaultFields { get; init; } = new[] {
+        public List<string> TestCaseDefaultFields { get; init; } = new List<string> {
             "LibraryId",
             "IsHidden",
-            "CreatedDate",
-            "LastUpdated",
             "Guid",
             "Name",
             "ChineseName",
@@ -75,9 +73,8 @@ namespace ThreatFramework.Core
         };
 
 
-        public IReadOnlyList<string> PropertyDefaultFields { get; init; } = new[] {
-        "LibraryId",
-        "PropertyTypeId",
+        public List<string> PropertyDefaultFields { get; init; } = new List<string> {
+        "LibraryGuid",
         "IsSelected",
         "IsOptional",
         "IsGlobal",
@@ -88,6 +85,15 @@ namespace ThreatFramework.Core
         "Labels",
         "Description",
         "ChineseDescription" };
+        public List<string> PropertyOptionDefaultFields { get; init; } = new List<string> {
+            "PropertyId",
+            "IsDefault",
+            "IsHidden",
+            "IsOverridden",
+            "Guid",
+            "OptionText",
+            "ChineseOptionText"
+        };
     }
 
 }

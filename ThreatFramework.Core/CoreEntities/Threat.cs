@@ -19,7 +19,7 @@
         public string? Intelligence { get; set; }
         public string? ChineseDescription { get; set; }
 
-        public IReadOnlyList<FieldChange> CompareFields(Threat other, IEnumerable<string> fields)
+        public List<FieldChange> CompareFields(Threat other, IEnumerable<string> fields)
       => FieldComparer.CompareByNames(this, other, fields);
     }
 }

@@ -15,14 +15,16 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
         public YamlComponentSRReaders(ILogger<YamlComponentSRReaders> logger) => _logger = logger;
 
-        public async Task<IReadOnlyList<ComponentSecurityRequirementMapping>> GetAllThreatSRAsync(string folderPath, CancellationToken ct = default)
+        public async Task<List<ComponentSecurityRequirementMapping>> GetAllComponentSRAsync(string folderPath, CancellationToken ct = default)
         {
-            if (!Directory.Exists(folderPath))
-            {
-                _logger.LogError("YAML folder not found: {Folder}", folderPath);
-                throw new DirectoryNotFoundException(folderPath);
-            }
+            folderPath = Path.Combine(folderPath, "mappings", "component-security-requirement");
 
+            if (!Directory.Exists(folderPath)) 
+            {
+                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
+                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
+            }
+          
             var results = new List<ComponentSecurityRequirementMapping>();
 
             foreach (var file in EnumerateYamlFiles(folderPath))
@@ -51,12 +53,28 @@ namespace ThreatFramework.Infrastructure.YamlRepository
                     var componentGuidStr = RequiredScalar(spec, "componentGuid", file);
                     var securityRequirementGuidStr = RequiredScalar(spec, "securityRequirementGuid", file);
 
+                    // Extract flags if they exist, otherwise use defaults
+                    bool isHidden = false;
+                    bool isOverridden = false;
+                    
+                    if (TryGetMap(spec, "flags", out var flagsMap))
+                    {
+                        isHidden = GetBool(flagsMap, "isHidden", false);
+                        isOverridden = GetBool(flagsMap, "isOverridden", false);
+                    }
+                    else
+                    {
+                        // Fallback: check if flags are directly in spec (backward compatibility)
+                        isHidden = GetBool(spec, "isHidden", false);
+                        isOverridden = GetBool(spec, "isOverridden", false);
+                    }
+
                     results.Add(new ComponentSecurityRequirementMapping
                     {
                         ComponentGuid = G(componentGuidStr, "componentGuid", file),
                         SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", file),
-                        IsHidden = GetBool(spec, "isHidden", false),
-                        IsOverridden = GetBool(spec, "isOverridden", false)
+                        IsHidden = isHidden,
+                        IsOverridden = isOverridden
                     });
                 }
                 catch (OperationCanceledException) { throw; }

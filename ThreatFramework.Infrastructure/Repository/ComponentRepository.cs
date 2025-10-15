@@ -100,5 +100,23 @@ namespace ThreatFramework.Infrastructure.Repository
 
             return components;
         }
+
+        public async Task<IEnumerable<Guid>> GetGuidsAsync()
+        {
+            var sql = "SELECT Guid FROM Components";
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+
+            var guids = new List<Guid>();
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                guids.Add((Guid)reader["Guid"]);
+            }
+
+            return guids;
+        }
     }
 }

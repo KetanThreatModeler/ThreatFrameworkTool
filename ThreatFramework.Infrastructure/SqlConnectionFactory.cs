@@ -12,9 +12,9 @@ namespace ThreatFramework.Infrastructure
     {
         private readonly string _connectionString;
 
-        public SqlConnectionFactory(IConfiguration configuration)
+        public SqlConnectionFactory(string connectionString)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection")
+            _connectionString = connectionString
                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
         }
 

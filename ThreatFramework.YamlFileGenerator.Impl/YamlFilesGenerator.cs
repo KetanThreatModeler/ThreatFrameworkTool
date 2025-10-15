@@ -14,7 +14,6 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private const string YamlFileExtension = ".yaml";
         private const string FileNameSeperator = "_";
         private readonly ILogger<YamlFilesGenerator> _logger;
-        private readonly IIndexService _indexService;
         private readonly ILibraryRepository _libraryRepository;
         private readonly IThreatRepository _threatRepository;
         private readonly IComponentRepository _componentRepository;
@@ -30,6 +29,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly IComponentPropertyOptionMappingRepository _componentPropertyOptionMappingRepository;
         private readonly IComponentPropertyOptionThreatMappingRepository _componentPropertyOptionThreatMappingRepository;
         private readonly IComponentPropertyOptionThreatSecurityRequirementMappingRepository _componentPropertyOptionThreatSecurityRequirementMappingRepository;
+        private readonly IGuidIndexService _indexService;
 
         public YamlFilesGenerator(
             ILogger<YamlFilesGenerator> logger,
@@ -40,7 +40,6 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IPropertyRepository propertyRepository,
             IPropertyOptionRepository propertyOptionRepository,
             ITestcaseRepository testcaseRepository,
-            IIndexService indexService,
             IComponentThreatMappingRepository componentThreatMappingRepository,
             IComponentSecurityRequirementMappingRepository componentSecurityRequirementMappingRepository,
             IComponentThreatSecurityRequirementMappingRepository componentThreatSecurityRequirementMappingRepository,
@@ -48,7 +47,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IComponentPropertyMappingRepository componentPropertyMappingRepository,
             IComponentPropertyOptionMappingRepository componentPropertyOptionMappingRepository,
             IComponentPropertyOptionThreatMappingRepository componentPropertyOptionThreatMappingRepository,
-            IComponentPropertyOptionThreatSecurityRequirementMappingRepository componentPropertyOptionThreatSecurityRequirementMappingRepository
+            IComponentPropertyOptionThreatSecurityRequirementMappingRepository componentPropertyOptionThreatSecurityRequirementMappingRepository,
+            IGuidIndexService indexService
         )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -59,7 +59,6 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _propertyRepository = propertyRepository ?? throw new ArgumentNullException(nameof(propertyRepository));
             _propertyOptionRepository = propertyOptionRepository ?? throw new ArgumentNullException(nameof(propertyOptionRepository));
             _testcaseRepository = testcaseRepository ?? throw new ArgumentNullException(nameof(testcaseRepository));
-            _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
             _componentThreatMappingRepository = componentThreatMappingRepository ?? throw new ArgumentNullException(nameof(componentThreatMappingRepository));
             _componentLibraryMappingRepository = componentSecurityRequirementMappingRepository ?? throw new ArgumentNullException(nameof(componentSecurityRequirementMappingRepository));
             _componentThreatSecurityRequirementMappingRepository = componentThreatSecurityRequirementMappingRepository ?? throw new ArgumentNullException(nameof(componentThreatSecurityRequirementMappingRepository));
@@ -68,7 +67,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _componentPropertyOptionMappingRepository = componentPropertyOptionMappingRepository ?? throw new ArgumentNullException(nameof(componentPropertyOptionMappingRepository));
             _componentPropertyOptionThreatMappingRepository = componentPropertyOptionThreatMappingRepository ?? throw new ArgumentNullException(nameof(componentPropertyOptionThreatMappingRepository));
             _componentPropertyOptionThreatSecurityRequirementMappingRepository = componentPropertyOptionThreatSecurityRequirementMappingRepository ?? throw new ArgumentNullException(nameof(componentPropertyOptionThreatSecurityRequirementMappingRepository));
-            
+            _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
             _logger.LogInformation("YamlFilesGenerator initialized successfully");
         }
 
@@ -118,7 +117,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 libraries,
-                lib => $"{_indexService.GetIdByKindAndGuid(EntityKind.Library, lib.Guid)}.yaml",
+                lib => $"{_indexService.GetInt(lib.Guid)}.yaml",
                 libraryItem => LibraryTemplate.Generate(libraryItem)  
             );
         }
@@ -130,7 +129,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 threats,
-                threat => $"{_indexService.GetIdByKindAndGuid(EntityKind.Threat, threat.Guid)}.yaml",
+                threat => $"{_indexService.GetInt(threat.Guid)}.yaml",
                 threatItem => ThreatTemplate.Generate(threatItem));
         }
 
@@ -141,7 +140,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 components,
-                component => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, component.Guid)}.yaml",
+                component => $"{_indexService.GetInt(component.Guid)}.yaml",
                 componentItem => ComponentTemplate.Generate(componentItem));
         }
 
@@ -152,7 +151,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 securityRequirements,
-                sr => $"{_indexService.GetIdByKindAndGuid(EntityKind.SecurityRequirement, sr.Guid)}.yaml",
+                sr => $"{_indexService.GetInt(sr.Guid)}.yaml",
                 srItem => SecurityRequirementTemplate.Generate(srItem));
         }
 
@@ -163,7 +162,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 testCases,
-                tc => $"{_indexService.GetIdByKindAndGuid(EntityKind.TestCase, tc.Guid)}.yaml",
+                tc => $"{_indexService.GetInt(tc.Guid)}.yaml",
                 tcItem => TestCaseTemplate.Generate(tcItem));
         }
 
@@ -174,7 +173,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 properties,
-                prop => $"{_indexService.GetIdByKindAndGuid(EntityKind.Property, prop.Guid)}.yaml",
+                prop => $"{_indexService.GetInt(prop.Guid)}.yaml",
                 propItem => PropertyTemplate.Generate(propItem));
         }
 
@@ -185,7 +184,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 properties,
-                prop => $"{_indexService.GetIdByKindAndGuid(EntityKind.PropertyOption, prop.Guid)}.yaml",
+                prop => $"{_indexService.GetInt(prop.Guid)}.yaml",
                 propItem => PropertyOptionTemplate.Generate(propItem));
         }
 
@@ -196,7 +195,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.SecurityRequirement, mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => CSRMappingTemplate.Generate(mappingItem));
         }
 
@@ -207,7 +206,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Threat, mapping.ThreatGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid)}.yaml",
                 mappingItem => CTHMappingTemplate.Generate(mappingItem));
         }
 
@@ -218,7 +217,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Threat, mapping.ThreatGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.SecurityRequirement, mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => CTSRMappingTemplate.Generate(mappingItem));
         }
 
@@ -229,7 +228,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Threat, mapping.ThreatGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.SecurityRequirement, mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => TSRMappingTemplate.Generate(mappingItem));
         }
 
@@ -240,7 +239,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Property, mapping.PropertyGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid)}.yaml",
                 mappingItem => CPTemplate.Generate(mappingItem));
         }
 
@@ -251,7 +250,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Property, mapping.PropertyGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.PropertyOption, mapping.PropertyOptionGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyOptionGuid)}.yaml",
                 mappingItem => CPOTemplate.Generate(mappingItem));
         }
 
@@ -262,7 +261,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Property, mapping.PropertyGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.PropertyOption, mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Threat, mapping.ThreatGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid)}.yaml",
                 mappingItem => CPOThreatTemplate.Generate(mappingItem));
         }
 
@@ -273,7 +272,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetIdByKindAndGuid(EntityKind.Component, mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Property, mapping.PropertyGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.PropertyOption, mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.Threat, mapping.ThreatGuid) + FileNameSeperator + _indexService.GetIdByKindAndGuid(EntityKind.SecurityRequirement, mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => CPOTSRTemplate.Generate(mappingItem));
         }
 

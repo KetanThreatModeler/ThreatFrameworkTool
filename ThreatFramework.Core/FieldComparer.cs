@@ -13,7 +13,7 @@ namespace ThreatFramework.Core
         /// Compares two entities by a given set of property names (case-insensitive).
         /// Throws if any field is not found on the entity type.
         /// </summary>
-        public static IReadOnlyList<FieldChange> CompareByNames<T>(
+        public static List<FieldChange> CompareByNames<T>(
             T left, T right, IEnumerable<string> fieldNames) where T : class
         {
             if (left is null) throw new ArgumentNullException(nameof(left));
@@ -21,7 +21,7 @@ namespace ThreatFramework.Core
 
             var type = typeof(T);
             var requested = fieldNames?.ToArray() ?? Array.Empty<string>();
-            if (requested.Length == 0) return Array.Empty<FieldChange>();
+            if (requested.Length == 0) return new List<FieldChange>();
 
             // Validate: all fields must exist (throw on missing)
             var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);

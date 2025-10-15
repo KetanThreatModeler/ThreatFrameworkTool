@@ -25,8 +25,6 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
                     b.AddChild($"readonly: {library.Readonly.ToString().ToLower()}");
                     b.AddChild($"isDefault: {library.IsDefault.ToString().ToLower()}");
                     b.AddChild($"imageUrl: \"{EscapeYamlValue(library.ImageURL ?? "")}\"");
-                    b.AddChild($"createdAt: \"{library.DateCreated:yyyy-MM-ddTHH:mm:ssZ}\"");
-                    b.AddChild($"updatedAt: \"{library.LastUpdated:yyyy-MM-ddTHH:mm:ssZ}\"");
                 })
                 .Build();
 

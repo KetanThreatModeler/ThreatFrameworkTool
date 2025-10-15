@@ -14,16 +14,18 @@ namespace ThreatFramework.Infrastructure.YamlRepository
             private readonly ILogger<YamlCpoThreatReader> _logger;
             public YamlCpoThreatReader(ILogger<YamlCpoThreatReader> logger) => _logger = logger;
 
-            public async Task<IReadOnlyList<ComponentPropertyOptionThreatMapping>> GetAllAsync(
+            public async Task<List<ComponentPropertyOptionThreatMapping>> GetAllAsync(
                 string folderPath, CancellationToken ct = default)
             {
-                if (!Directory.Exists(folderPath))
-                {
-                    _logger.LogError("YAML folder not found: {Folder}", folderPath);
-                    throw new DirectoryNotFoundException(folderPath);
-                }
+            folderPath = Path.Combine(folderPath, "mappings", "component-property-option-threat");
 
-                var results = new List<ComponentPropertyOptionThreatMapping>();
+            if (!Directory.Exists(folderPath))
+            {
+                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
+                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
+            }
+
+            var results = new List<ComponentPropertyOptionThreatMapping>();
 
                 foreach (var file in EnumerateYamlFiles(folderPath))
                 {

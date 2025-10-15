@@ -1,70 +1,65 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using ThreatFramework.Core.Request;
-using ThreatFramework.Core.Response;
+using Microsoft.Extensions.Options;
+using ThreatFramework.Core.Config;
 using ThreatFramework.YamlFileGenerator.Contract;
 
 namespace ThreatFramework.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class YamlFileExporterController : ControllerBase
+    public sealed class YamlExportsController : ControllerBase
     {
-        private readonly IYamlFileGenerator _yamlFileGenerator;
-        private readonly ILogger<YamlFileExporterController> _logger;
+        private readonly ILogger<YamlExportsController> _logger;
+        private readonly IYamlFileGeneratorForClient _clientGenerator;
+        private readonly IYamlFilesGeneratorForTRC _trcGenerator;
+        private readonly YamlExportOptions _exportOptions;
 
-        public YamlFileExporterController(IYamlFileGenerator yamlFileGenerator, ILogger<YamlFileExporterController> logger)
+        public YamlExportsController(
+            ILogger<YamlExportsController> logger,
+            IYamlFileGeneratorForClient clientGenerator,
+            IYamlFilesGeneratorForTRC trcGenerator,
+            IOptions<YamlExportOptions> exportOptions)
         {
-            _yamlFileGenerator = yamlFileGenerator;
             _logger = logger;
+            _clientGenerator = clientGenerator;
+            _trcGenerator = trcGenerator;
+            _exportOptions = exportOptions.Value;
         }
 
-        [HttpPost("generate")]
-        public async Task<IActionResult> GenerateYamlFiles([FromBody] YamlGenerationRequest request)
+        /// <summary>
+        /// Generate YAML files for the Client tenant.
+        /// Uses OutputPath from appsettings.json YamlExport:Client:OutputPath.
+        /// </summary>
+        [HttpPost("client")]
+        public async Task<IActionResult> GenerateClientAsync(CancellationToken ct)
         {
-            var startTime = DateTime.UtcNow;
-            _logger.LogInformation("Starting YAML file generation request for path: {OutputPath} at {StartTime}", 
-                request?.OutputPath, startTime);
+            var path = _exportOptions.Client.OutputPath;
+            if (string.IsNullOrWhiteSpace(path))
+                return BadRequest("Client output path not configured in appsettings.json");
 
-            try
-            {
-                if (string.IsNullOrEmpty(request?.OutputPath))
-                {
-                    _logger.LogWarning("YAML generation request failed: Output path is required");
-                    return BadRequest("Output path is required");
-                }
+            _logger.LogInformation("Starting Client YAML export to {Output}", path);
+            await _clientGenerator.GenerateAsync(path);
+            _logger.LogInformation("Completed Client YAML export to {Output}", path);
 
-                _logger.LogInformation("Calling YAML file generator for path: {OutputPath}", request.OutputPath);
-                await _yamlFileGenerator.GenerateFilesToPathAsync(request.OutputPath);
-                
-                var endTime = DateTime.UtcNow;
-                var elapsedTime = endTime - startTime;
-                
-                _logger.LogInformation("YAML file generation completed successfully for path: {OutputPath} in {ElapsedTime}ms", 
-                    request.OutputPath, elapsedTime.TotalMilliseconds);
-                
-                return Ok(new YamlGenerationResponse
-                {
-                    Success = true,
-                    Message = $"YAML files generated successfully in {elapsedTime.TotalSeconds:F2} seconds",
-                });
-            }
-            catch (DirectoryNotFoundException dnfEx)
-            {
-                _logger.LogError(dnfEx, "Directory not found during YAML generation for path: {OutputPath}", request?.OutputPath);
-                return BadRequest("Output path does not exist");
-            }
-            catch (UnauthorizedAccessException uaEx)
-            {
-                _logger.LogError(uaEx, "Access denied during YAML generation for path: {OutputPath}", request?.OutputPath);
-                return StatusCode(403, "Access denied to the specified path");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during YAML generation for path: {OutputPath}. Error: {ErrorMessage}", 
-                    request?.OutputPath, ex.Message);
-                return StatusCode(500, $"Error generating YAML files: {ex.Message}");
-            }
+            return Ok(new { tenant = "Client", outputPath = path, status = "completed" });
+        }
+
+        /// <summary>
+        /// Generate YAML files for the TRC tenant.
+        /// Uses OutputPath from appsettings.json YamlExport:Trc:OutputPath.
+        /// </summary>
+        [HttpPost("trc")]
+        public async Task<IActionResult> GenerateTrcAsync(CancellationToken ct)
+        {
+            var path = _exportOptions.Trc.OutputPath;
+            if (string.IsNullOrWhiteSpace(path))
+                return BadRequest("TRC output path not configured in appsettings.json");
+
+            _logger.LogInformation("Starting TRC YAML export to {Output}", path);
+            await _trcGenerator.GenerateAsync(path);
+            _logger.LogInformation("Completed TRC YAML export to {Output}", path);
+
+            return Ok(new { tenant = "TRC", outputPath = path, status = "completed" });
         }
     }
 }

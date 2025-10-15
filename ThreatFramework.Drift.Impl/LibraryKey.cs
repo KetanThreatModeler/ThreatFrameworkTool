@@ -11,7 +11,7 @@ namespace ThreatFramework.Drift.Impl
     {
         public static LibraryKey From<T>(T entity) where T : class
         {
-            var guid = ReflectionCache.GetGuid(entity, "LibraryGuid") ?? Guid.Empty;
+            var guid = ReflectionCache.GetGuid(entity, "LibraryGuid") ?? ReflectionCache.GetGuid(entity, "LibraryId") ?? Guid.Empty;
             var name = ReflectionCache.GetString(entity, "LibraryName") ?? "(Unassigned)";
             return new LibraryKey(guid, string.IsNullOrWhiteSpace(name) ? "(Unassigned)" : name);
         }

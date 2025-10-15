@@ -14,6 +14,23 @@ namespace ThreatFramework.Infrastructure.Repository
             _connectionFactory = sqlConnectionFactory;
         }
 
+        public async Task<IEnumerable<Guid>> GetAllPropertyOptionGuidsAsync()
+        {
+            var sql = "SELECT Guid FROM PropertyOptions";
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+            using var reader = await command.ExecuteReaderAsync();
+
+            var guids = new List<Guid>();
+            while (await reader.ReadAsync())
+            {
+                guids.Add((Guid)reader["Guid"]);
+            }
+
+            return guids;
+        }
+
         public async Task<IEnumerable<PropertyOption>> GetAllPropertyOptionsAsync()
         {
             var sql = @"SELECT Id, PropertyId, IsDefault, isHidden, IsOverridden, CreatedDate, 

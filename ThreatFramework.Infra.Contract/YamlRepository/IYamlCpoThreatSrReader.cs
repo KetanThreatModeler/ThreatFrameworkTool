@@ -10,6 +10,6 @@ namespace ThreatFramework.Infra.Contract.YamlRepository
 {
     public interface IYamlCpoThreatSrReader
     {
-        Task<IReadOnlyList<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(string folderPath, CancellationToken ct = default);
+        Task<List<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(string folderPath = null, CancellationToken ct = default);
     }
 }

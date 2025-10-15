@@ -10,13 +10,16 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
         public YamlComponentPropertyOptionReader(ILogger<YamlComponentPropertyOptionReader> logger) => _logger = logger;
 
-        public async Task<IReadOnlyList<ComponentPropertyOptionMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
+        public async Task<List<ComponentPropertyOptionMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
         {
+            folderPath = Path.Combine(folderPath, "mappings", "component-property-option");
+
             if (!Directory.Exists(folderPath))
             {
-                _logger.LogError("YAML folder not found: {Folder}", folderPath);
-                throw new DirectoryNotFoundException(folderPath);
+                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
+                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
             }
+            
 
             var results = new List<ComponentPropertyOptionMapping>();
 
@@ -45,7 +48,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
                     var componentGuidStr = RequiredScalar(spec, "componentGuid", file);
                     var propertyGuidStr = RequiredScalar(spec, "propertyGuid", file);
-                    var propertyOptionGuidStr = RequiredScalar(spec, "propertyOptionId", file);
+                    var propertyOptionGuidStr = RequiredScalar(spec, "propertyOptionGuid", file);
 
                     results.Add(new ComponentPropertyOptionMapping
                     {

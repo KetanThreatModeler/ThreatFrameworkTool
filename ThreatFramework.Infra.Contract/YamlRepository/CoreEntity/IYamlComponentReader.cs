@@ -10,5 +10,6 @@ namespace ThreatFramework.Infra.Contract.YamlRepository.CoreEntity
     public interface IYamlComponentReader
     {
         Task<IEnumerable<Component>> GetComponentsFromFilesAsync(IEnumerable<string> yamlFilePaths);
+        Task<Component> GetComponentByGuid(Guid guid);
     }
 }
