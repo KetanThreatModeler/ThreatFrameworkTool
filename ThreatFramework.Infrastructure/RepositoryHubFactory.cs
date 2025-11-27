@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +17,10 @@ namespace ThreatFramework.Infrastructure
     public sealed class RepositoryHubFactory : IRepositoryHubFactory
     {
         private readonly DatabaseOptions _db;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public RepositoryHubFactory(IOptions<DatabaseOptions> db)
-            => _db = db.Value ?? throw new ArgumentNullException(nameof(db));
+        public RepositoryHubFactory(IOptions<DatabaseOptions> db, ILoggerFactory loggerFactory)
+            => (_db, _loggerFactory) = (db.Value ?? throw new ArgumentNullException(nameof(db)), loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory)));
 
         public IRepositoryHub Create(DataPlane plane)
         {
@@ -36,7 +38,8 @@ namespace ThreatFramework.Infrastructure
             // now construct the rest with required deps
             var threats = new ThreatRepository(libraryCache, factory);
             var components = new ComponentRepository(libraryCache, factory);
-            var componentTypes = new ComponentTypeRepository(libraryCache, factory);
+            var compTypeLogger = _loggerFactory.CreateLogger<ComponentTypeRepository>();
+            var componentTypes = new ComponentTypeRepository(libraryCache, factory, compTypeLogger);
             var securityReqs = new SecurityRequirementRepository(libraryCache, factory);
             var testcases = new TestcaseRepository(libraryCache, factory);
             var properties = new PropertyRepository(libraryCache, factory);

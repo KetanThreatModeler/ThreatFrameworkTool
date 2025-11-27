@@ -10,6 +10,6 @@ namespace ThreatModeler.TF.Infra.Contract.Repository.Global
     public interface IComponentTypeRepository
     {
         Task<IEnumerable<ComponentType>> GetComponentTypesAsync();
-        Task<IEnumerable<(Guid PropertyGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync();
+        Task<IEnumerable<Guid>> GetGuidsAndLibraryGuidsAsync();
     }
 }

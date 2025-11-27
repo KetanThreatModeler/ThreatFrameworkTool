@@ -1,4 +1,5 @@
-﻿using ThreatFramework.Infra.Contract.Index;
+﻿using Microsoft.Extensions.Logging;
+using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
@@ -7,140 +8,205 @@ namespace ThreatFramework.Infrastructure.Index
     public class GuidSource : IGuidSource
     {
         private readonly IRepositoryHubFactory _hubFactory;
+        private readonly ILogger<GuidSource> _logger;
 
-        public GuidSource(IRepositoryHubFactory hubFactory)
+        public GuidSource(IRepositoryHubFactory hubFactory, ILogger<GuidSource> logger)
         {
-            _hubFactory = hubFactory;
+            _hubFactory = hubFactory ?? throw new ArgumentNullException(nameof(hubFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        // --------------------------------------------------------------------------------
+        // 1. Get ALL Guids (Used for Global Index Generation)
+        // --------------------------------------------------------------------------------
         public async Task<IEnumerable<EntityIdentifier>> GetAllGuidsWithTypeAsync()
         {
-            // Create TRC-scoped repository hub
-            IRepositoryHub hub = _hubFactory.Create(DataPlane.Trc);
-
-            Task<IEnumerable<EntityIdentifier>>[] tasks = new[]
+            using (_logger.BeginScope("Operation: GetAllGuidsWithType"))
             {
-                GetLibraryIdentifiersAsync(hub),
-                GetComponentIdentifiersAsync(hub),
-                GetComponentTypeIdentifiersAsync(hub),
-                GetThreatIdentifiersAsync(hub),
-                GetTestcaseIdentifiersAsync(hub),
-                GetSecurityRequirementIdentifiersAsync(hub),
-                GetPropertyIdentifiersAsync(hub),
-                GetPropertyTypeIdentifiersAsync(hub),
-                GetPropertyOptionIdentifiersAsync(hub)
-            };
+                _logger.LogInformation("Starting retrieval of ALL entity identifiers.");
 
-            IEnumerable<EntityIdentifier>[] results = await Task.WhenAll(tasks);
-            return results.SelectMany(identifiers => identifiers).ToList();
+                // Create TRC-scoped repository hub
+                IRepositoryHub hub = _hubFactory.Create(DataPlane.Trc);
+
+                // Strategy: Use methods that return (Guid, LibraryGuid) tuples
+                var tasks = new List<Task<IEnumerable<EntityIdentifier>>>
+                {
+                    // A. Library-Scoped Entities
+                    FetchAllScopedAsync(hub, repo => repo.Components.GetGuidsAndLibraryGuidsAsync(), EntityType.Component),
+                    FetchAllScopedAsync(hub, repo => repo.Threats.GetGuidsAndLibraryGuidsAsync(), EntityType.Threat),
+                    FetchAllScopedAsync(hub, repo => repo.Testcases.GetGuidsAndLibraryGuidsAsync(), EntityType.TestCase),
+                    FetchAllScopedAsync(hub, repo => repo.SecurityRequirements.GetGuidsAndLibraryGuidsAsync(), EntityType.SecurityRequirement),
+                    FetchAllScopedAsync(hub, repo => repo.Properties.GetGuidsAndLibraryGuidsAsync(), EntityType.Property),
+                    
+                    // B. Library Entities (Adapter needed: ID is both Guid and LibraryGuid)
+                    FetchAllScopedAsync(hub, async repo =>
+                    {
+                        var libs = await repo.Libraries.GetLibraryGuidsAsync();
+                        return libs.Select(g => (Id: g, LibId: g));
+                    }, EntityType.Library),
+
+                    // C. Global Entities (No Library Scope)
+                    FetchAllGlobalAsync(hub, repo => repo.PropertyTypes.GetAllPropertyTypeGuidsAsync(), EntityType.PropertyType),
+                    FetchAllGlobalAsync(hub, repo => repo.PropertyOptions.GetAllPropertyOptionGuidsAsync(), EntityType.PropertyOption),
+                    FetchAllGlobalAsync(hub, repo => repo.ComponentTypes.GetGuidsAndLibraryGuidsAsync(), EntityType.ComponentType) 
+                        
+                };
+
+                return await ExecuteAndAggregateAsync(tasks);
+            }
         }
 
-        private async Task<IEnumerable<EntityIdentifier>> GetLibraryIdentifiersAsync(IRepositoryHub hub)
+        // --------------------------------------------------------------------------------
+        // 2. Get Filtered Guids (Used for Partial/Library Index Generation)
+        // --------------------------------------------------------------------------------
+        public async Task<IEnumerable<EntityIdentifier>> GetGuidsWithTypeByLibraryIdsAsync(IEnumerable<Guid> libraryIds)
         {
-            IEnumerable<Guid> guids = await hub.Libraries.GetLibraryGuidsAsync();
-            return guids.Select(guid => new EntityIdentifier
+            using (_logger.BeginScope("Operation: GetGuidsWithTypeByLibraryIds"))
             {
-                Guid = guid,
-                LibraryGuid = guid,
-                EntityType = EntityType.Library
-            });
+                var libIdList = libraryIds?.ToList() ?? new List<Guid>();
+
+                if (!libIdList.Any())
+                {
+                    _logger.LogWarning("No library IDs provided. Returning empty result set.");
+                    return Enumerable.Empty<EntityIdentifier>();
+                }
+
+                _logger.LogInformation("Starting SQL-filtered retrieval for {Count} libraries.", libIdList.Count);
+
+                IRepositoryHub hub = _hubFactory.Create(DataPlane.Trc);
+
+                // Strategy: Use the specific SQL-Filtering methods provided in the interface.
+                // Note: Global entities are EXCLUDED here because they do not belong to specific libraries.
+                var tasks = new List<Task<IEnumerable<EntityIdentifier>>>
+                {
+                    // A. Entities belonging to these libraries
+                    FetchFilteredAsync(hub, repo => repo.Components.GetGuidsByLibraryIds(libIdList), EntityType.Component),
+                    FetchFilteredAsync(hub, repo => repo.Threats.GetGuidsByLibraryIds(libIdList), EntityType.Threat),
+                    FetchFilteredAsync(hub, repo => repo.Testcases.GetGuidsByLibraryIds(libIdList), EntityType.TestCase),
+                    FetchFilteredAsync(hub, repo => repo.SecurityRequirements.GetGuidsByLibraryIds(libIdList), EntityType.SecurityRequirement),
+                    FetchFilteredAsync(hub, repo => repo.Properties.GetGuidsByLibraryIds(libIdList), EntityType.Property),
+                    
+                    // B. The Libraries themselves
+                    FetchFilteredAsync(hub, repo => repo.Libraries.GetGuidsByLibraryIds(libIdList), EntityType.Library, isLibraryEntity: true),
+
+                      FetchAllGlobalAsync(hub, repo => repo.PropertyTypes.GetAllPropertyTypeGuidsAsync(), EntityType.PropertyType),
+                    FetchAllGlobalAsync(hub, repo => repo.PropertyOptions.GetAllPropertyOptionGuidsAsync(), EntityType.PropertyOption),
+                    FetchAllGlobalAsync(hub, repo => repo.ComponentTypes.GetGuidsAndLibraryGuidsAsync(), EntityType.ComponentType)
+                };
+
+                return await ExecuteAndAggregateAsync(tasks);
+            }
         }
 
-        private async Task<IEnumerable<EntityIdentifier>> GetComponentIdentifiersAsync(IRepositoryHub hub)
-        {
-            IEnumerable<(Guid ComponentGuid, Guid LibraryGuid)> guids = await hub.Components.GetGuidsAndLibraryGuidsAsync();
-            return guids.Select(item => new EntityIdentifier
-            {
-                Guid = item.ComponentGuid,
-                LibraryGuid = item.LibraryGuid,
-                EntityType = EntityType.Component
-            });
-        }
-
-        private async Task<IEnumerable<EntityIdentifier>> GetThreatIdentifiersAsync(IRepositoryHub hub)
+        // --------------------------------------------------------------------------------
+        // Shared Orchestration
+        // --------------------------------------------------------------------------------
+        private async Task<IEnumerable<EntityIdentifier>> ExecuteAndAggregateAsync(List<Task<IEnumerable<EntityIdentifier>>> tasks)
         {
             try
             {
-                IEnumerable<(Guid ThreatGuid, Guid LibraryGuid)> guids = await hub.Threats.GetGuidsAndLibraryGuidsAsync();
-                return guids.Select(item => new EntityIdentifier
+                var results = await Task.WhenAll(tasks);
+                var aggregated = results.SelectMany(identifiers => identifiers).ToList();
+
+                _logger.LogInformation("Data retrieval completed. Total entities fetched: {Count}", aggregated.Count);
+                return aggregated;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Critical failure during parallel data retrieval.");
+                throw;
+            }
+        }
+
+        // --------------------------------------------------------------------------------
+        // DRY Helper Methods (The Engine)
+        // --------------------------------------------------------------------------------
+
+        /// <summary>
+        /// 1. Fetches All Data (Tuple version): Returns accurate LibraryGuid mapping.
+        /// </summary>
+        private async Task<IEnumerable<EntityIdentifier>> FetchAllScopedAsync(
+            IRepositoryHub hub,
+            Func<IRepositoryHub, Task<IEnumerable<(Guid Id, Guid LibId)>>> fetchAction,
+            EntityType type)
+        {
+            try
+            {
+                var data = await fetchAction(hub);
+                return data.Select(item => new EntityIdentifier
                 {
-                    Guid = item.ThreatGuid,
-                    LibraryGuid = item.LibraryGuid,
-                    EntityType = EntityType.Threat
+                    Guid = item.Id,
+                    LibraryGuid = item.LibId,
+                    EntityType = type
                 });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error retrieving threat identifiers: {ex.Message}");
+                LogFetchError(ex, type);
                 throw;
-
             }
         }
 
-        private async Task<IEnumerable<EntityIdentifier>> GetTestcaseIdentifiersAsync(IRepositoryHub hub)
+        /// <summary>
+        /// 2. Fetches Global Data (Guid only): LibraryGuid is Empty.
+        /// </summary>
+        private async Task<IEnumerable<EntityIdentifier>> FetchAllGlobalAsync(
+            IRepositoryHub hub,
+            Func<IRepositoryHub, Task<IEnumerable<Guid>>> fetchAction,
+            EntityType type)
         {
-            IEnumerable<(Guid TestCaseGuid, Guid LibraryGuid)> guids = await hub.Testcases.GetGuidsAndLibraryGuidsAsync();
-            return guids.Select(item => new EntityIdentifier
+            try
             {
-                Guid = item.TestCaseGuid,
-                LibraryGuid = item.LibraryGuid,
-                EntityType = EntityType.TestCase
-            });
+                var data = await fetchAction(hub);
+                return data.Select(guid => new EntityIdentifier
+                {
+                    Guid = guid,
+                    LibraryGuid = Guid.Empty,
+                    EntityType = type
+                });
+            }
+            catch (Exception ex)
+            {
+                LogFetchError(ex, type);
+                throw;
+            }
         }
 
-        private async Task<IEnumerable<EntityIdentifier>> GetSecurityRequirementIdentifiersAsync(IRepositoryHub hub)
+        /// <summary>
+        /// 3. Fetches Filtered Data (Guid only): Uses the new SQL-Optimized Repository methods.
+        /// </summary>
+        private async Task<IEnumerable<EntityIdentifier>> FetchFilteredAsync(
+            IRepositoryHub hub,
+            Func<IRepositoryHub, Task<IEnumerable<Guid>>> fetchAction,
+            EntityType type,
+            bool isLibraryEntity = false)
         {
-            IEnumerable<(Guid SecurityRequirementGuid, Guid LibraryGuid)> guids = await hub.SecurityRequirements.GetGuidsAndLibraryGuidsAsync();
-            return guids.Select(item => new EntityIdentifier
+            try
             {
-                Guid = item.SecurityRequirementGuid,
-                LibraryGuid = item.LibraryGuid,
-                EntityType = EntityType.SecurityRequirement
-            });
+                // This calls the SQL method: GetGuidsByLibraryIds(...)
+                var guids = await fetchAction(hub);
+
+                return guids.Select(guid => new EntityIdentifier
+                {
+                    Guid = guid,
+                    // LIMITATION: The 'GetGuidsByLibraryIds' interface only returns the Entity Guid, 
+                    // not the parent Library Guid.
+                    // If this is the Library itself, the ID *is* the LibraryGuid.
+                    // Otherwise, we must leave it Empty or inferred by context downstream.
+                    LibraryGuid = isLibraryEntity ? guid : Guid.Empty,
+                    EntityType = type
+                });
+            }
+            catch (Exception ex)
+            {
+                LogFetchError(ex, type);
+                throw;
+            }
         }
 
-        private async Task<IEnumerable<EntityIdentifier>> GetPropertyIdentifiersAsync(IRepositoryHub hub)
+        private void LogFetchError(Exception ex, EntityType type)
         {
-            IEnumerable<(Guid PropertyGuid, Guid LibraryGuid)> guids = await hub.Properties.GetGuidsAndLibraryGuidsAsync();
-            return guids.Select(item => new EntityIdentifier
-            {
-                Guid = item.PropertyGuid,
-                LibraryGuid = item.LibraryGuid,
-                EntityType = EntityType.Property
-            });
-        }
-
-        private async Task<IEnumerable<EntityIdentifier>> GetPropertyOptionIdentifiersAsync(IRepositoryHub hub)
-        {
-            IEnumerable<Guid> guids = await hub.PropertyOptions.GetAllPropertyOptionGuidsAsync();
-            return guids.Select(guid => new EntityIdentifier
-            {
-                Guid = guid,
-                LibraryGuid = Guid.Empty,
-                EntityType = EntityType.PropertyOption  
-            });
-        }
-
-        private async Task<IEnumerable<EntityIdentifier>> GetPropertyTypeIdentifiersAsync(IRepositoryHub hub)
-        {
-            IEnumerable<Guid> guids = await hub.PropertyTypes.GetAllPropertyTypeGuidsAsync();
-            return guids.Select(guid => new EntityIdentifier
-            {
-                Guid = guid,
-                LibraryGuid = Guid.Empty,
-                EntityType = EntityType.PropertyType  
-            });
-        }
-
-        private async Task<IEnumerable<EntityIdentifier>> GetComponentTypeIdentifiersAsync(IRepositoryHub hub)
-        {
-            IEnumerable<(Guid ComponentTypeGuid, Guid LibraryGuid)> guids = await hub.ComponentTypes.GetGuidsAndLibraryGuidsAsync();
-            return guids.Select(item => new EntityIdentifier
-            {
-                Guid = item.ComponentTypeGuid,
-                LibraryGuid = item.LibraryGuid,
-                EntityType = EntityType.ComponentType
-            });
+            _logger.LogError(ex, "Failed to retrieve identifiers for EntityType: {EntityType}", type);
         }
     }
 }
