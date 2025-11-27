@@ -8,5 +8,6 @@ namespace ThreatFramework.Infra.Contract.Repository
         Task<IEnumerable<TestCase>> GetReadOnlyTestcasesAsync();
         Task<IEnumerable<Guid>> GetGuidsAsync();
         Task<IEnumerable<(Guid TestCaseGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync();
+        Task<IEnumerable<Guid>> GetGuidsByLibraryIds(IEnumerable<Guid> libraryIds);
     }
 }

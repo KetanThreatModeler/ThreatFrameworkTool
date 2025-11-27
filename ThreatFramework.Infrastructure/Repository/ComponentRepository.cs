@@ -143,5 +143,39 @@ namespace ThreatFramework.Infrastructure.Repository
 
             return results;
         }
+
+        public async Task<IEnumerable<Guid>> GetGuidsByLibraryIds(IEnumerable<Guid> libraryIds)
+        {
+            // Translate library GUIDs to their integer IDs (cached)
+            var ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
+
+            if (!ids.Any())
+                return Enumerable.Empty<Guid>();
+
+            var libraryIdList = ids.ToList();
+            var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
+
+            var sql = $@"SELECT Guid 
+                 FROM Components 
+                 WHERE LibraryId IN ({libraryParameters})";
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+
+            for (int i = 0; i < libraryIdList.Count; i++)
+            {
+                command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
+            }
+
+            var guids = new List<Guid>();
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                guids.Add(reader.GetGuid(reader.GetOrdinal("Guid")));
+            }
+
+            return guids;
+        }
     }
 }

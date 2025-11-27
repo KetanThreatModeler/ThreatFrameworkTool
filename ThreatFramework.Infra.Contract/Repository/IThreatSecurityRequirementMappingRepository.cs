@@ -11,5 +11,6 @@ namespace ThreatFramework.Infra.Contract.Repository
     {
         Task<IEnumerable<ThreatSecurityRequirementMapping>> GetMappingsByLibraryIdAsync(IEnumerable<Guid> libraryGuids);
         Task<IEnumerable<ThreatSecurityRequirementMapping>> GetReadOnlyMappingsAsync();
+
     }
 }

@@ -28,6 +28,8 @@ using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
 using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Git.Contract;
+using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
 
@@ -89,7 +91,7 @@ builder.Services.AddScoped<IYamlComponentPropertyOptionReader, YamlComponentProp
 builder.Services.AddScoped<IYamlComponentPropertyOptionThreatReader, YamlCpoThreatReader>();
 builder.Services.AddScoped<IYamlCpoThreatSrReader, YamlCpoThreatSrReader>();
 
-
+builder.Services.AddTransient<IGitService, GitService>();
 builder.Services.AddScoped<IDiffSummaryService, RemoteVsFolderDiffService>();
 builder.Services.AddScoped<IFolderToFolderDiffService, FolderToFolderDiffService>();
 
