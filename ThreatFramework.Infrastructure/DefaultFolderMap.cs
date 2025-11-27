@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract;
+using ThreatModeler.TF.Core.Global;
 
 namespace ThreatFramework.Infrastructure
 {
@@ -16,7 +17,7 @@ namespace ThreatFramework.Infrastructure
             { typeof(ThreatFramework.Core.CoreEntities.SecurityRequirement), "security-requirnment" },
             { typeof(ThreatFramework.Core.CoreEntities.TestCase), "test-cases" },
             { typeof(ThreatFramework.Core.CoreEntities.Property), "property" },
-            { typeof(ThreatFramework.Core.CoreEntities.PropertyOption), "property-option" },
+            { typeof(PropertyOption), "property-option" },
             { typeof(ThreatFramework.Core.CoreEntities.Library), "libraries" },
         };
 

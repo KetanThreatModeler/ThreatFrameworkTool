@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
-internal class YamlBuilder
+public class YamlBuilder
 {
     private readonly StringBuilder _builder = new();
     private const string Indent = "  ";

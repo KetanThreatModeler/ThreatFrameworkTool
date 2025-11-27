@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Global;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities

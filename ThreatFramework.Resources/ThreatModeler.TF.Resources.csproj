@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ThreatFramework.Core\ThreatFramework.Core.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Infrastructure\ThreatModeler.TF.Infra.Implmentation.csproj" />
   </ItemGroup>
 
 </Project>

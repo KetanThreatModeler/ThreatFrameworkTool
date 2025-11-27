@@ -15,7 +15,7 @@ namespace ThreatFramework.Infrastructure
         public SqlConnectionFactory(string connectionString)
         {
             _connectionString = connectionString
-                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
+                ?? throw new InvalidOperationException("Connection string Client not found in configuration.");
         }
 
         public async Task<SqlConnection> CreateOpenConnectionAsync(CancellationToken ct = default)

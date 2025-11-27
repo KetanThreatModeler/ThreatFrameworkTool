@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.ComponentMapping;
+using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
 {
@@ -13,21 +14,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-threat-sr")
-                .AddChild("apiVersion: v1")
-                .AddParent("metadata:", b =>
+                .AddQuoted("componentGuid", ctsrMapping.ComponentGuid.ToString())
+                .AddQuoted("threatGuid", ctsrMapping.ThreatGuid.ToString())
+                .AddQuoted("securityRequirementGuid", ctsrMapping.SecurityRequirementGuid.ToString())
+                .AddParent("flags:", b2 =>
                 {
-                    b.AddChild($"id: {ctsrMapping.Id}");
-                })
-                .AddParent("spec:", b =>
-                {
-                    b.AddChild($"componentGuid: {ctsrMapping.ComponentGuid}");
-                    b.AddChild($"threatGuid: {ctsrMapping.ThreatGuid}");
-                    b.AddChild($"securityRequirementGuid: \"{ctsrMapping.SecurityRequirementGuid}\"");
-                    b.AddParent("flags:", b2 =>
-                    {
-                        b2.AddChild($"isHidden: {ctsrMapping.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {ctsrMapping.IsOverridden.ToString().ToLower()}");
-                    });
+                    b2.AddBool("isHidden", ctsrMapping.IsHidden);
+                    b2.AddBool("isOverridden", ctsrMapping.IsOverridden);
                 })
                 .Build();
 

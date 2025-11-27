@@ -1,4 +1,5 @@
 ﻿using ThreatFramework.Core.CoreEntities;
+using ThreatModeler.TF.Core.Global;
 
 namespace ThreatFramework.Drift.Contract.Model
 {
@@ -35,6 +36,7 @@ namespace ThreatFramework.Drift.Contract.Model
     public class GlobalDrift
     {
         public EntityDiff<PropertyOption> PropertyOptions { get; init; } = new();
+        public EntityDiff<PropertyType> PropertyTypes { get; init; } = new();
     }
 
 }

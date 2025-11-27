@@ -1,9 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Infra.Contract.Repository.Global;
 
-namespace ThreatFramework.Infrastructure.Repository
+namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
 {
     public class PropertyOptionRepository : IPropertyOptionRepository
     {

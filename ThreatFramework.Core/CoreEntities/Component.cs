@@ -5,7 +5,8 @@
         public int Id { get; set; }
         public Guid Guid { get; set; }
         public Guid LibraryGuid { get; set; }
-        public int ComponentTypeId { get; set; }
+        public Guid ComponentTypeGuid { get; set; }
+        public string ComponentTypeName { get; set; } = string.Empty;
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
         public DateTime CreatedDate { get; set; }

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ThreatFramework.Core.PropertyMapping;
-using ThreatFramework.Infra.Contract;
+﻿using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Contract.Repository.Global;
 
-namespace ThreatFramework.Infrastructure.Repository
+namespace ThreatModeler.TF.Infra.Implmentation.Repository
 {
     public sealed class RepositoryHub : IRepositoryHub
     {
@@ -16,9 +12,11 @@ namespace ThreatFramework.Infrastructure.Repository
                              ILibraryCacheService libraryCache,
                              IThreatRepository threats,
                              IComponentRepository components,
+                             IComponentTypeRepository componentTypes,
                              ISecurityRequirementRepository securityRequirements,
                              ITestcaseRepository testcases,
                              IPropertyRepository properties,
+                             IPropertyTypeRepository propertyTypes,
                              IPropertyOptionRepository propertyOptions,
                              IComponentSecurityRequirementMappingRepository csr,
                              IComponentThreatMappingRepository ct,
@@ -31,15 +29,15 @@ namespace ThreatFramework.Infrastructure.Repository
         {
             ConnectionFactory = factory;
             LibraryCache = libraryCache;
-
             Libraries = libraries;
             Threats = threats;
             Components = components;
+            ComponentTypes = componentTypes;
             SecurityRequirements = securityRequirements;
             Testcases = testcases;
             Properties = properties;
+            PropertyTypes = propertyTypes;
             PropertyOptions = propertyOptions;
-
             ComponentSecurityRequirementMappings = csr;
             ComponentThreatMappings = ct;
             ComponentThreatSecurityRequirementMappings = ctsr;
@@ -56,11 +54,12 @@ namespace ThreatFramework.Infrastructure.Repository
         public ILibraryRepository Libraries { get; }
         public IThreatRepository Threats { get; }
         public IComponentRepository Components { get; }
+        public IComponentTypeRepository ComponentTypes { get; }
         public ISecurityRequirementRepository SecurityRequirements { get; }
         public ITestcaseRepository Testcases { get; }
         public IPropertyRepository Properties { get; }
+        public IPropertyTypeRepository PropertyTypes { get; }
         public IPropertyOptionRepository PropertyOptions { get; }
-
         public IComponentSecurityRequirementMappingRepository ComponentSecurityRequirementMappings { get; }
         public IComponentThreatMappingRepository ComponentThreatMappings { get; }
         public IComponentThreatSecurityRequirementMappingRepository ComponentThreatSecurityRequirementMappings { get; }

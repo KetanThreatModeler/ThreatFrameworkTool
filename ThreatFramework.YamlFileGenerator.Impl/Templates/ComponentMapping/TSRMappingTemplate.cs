@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.ComponentMapping;
+using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
 {
@@ -13,16 +14,12 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.threat-sr")
-                .AddChild("apiVersion: v1")
-                .AddParent("spec:", b =>
+                .AddQuoted("threatGuid", tsrMapping.ThreatGuid.ToString())
+                .AddQuoted("securityRequirementGuid", tsrMapping.SecurityRequirementGuid.ToString())
+                .AddParent("flags:", b2 =>
                 {
-                    b.AddChild($"threatGuid: \"{tsrMapping.ThreatGuid}\"");
-                    b.AddChild($"securityRequirementGuid: \"{tsrMapping.SecurityRequirementGuid}\"");
-                    b.AddParent("flags:", b2 =>
-                    {
-                        b2.AddChild($"isHidden: {tsrMapping.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {tsrMapping.IsOverridden.ToString().ToLower()}");
-                    });
+                    b2.AddBool("isHidden", tsrMapping.IsHidden);
+                    b2.AddBool("isOverridden", tsrMapping.IsOverridden);
                 })
                 .Build();
 

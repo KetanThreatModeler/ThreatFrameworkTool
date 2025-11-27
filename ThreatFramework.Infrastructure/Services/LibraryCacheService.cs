@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
 
@@ -23,13 +19,13 @@ namespace ThreatFramework.Infrastructure.Services
 
         public async Task<Dictionary<int, Guid>> GetIdToGuidLookupAsync()
         {
-            await EnsureCacheInitializedAsync();
+            EnsureCacheInitialized();
             return new Dictionary<int, Guid>(_idToGuidCache);
         }
 
         public async Task<HashSet<Guid>> GetReadonlyLibraryGuidsAsync()
         {
-            await EnsureCacheInitializedAsync();
+            EnsureCacheInitialized();
             return _readonlyStatusCache
                 .Where(kvp => kvp.Value)
                 .Select(kvp => kvp.Key)
@@ -38,27 +34,27 @@ namespace ThreatFramework.Infrastructure.Services
 
         public async Task<Guid> GetGuidByIdAsync(int libraryId)
         {
-            await EnsureCacheInitializedAsync();
-            return _idToGuidCache.TryGetValue(libraryId, out var guid) ? guid : Guid.Empty;
+            EnsureCacheInitialized();
+            return _idToGuidCache.TryGetValue(libraryId, out Guid guid) ? guid : Guid.Empty;
         }
 
         public async Task<bool> IsLibraryReadonlyAsync(Guid libraryGuid)
         {
-            await EnsureCacheInitializedAsync();
-            return _readonlyStatusCache.TryGetValue(libraryGuid, out var isReadonly) && isReadonly;
+            EnsureCacheInitialized();
+            return _readonlyStatusCache.TryGetValue(libraryGuid, out bool isReadonly) && isReadonly;
         }
 
         public async Task RefreshCacheAsync()
         {
-            var libraries = await _libraryRepository.GetLibrariesCacheAsync();
-            
+            IEnumerable<Core.Cache.LibraryCache> libraries = await _libraryRepository.GetLibrariesCacheAsync();
+
             _idToGuidCache.Clear();
             _readonlyStatusCache.Clear();
 
-            foreach (var library in libraries)
+            foreach (Core.Cache.LibraryCache library in libraries)
             {
-                _idToGuidCache.TryAdd(library.Id, library.Guid);
-                _readonlyStatusCache.TryAdd(library.Guid, library.IsReadonly);
+                _ = _idToGuidCache.TryAdd(library.Id, library.Guid);
+                _ = _readonlyStatusCache.TryAdd(library.Guid, library.IsReadonly);
             }
 
             _cacheInitialized = true;
@@ -72,7 +68,7 @@ namespace ThreatFramework.Infrastructure.Services
             return Task.CompletedTask;
         }
 
-        private async Task EnsureCacheInitializedAsync()
+        private void EnsureCacheInitialized()
         {
             if (!_cacheInitialized)
             {
@@ -88,35 +84,35 @@ namespace ThreatFramework.Infrastructure.Services
 
         public async Task<HashSet<int>> GetReadOnlyLibraryIdAsync()
         {
-            await EnsureCacheInitializedAsync();
-            
-            var readonlyGuids = _readonlyStatusCache
+            EnsureCacheInitialized();
+
+            IEnumerable<Guid> readonlyGuids = _readonlyStatusCache
                 .Where(kvp => kvp.Value)
                 .Select(kvp => kvp.Key);
-            
-            var readonlyIds = _idToGuidCache
+
+            HashSet<int> readonlyIds = _idToGuidCache
                 .Where(kvp => readonlyGuids.Contains(kvp.Value))
                 .Select(kvp => kvp.Key)
                 .ToHashSet();
-            
+
             return readonlyIds;
         }
 
         public async Task<HashSet<int>> GetIdsFromGuid(IEnumerable<Guid> guids)
         {
-            await EnsureCacheInitializedAsync();
-            
-            var ids = new HashSet<int>();
-            
-            foreach (var guid in guids)
+            EnsureCacheInitialized();
+
+            HashSet<int> ids = [];
+
+            foreach (Guid guid in guids)
             {
-                var id = _idToGuidCache.FirstOrDefault(kvp => kvp.Value == guid).Key;
+                int id = _idToGuidCache.FirstOrDefault(kvp => kvp.Value == guid).Key;
                 if (id != 0) // Default value for int when not found
                 {
-                    ids.Add(id);
+                    _ = ids.Add(id);
                 }
             }
-            
+
             return ids;
         }
     }

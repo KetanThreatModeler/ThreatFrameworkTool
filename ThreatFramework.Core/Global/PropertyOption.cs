@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using ThreatFramework.Core;
 
-namespace ThreatFramework.Core.CoreEntities
+namespace ThreatModeler.TF.Core.Global
 {
 
     public class PropertyOption : IFieldComparable<PropertyOption>

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ThreatFramework.Infra.Contract;
+using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Contract.Repository.Global;
 
-namespace ThreatFramework.Infra.Contract.Repository
+namespace ThreatModeler.TF.Infra.Contract.Repository
 {
     public interface IRepositoryHub
     {
@@ -25,5 +23,7 @@ namespace ThreatFramework.Infra.Contract.Repository
         IComponentPropertyOptionMappingRepository ComponentPropertyOptionMappings { get; }
         IComponentPropertyOptionThreatMappingRepository ComponentPropertyOptionThreatMappings { get; }
         IComponentPropertyOptionThreatSecurityRequirementMappingRepository ComponentPropertyOptionThreatSecurityRequirementMappings { get; }
+        IComponentTypeRepository ComponentTypes { get; }
+        IPropertyTypeRepository PropertyTypes { get; }
     }
 }

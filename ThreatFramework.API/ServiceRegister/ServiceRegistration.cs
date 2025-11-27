@@ -1,10 +1,10 @@
-﻿using ThreatFramework.Core.Config;
-using ThreatFramework.Infra.Contract.Index;
+﻿using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infrastructure;
 using ThreatFramework.Infrastructure.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
+using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.API.ServiceRegister
 {
@@ -12,12 +12,7 @@ namespace ThreatFramework.API.ServiceRegister
     {
         public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration config)
         {
-            // Export options (paths, LibraryIds per tenant)
-            services.AddOptions<YamlExportOptions>()
-                .Bind(config.GetSection("YamlExport"))
-                .Validate(o => o.Trc is not null && o.Client is not null, "YamlExport requires Trc & Client")
-                .ValidateOnStart();
-
+           
             // DatabaseOptions for Infra
             services.AddOptions<DatabaseOptions>()
                 .Configure(o =>

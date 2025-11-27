@@ -1,6 +1,6 @@
-﻿using ThreatFramework.Core.CoreEntities;
+﻿using ThreatModeler.TF.Core.Global;
 
-namespace ThreatFramework.Infra.Contract.Repository
+namespace ThreatModeler.TF.Infra.Contract.Repository.Global
 {
     public interface IPropertyOptionRepository
     {

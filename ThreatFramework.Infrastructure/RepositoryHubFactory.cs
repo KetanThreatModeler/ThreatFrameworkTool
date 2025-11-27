@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infrastructure.Repository;
 using ThreatFramework.Infrastructure.Services;
+using ThreatModeler.TF.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Implmentation.Repository;
+using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
 
 namespace ThreatFramework.Infrastructure
 {
@@ -33,9 +36,11 @@ namespace ThreatFramework.Infrastructure
             // now construct the rest with required deps
             var threats = new ThreatRepository(libraryCache, factory);
             var components = new ComponentRepository(libraryCache, factory);
+            var componentTypes = new ComponentTypeRepository(libraryCache, factory);
             var securityReqs = new SecurityRequirementRepository(libraryCache, factory);
             var testcases = new TestcaseRepository(libraryCache, factory);
             var properties = new PropertyRepository(libraryCache, factory);
+            var propertyTypes = new PropertyTypeRepository(factory);
             var propertyOptions = new PropertyOptionRepository(factory);
 
             var csr = new ComponentSecurityRequirementMappingRepository(factory,libraryCache);
@@ -47,8 +52,8 @@ namespace ThreatFramework.Infrastructure
             var cpoth = new ComponentPropertyOptionThreatMappingRepository(factory, libraryCache);
             var cpotsr = new ComponentPropertyOptionThreatSecurityRequirementMappingRepository(factory, libraryCache);
 
-            return new RepositoryHub(factory, libraries, libraryCache, threats, components, securityReqs,
-                                     testcases, properties, propertyOptions, csr, ct, ctsr, tsr,
+            return new RepositoryHub(factory, libraries, libraryCache, threats, components, componentTypes, securityReqs,
+                                     testcases, properties, propertyTypes, propertyOptions, csr, ct, ctsr, tsr,
                                      cp, cpo, cpoth, cpotsr);
         }
     }

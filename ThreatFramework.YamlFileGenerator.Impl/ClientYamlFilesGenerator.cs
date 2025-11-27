@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ThreatFramework.Core.Config;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
+using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Infra.Contract.Repository;
 
 namespace ThreatFramework.YamlFileGenerator.Impl
 {
@@ -11,72 +12,67 @@ namespace ThreatFramework.YamlFileGenerator.Impl
     {
         private readonly ILogger<ClientYamlFilesGenerator> _logger;
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
-        private readonly IRepositoryHubFactory _hubFactory;
+        private readonly IRepositoryHub _hub;
         private readonly IGuidIndexService _indexService;
-        private readonly YamlExportOptions _options;
+        private readonly PathOptions _options;
 
         public ClientYamlFilesGenerator(
             ILogger<ClientYamlFilesGenerator> logger,
             ILogger<YamlFilesGenerator> yamlLogger,
             IRepositoryHubFactory hubFactory,
-            IOptions<YamlExportOptions> options,
+            IOptions<PathOptions> options,
             IGuidIndexService indexService)
         {
             _logger = logger;
             _yamlLogger = yamlLogger;
-            _hubFactory = hubFactory;
+            _hub = hubFactory.Create(DataPlane.Client);
             _indexService = indexService;
             _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
-        public async Task GenerateAsync(string outputFolderPath)
+        public async Task GenerateForLibraryIdsAsync(string outputFolderPath, List<Guid> libraryIds)
         {
             if (string.IsNullOrWhiteSpace(outputFolderPath))
                 throw new ArgumentException("Output path is required.", nameof(outputFolderPath));
 
-            var cfg = _options.Client ?? throw new InvalidOperationException("YamlExport:Client is not configured.");
-            if (cfg.LibraryIds is null || cfg.LibraryIds.Count == 0)
-                throw new InvalidOperationException("YamlExport:Client:LibraryIds must contain at least one GUID.");
+            var cfg = _options.ClientOutput ?? throw new InvalidOperationException("YamlExport:Client is not configured.");
 
             Directory.CreateDirectory(outputFolderPath);
-
-            // plane-scoped repository hub for Client
-            var hub = _hubFactory.Create(DataPlane.Client);
 
             // construct your existing generator with plane-specific repos
             var gen = new YamlFilesGenerator(
                 logger: _yamlLogger,
-                threatRepository: hub.Threats,
-                componentRepository: hub.Components,
-                libraryRepository: hub.Libraries,
-                securityRequirementRepository: hub.SecurityRequirements,
-                propertyRepository: hub.Properties,
-                propertyOptionRepository: hub.PropertyOptions,
-                testcaseRepository: hub.Testcases,
-                componentThreatMappingRepository: hub.ComponentThreatMappings,
-                componentSecurityRequirementMappingRepository: hub.ComponentSecurityRequirementMappings,
-                componentThreatSecurityRequirementMappingRepository: hub.ComponentThreatSecurityRequirementMappings,
-                threatSecurityRequirementMappingRepository: hub.ThreatSecurityRequirementMappings,
-                componentPropertyMappingRepository: hub.ComponentPropertyMappings,
-                componentPropertyOptionMappingRepository: hub.ComponentPropertyOptionMappings,
-                componentPropertyOptionThreatMappingRepository: hub.ComponentPropertyOptionThreatMappings,
-                componentPropertyOptionThreatSecurityRequirementMappingRepository: hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
+                threatRepository: _hub.Threats,
+                componentRepository: _hub.Components,
+                componentTypeRepository: _hub.ComponentTypes,
+                libraryRepository: _hub.Libraries,
+                securityRequirementRepository: _hub.SecurityRequirements,
+                propertyRepository: _hub.Properties,
+                propertyTypeRepository: _hub.PropertyTypes,
+                propertyOptionRepository: _hub.PropertyOptions,
+                testcaseRepository: _hub.Testcases,
+                componentThreatMappingRepository: _hub.ComponentThreatMappings,
+                componentSecurityRequirementMappingRepository: _hub.ComponentSecurityRequirementMappings,
+                componentThreatSecurityRequirementMappingRepository: _hub.ComponentThreatSecurityRequirementMappings,
+                threatSecurityRequirementMappingRepository: _hub.ThreatSecurityRequirementMappings,
+                componentPropertyMappingRepository: _hub.ComponentPropertyMappings,
+                componentPropertyOptionMappingRepository: _hub.ComponentPropertyOptionMappings,
+                componentPropertyOptionThreatMappingRepository: _hub.ComponentPropertyOptionThreatMappings,
+                componentPropertyOptionThreatSecurityRequirementMappingRepository: _hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
                 indexService: _indexService
             );
 
-            var ids = cfg.LibraryIds;
-            var root = outputFolderPath;
+            await gen.GenerateYamlFilesForSpecificLibraries(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForSpecificComponents(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForAllComponentTypes(outputFolderPath);
+            await gen.GenerateYamlFilesForSpecificThreats(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForSpecificSecurityRequirements(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForSpecificProperties(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForPropertyTypes(outputFolderPath);
+            await gen.GenerateYamlFilesForSpecificTestCases(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForPropertyOptions(outputFolderPath);
 
-            // Hard-coded entity selection for CLIENT
-            await gen.GenerateYamlFilesForSpecificLibraries(Path.Combine(root, "libraries"), ids);
-            await gen.GenerateYamlFilesForSpecificComponents(Path.Combine(root, "components"), ids);
-            await gen.GenerateYamlFilesForSpecificThreats(Path.Combine(root, "threats"), ids);
-            await gen.GenerateYamlFilesForSpecificSecurityRequirements(Path.Combine(root, "security-requirements"), ids);
-            await gen.GenerateYamlFilesForSpecificProperties(Path.Combine(root, "properties"), ids);
-            await gen.GenerateYamlFilesForSpecificPropertyOptions(Path.Combine(root, "property-options"));
-            await gen.GenerateYamlFilesForSpecificTestCases(Path.Combine(root, "test-cases"), ids);
-
-            _logger.LogInformation("Client export completed to {Root}.", root);
+            _logger.LogInformation("Client export completed to {Root}.", outputFolderPath);
         }
     }
 }

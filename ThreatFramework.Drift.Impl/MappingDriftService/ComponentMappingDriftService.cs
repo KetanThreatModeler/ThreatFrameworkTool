@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 using ThreatFramework.Core.ComponentMapping;
-using ThreatFramework.Core.Config;
 using ThreatFramework.Core.PropertyMapping;
 using ThreatFramework.Drift.Contract.MappingDriftService;
 using ThreatFramework.Drift.Contract.MappingDriftService.Builder;
@@ -9,6 +7,7 @@ using ThreatFramework.Drift.Contract.MappingDriftService.Dto;
 using ThreatFramework.Drift.Contract.MappingDriftService.Model;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Core.Config;
 
 namespace ThreatFramework.Drift.Impl.MappingDriftService
 {
@@ -35,7 +34,7 @@ namespace ThreatFramework.Drift.Impl.MappingDriftService
         private readonly IComponentThreatSRDriftService _componentThreatDriftService;
         private readonly IComponentSRDriftService _componentSrDriftService;
         private readonly IComponentMappingDriftAggregator _componentMappingDriftComposer;
-        private readonly YamlExportOptions _exportOptions;
+        private readonly PathOptions _exportOptions;
 
 
 
@@ -61,7 +60,7 @@ namespace ThreatFramework.Drift.Impl.MappingDriftService
                                    IComponentThreatSRDriftService componentThreatDriftService,
                                    IComponentSRDriftService componentSrDrift,
                                    IComponentMappingDriftAggregator componentMappingDriftComposer,
-                                   IOptions<YamlExportOptions> exportOptions)
+                                   IOptions<PathOptions> exportOptions)
         {
             _componentSecurityRequirementMappingRepository = componentSecurityRequirementMappingRepository ?? throw new ArgumentNullException(nameof(componentSecurityRequirementMappingRepository));
             _componentThreatMappingRepository = componentThreatMappingRepository ?? throw new ArgumentNullException(nameof(componentThreatMappingRepository));
@@ -96,10 +95,10 @@ namespace ThreatFramework.Drift.Impl.MappingDriftService
             var cpoMappingFromSourceA = await _componentPropertyOptionMappingRepository.GetReadOnlyMappingsAsync();
             var propertyMappingFromSourceA = await _componentPropertyMappingRepository.GetReadOnlyMappingsAsync();
 
-            var cpoThreatSrMappingFromSourceB = await _yamlCpoThreatSrReader.GetAllAsync(_exportOptions.Trc.OutputPath);
-            var cpoThreatMappingFromSourceB = await _yamlComponentPropertyOptionThreatReader.GetAllAsync(_exportOptions.Trc.OutputPath);
-            var cpoMappingFromSourceB = await _yamlComponentPropertyOptionReader.GetAllAsync(_exportOptions.Trc.OutputPath);
-            var propertyMappingFromSourceB = await _yamlComponentPropertyReader.GetAllAsync(_exportOptions.Trc.OutputPath);
+            var cpoThreatSrMappingFromSourceB = await _yamlCpoThreatSrReader.GetAllAsync(_exportOptions.TrcOutput);
+            var cpoThreatMappingFromSourceB = await _yamlComponentPropertyOptionThreatReader.GetAllAsync(_exportOptions.TrcOutput);
+            var cpoMappingFromSourceB = await _yamlComponentPropertyOptionReader.GetAllAsync(_exportOptions.TrcOutput);
+            var propertyMappingFromSourceB = await _yamlComponentPropertyReader.GetAllAsync(_exportOptions.TrcOutput);
 
             var sourceA = ToMapping(cpoThreatSrMappingFromSourceA.ToList(),
                                   cpoThreatMappingFromSourceA.ToList(),
@@ -117,8 +116,8 @@ namespace ThreatFramework.Drift.Impl.MappingDriftService
             var componentThreatMappingFromSourceA = await _componentThreatMappingRepository.GetReadOnlyMappingsAsync();
 
 
-            var componentThreatSrMappingFromSourceB = await _yamlComponentThreatSRReader.GetAllAsync(_exportOptions.Trc.OutputPath);
-            var componentThreatMappingFromSourceB = await _yamlComponentThreatReader.GetAllAsync(_exportOptions.Trc.OutputPath);
+            var componentThreatSrMappingFromSourceB = await _yamlComponentThreatSRReader.GetAllAsync(_exportOptions.TrcOutput);
+            var componentThreatMappingFromSourceB = await _yamlComponentThreatReader.GetAllAsync(_exportOptions.TrcOutput);
 
             var sourceAComponentThreatSrMapping = ToMapping(componentThreatMappingFromSourceA.ToList(),
                                           cpomponentThreatSrMappingFromSourceA.ToList());
@@ -129,7 +128,7 @@ namespace ThreatFramework.Drift.Impl.MappingDriftService
 
             var componentSrMappingFromSourceA = await _componentSecurityRequirementMappingRepository.GetReadOnlyMappingsAsync();
 
-            var componentSrMappingFromSourceB = await _yamlComponentSRReader.GetAllComponentSRAsync(_exportOptions.Trc.OutputPath);
+            var componentSrMappingFromSourceB = await _yamlComponentSRReader.GetAllComponentSRAsync(_exportOptions.ClientOutput);
 
             var componetSrSourceA = ToMapping(componentSrMappingFromSourceA.ToList());
             var componentSrSourceB = ToMapping(componentSrMappingFromSourceB.ToList());

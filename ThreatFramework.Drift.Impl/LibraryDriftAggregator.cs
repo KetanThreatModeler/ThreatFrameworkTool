@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using ThreatFramework.Core;
-using ThreatFramework.Core.Config;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
@@ -10,6 +9,8 @@ using ThreatFramework.Drift.Contract.MappingDriftService;
 using ThreatFramework.Drift.Contract.MappingDriftService.Dto;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.Global;
 
 namespace ThreatFramework.Drift.Impl
 {
@@ -18,12 +19,12 @@ namespace ThreatFramework.Drift.Impl
         private readonly IFolderDiffService _folderDiffService;
         private readonly ICoreEntityDrift _coreEntityDrift;
         private readonly IComponentMappingDriftService _componentMappingDriftService;
-        private readonly YamlExportOptions _exportOptions;
+        private readonly PathOptions _exportOptions;
         private readonly IYamlComponentReader _yamlComponentReader;
 
         public LibraryDriftAggregator(IFolderDiffService folderDiffService, ICoreEntityDrift coreEntityDrift,
             IComponentMappingDriftService componentMappingDriftService,
-            IOptions<YamlExportOptions> exportOptions, IYamlComponentReader yamlComponentReader)
+            IOptions<PathOptions> exportOptions, IYamlComponentReader yamlComponentReader)
         {
             _folderDiffService = folderDiffService;
             _coreEntityDrift = coreEntityDrift ?? throw new ArgumentNullException(nameof(coreEntityDrift));
@@ -34,7 +35,7 @@ namespace ThreatFramework.Drift.Impl
 
         public async Task<TMFrameworkDrift> Drift()
         {
-            FolderComparisionResult filesComparionResult = await _folderDiffService.Compare(_exportOptions.Trc.OutputPath, _exportOptions.Client.OutputPath);
+            FolderComparisionResult filesComparionResult = await _folderDiffService.Compare(_exportOptions.TrcOutput, _exportOptions.ClientOutput);
             CoreEntitiesDrift coreEntitiesDrift = await _coreEntityDrift.BuildAsync(filesComparionResult);
             IEnumerable<ComponentMappingDriftDto> componentMappingResult = await _componentMappingDriftService.GetMappingDrift();
             return await Aggregate(coreEntitiesDrift, componentMappingResult);

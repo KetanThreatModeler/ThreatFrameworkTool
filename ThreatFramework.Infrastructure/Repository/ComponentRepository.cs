@@ -27,7 +27,7 @@ namespace ThreatFramework.Infrastructure.Repository
             var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
             var sql = $@"{BuildComponentSelectQuery()} 
-                        WHERE LibraryId IN ({libraryParameters})";
+                        WHERE c.LibraryId IN ({libraryParameters})";
 
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             using var command = new SqlCommand(sql, connection);
@@ -51,7 +51,7 @@ namespace ThreatFramework.Infrastructure.Repository
             var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
             var sql = $@"{BuildComponentSelectQuery()} 
-                WHERE LibraryId IN ({libraryParameters})";
+                WHERE c.LibraryId IN ({libraryParameters})";
 
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             using var command = new SqlCommand(sql, connection);
@@ -66,10 +66,11 @@ namespace ThreatFramework.Infrastructure.Repository
 
         private static string BuildComponentSelectQuery()
         {
-            return @"SELECT c.Id, c.Guid, c.LibraryId, c.ComponentTypeId, c.isHidden, c.IsOverriden, 
-                            c.CreatedDate, c.LastUpdated, c.Name, c.ImagePath, c.Labels, 
-                            c.Version, c.Description, c.ChineseDescription 
-                    FROM Components c";
+            return @"SELECT c.Id, c.Guid, c.LibraryId, c.ComponentTypeId, ct.Guid AS ComponentTypeGuid, c.isHidden, c.IsOverriden, 
+                    c.CreatedDate, c.LastUpdated, c.Name, c.ImagePath, c.Labels, 
+                    c.Version, c.Description, c.ChineseDescription 
+            FROM Components c
+            INNER JOIN ComponentTypes ct ON c.ComponentTypeId = ct.Id";
         }
 
         private async Task<IEnumerable<Component>> ExecuteComponentReaderAsync(SqlCommand command)
@@ -84,7 +85,7 @@ namespace ThreatFramework.Infrastructure.Repository
                     Id = (int)reader["Id"],
                     Guid = (Guid)reader["Guid"],
                     LibraryGuid = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
-                    ComponentTypeId = (int)reader["ComponentTypeId"],
+                    ComponentTypeGuid = (Guid)reader["ComponentTypeGuid"],
                     IsHidden = (bool)reader["isHidden"],
                     IsOverridden = (bool)reader["IsOverriden"],
                     CreatedDate = (DateTime)reader["CreatedDate"],
@@ -94,7 +95,7 @@ namespace ThreatFramework.Infrastructure.Repository
                     Labels = reader["Labels"] as string,
                     Version = reader["Version"] as string,
                     Description = reader["Description"] as string,
-                    ChineseDescription = reader["ChineseDescription"] as string
+                    ChineseDescription = reader["ChineseDescription"] as string,
                 });
             }
 
@@ -117,6 +118,30 @@ namespace ThreatFramework.Infrastructure.Repository
             }
 
             return guids;
+        }
+
+        public async Task<IEnumerable<(Guid ComponentGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync()
+        {
+            const string sql = @"
+        SELECT c.Guid AS ComponentGuid, l.Guid AS LibraryGuid
+        FROM Components c
+        INNER JOIN Libraries l ON c.LibraryId = l.Id";
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+
+            var results = new List<(Guid, Guid)>();
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var componentGuid = reader.GetGuid(reader.GetOrdinal("ComponentGuid"));
+                var libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
+
+                results.Add((componentGuid, libraryGuid));
+            }
+
+            return results;
         }
     }
 }

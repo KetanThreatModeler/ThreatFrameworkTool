@@ -8,6 +8,6 @@ namespace ThreatFramework.YamlFileGenerator.Contract
 {
     public interface IYamlFileGeneratorForClient
     {
-        Task GenerateAsync(string outputFolderPath);
+        Task GenerateForLibraryIdsAsync(string outputFolderPath, List<Guid> libraryIds);
     }
 }

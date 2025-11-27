@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ThreatFramework.Infra.Contract.Repository;
+﻿using Microsoft.Data.SqlClient;
 using ThreatFramework.Core.Cache;
 using ThreatFramework.Core.CoreEntities;
+using ThreatFramework.Infra.Contract.Repository;
 
 namespace ThreatFramework.Infrastructure.Repository
 {
@@ -21,15 +16,15 @@ namespace ThreatFramework.Infrastructure.Repository
 
         public async Task<IEnumerable<LibraryCache>> GetLibrariesCacheAsync()
         {
-            var libraries = new List<LibraryCache>();
-            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
-            var sql = @"SELECT Id, Guid, Readonly
+            List<LibraryCache> libraries = [];
+            using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
+            string sql = @"SELECT Id, Guid, Readonly
                         FROM Libraries s
                         ORDER BY Name";
-            
-            using var command = new SqlCommand(sql, connection);
-            using var reader = await command.ExecuteReaderAsync();
-            
+
+            using SqlCommand command = new(sql, connection);
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
             while (await reader.ReadAsync())
             {
                 libraries.Add(new LibraryCache
@@ -39,59 +34,61 @@ namespace ThreatFramework.Infrastructure.Repository
                     IsReadonly = (bool)reader["Readonly"]
                 });
             }
-            
+
             return libraries;
         }
 
         public async Task<IEnumerable<Library>> GetReadonlyLibrariesAsync()
         {
-            var sql = @"SELECT Id, Guid, DepartmentId, DateCreated, LastUpdated, Readonly, IsDefault, 
+            string sql = @"SELECT Id, Guid, DepartmentId, DateCreated, LastUpdated, Readonly, IsDefault, 
                        Name, SharingType, Description, Labels, Version, ReleaseNotes, ImageURL
                 FROM Libraries 
                 WHERE Readonly = 1
                 ORDER BY Name";
-    
+
             return await ExecuteLibraryQueryAsync(sql);
         }
 
         public async Task<IEnumerable<Library>> GetLibrariesByGuidsAsync(IEnumerable<Guid> guids)
         {
             if (!guids.Any())
+            {
                 return Enumerable.Empty<Library>();
-    
-            var guidList = guids.ToList();
-            var guidParameters = string.Join(",", guidList.Select((_, i) => $"@guid{i}"));
-    
-            var sql = @$"SELECT Id, Guid, DepartmentId, DateCreated, LastUpdated, Readonly, IsDefault, 
+            }
+
+            List<Guid> guidList = guids.ToList();
+            string guidParameters = string.Join(",", guidList.Select((_, i) => $"@guid{i}"));
+
+            string sql = @$"SELECT Id, Guid, DepartmentId, DateCreated, LastUpdated, Readonly, IsDefault, 
                         Name, SharingType, Description, Labels, Version, ReleaseNotes, ImageURL
                  FROM Libraries 
                  WHERE Guid IN ({guidParameters})
                  ORDER BY Name";
-    
-            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
-            using var command = new SqlCommand(sql, connection);
-    
+
+            using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using SqlCommand command = new(sql, connection);
+
             for (int i = 0; i < guidList.Count; i++)
             {
-                command.Parameters.AddWithValue($"@guid{i}", guidList[i]);
+                _ = command.Parameters.AddWithValue($"@guid{i}", guidList[i]);
             }
-    
+
             return await ExecuteLibraryReaderAsync(command);
         }
 
         private async Task<IEnumerable<Library>> ExecuteLibraryQueryAsync(string sql)
         {
-            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
-            using var command = new SqlCommand(sql, connection);
-    
+            using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using SqlCommand command = new(sql, connection);
+
             return await ExecuteLibraryReaderAsync(command);
         }
 
         private async Task<IEnumerable<Library>> ExecuteLibraryReaderAsync(SqlCommand command)
         {
-            var libraries = new List<Library>();
-            using var reader = await command.ExecuteReaderAsync();
-    
+            List<Library> libraries = [];
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
             while (await reader.ReadAsync())
             {
                 libraries.Add(new Library
@@ -112,24 +109,24 @@ namespace ThreatFramework.Infrastructure.Repository
                     ImageURL = reader["ImageURL"] as string
                 });
             }
-    
+
             return libraries;
         }
 
         public async Task<IEnumerable<Guid>> GetLibraryGuidsAsync()
         {
-            var guids = new List<Guid>();
-            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
-            var sql = @"SELECT Guid FROM Libraries";
-            
-            using var command = new SqlCommand(sql, connection);
-            using var reader = await command.ExecuteReaderAsync();
-            
+            List<Guid> guids = [];
+            using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
+            string sql = @"SELECT Guid FROM Libraries";
+
+            using SqlCommand command = new(sql, connection);
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
             while (await reader.ReadAsync())
             {
                 guids.Add((Guid)reader["Guid"]);
             }
-            
+
             return guids;
         }
     }

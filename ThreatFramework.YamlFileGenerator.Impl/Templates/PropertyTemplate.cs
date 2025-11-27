@@ -1,77 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ThreatFramework.Core.CoreEntities;
+﻿using ThreatFramework.Core.CoreEntities;
 
-namespace ThreatFramework.YamlFileGenerator.Impl.Templates
+namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates
 {
     public static class PropertyTemplate
     {
         public static string Generate(Property property)
         {
-            var labels = ParseLabels(property.Labels);
-            var labelsArray = labels.Any() ? $"[{string.Join(", ", labels)}]" : "[]";
-
-            var yaml = new YamlBuilder()
+            string yaml = new YamlBuilder()
                 .AddChild("kind: property")
                 .AddChild("apiVersion: v1")
-                .AddParent("metadata:", b =>
+                .AddQuoted("guid", property.Guid.ToString())
+                .AddQuoted("name", property.Name)
+                .AddQuoted("libraryGuid", property.LibraryGuid.ToString())
+                .AddLabels("labels", property.Labels)
+                .AddQuoted("propertyTypeGuid", property.PropertyTypeGuid.ToString())
+                .AddQuoted("description", property.Description ?? string.Empty)
+                .AddQuoted("ChineseName", property.ChineseName ?? string.Empty)
+                .AddQuoted("ChineseDescription", property.ChineseDescription ?? string.Empty)
+                .AddParent("flags:", b2 =>
                 {
-                    b.AddChild($"guid: \"{property.Guid}\"");
-                    b.AddChild($"name: \"{EscapeYamlValue(property.Name)}\"");
-                    b.AddChild($"libraryGuid: \"{property.LibraryGuid}\"");
-                    b.AddChild($"labels: {labelsArray}");
-                })
-                .AddParent("spec:", b =>
-                {
-                    b.AddChild($"propertyTypeGuid: \"{property.PropertyTypeId}\"");
-                    b.AddParent("flags:", b2 =>
-                    {
-                        b2.AddChild($"isSelected: {property.IsSelected.ToString().ToLower()}");
-                        b2.AddChild($"isOptional: {property.IsOptional.ToString().ToLower()}");
-                        b2.AddChild($"isGlobal: {property.IsGlobal.ToString().ToLower()}");
-                        b2.AddChild($"isHidden: {property.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {property.IsOverridden.ToString().ToLower()}");
-                    });
-                    b.AddChild($"description: \"{EscapeYamlValue(property.Description ?? "")}\"");
-
-                    if (!string.IsNullOrEmpty(property.ChineseName) || !string.IsNullOrEmpty(property.ChineseDescription))
-                    {
-                        b.AddParent("i18n:", b2 =>
-                        {
-                            b2.AddParent("zh:", b3 =>
-                            {
-                                b3.AddChild($"name: \"{EscapeYamlValue(property.ChineseName ?? "")}\"");
-                                b3.AddChild($"description: \"{EscapeYamlValue(property.ChineseDescription ?? "")}\"");
-                            });
-                        });
-                    }
+                    _ = b2.AddBool("isSelected", property.IsSelected);
+                    _ = b2.AddBool("isOptional", property.IsOptional);
+                    _ = b2.AddBool("isGlobal", property.IsGlobal);
+                    _ = b2.AddBool("isHidden", property.IsHidden);
+                    _ = b2.AddBool("isOverridden", property.IsOverridden);
                 })
                 .Build();
 
             return yaml;
-        }
-
-        private static IEnumerable<string> ParseLabels(string? labels)
-        {
-            if (string.IsNullOrEmpty(labels))
-                return Enumerable.Empty<string>();
-
-            return labels.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                         .Select(l => $"\"{EscapeYamlValue(l.Trim())}\"");
-        }
-
-        private static string EscapeYamlValue(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-                return value ?? "";
-
-            return value.Replace("\"", "\\\"")
-                        .Replace("\n", "\\n")
-                        .Replace("\r", "\\r")
-                        .Replace("\t", "\\t");
         }
     }
 }

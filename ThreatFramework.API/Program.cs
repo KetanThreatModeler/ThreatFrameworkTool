@@ -1,7 +1,4 @@
-using LibGit2Sharp;
-using Microsoft.Extensions.Options;
 using ThreatFramework.API.ServiceRegister;
-using ThreatFramework.Core.Git;
 using ThreatFramework.Drift.Contract;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.FolderDiff;
@@ -30,6 +27,9 @@ using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
+using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,22 +40,26 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configure ThreatModeling options
-builder.Services.Configure<ThreatModelingOptions>(
-    builder.Configuration.GetSection(ThreatModelingOptions.SectionName));
+builder.Services
+    .AddOptions<PathOptions>()
+    .Bind(builder.Configuration.GetSection(PathOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // Core services
 builder.Services.AddScoped<ILibraryCacheService, LibraryCacheService>();
 
 builder.Services.AddScoped<ISqlConnectionFactory>(sp =>
-    new SqlConnectionFactory(builder.Configuration.GetConnectionString("DefaultConnection")));
+    new SqlConnectionFactory(builder.Configuration.GetConnectionString("ClientDb")));
 // Repository registrations
 builder.Services.AddScoped<ILibraryRepository, LibraryRepository>();
 builder.Services.AddScoped<IComponentRepository, ComponentRepository>();
+builder.Services.AddScoped<IComponentTypeRepository, ComponentTypeRepository>();
 builder.Services.AddScoped<IThreatRepository, ThreatRepository>();
 builder.Services.AddScoped<ISecurityRequirementRepository, SecurityRequirementRepository>();
 builder.Services.AddScoped<ITestcaseRepository, TestcaseRepository>();
 builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
+builder.Services.AddScoped<IPropertyTypeRepository, PropertyTypeRepository>();
 builder.Services.AddScoped<IPropertyOptionRepository, PropertyOptionRepository>();
 
 // Mapping repository registrations
@@ -102,12 +106,6 @@ builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();
 
 builder.Services.AddScoped<IYamlReaderRouter, YamlReaderRouter>();
 builder.Services.AddScoped<ICoreEntityDrift, CoreEntityDrift>();
-
-builder.Services.AddOptions<GuidIndexOptions>()
-    .Bind(builder.Configuration.GetSection(GuidIndexOptions.SectionName))
-    .ValidateDataAnnotations()
-    .Validate(o => !string.IsNullOrWhiteSpace(o.FilePath), "GuidIndex:FilePath is required.")
-    .ValidateOnStart();
 
 builder.Services.AddScoped<IGuidSource, GuidSource>();
 builder.Services.AddSingleton<IGuidIndexRepository, GuidIndexRepository>(); // <-- interface

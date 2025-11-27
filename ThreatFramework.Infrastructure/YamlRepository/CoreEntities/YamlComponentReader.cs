@@ -1,10 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using ThreatFramework.Core.Config;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Config;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
@@ -13,20 +12,20 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
     {
         private readonly ILogger<YamlComponentReader>? _logger;
         private readonly IGuidIndexService _guidIndexService;
-        private readonly YamlExportOptions _exportOptions;
+        private readonly PathOptions _pathOptions;
 
-        public YamlComponentReader(IGuidIndexService guidIndexService, IOptions<YamlExportOptions> exportOptions, ILogger<YamlComponentReader>? logger = null)
+        public YamlComponentReader(IGuidIndexService guidIndexService, IOptions<PathOptions> pathOptions, ILogger<YamlComponentReader>? logger = null)
         {
             _logger = logger;
             _guidIndexService = guidIndexService;
-            _exportOptions = exportOptions.Value;
+            _pathOptions = pathOptions.Value;
         }
 
         public async Task<Component> GetComponentByGuid(Guid guid)
         {
             var componentId = _guidIndexService.GetInt(guid);
             
-            var filePath = Path.Combine(_exportOptions.Trc.OutputPath, "components", $"{componentId}.yaml");
+            var filePath = Path.Combine(_pathOptions.TrcOutput, "components", $"{componentId}.yaml");
 
             if (!File.Exists(filePath))
             {
@@ -123,6 +122,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
             var guidStr = RequiredScalar(metadata, "guid", filePath);
             var name = RequiredScalar(metadata, "name", filePath);
             var libraryGuidStr = RequiredScalar(metadata, "libraryId", filePath);
+            var componentType = RequiredScalar(metadata, "componentType", filePath);
 
             // Optional metadata scalars
             TryGetScalar(metadata, "version", out var version);
@@ -160,7 +160,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                 Id = componentId,
                 Guid = G(guidStr, "metadata.guid", filePath),
                 LibraryGuid = G(libraryGuidStr, "metadata.libraryId", filePath),
-                ComponentTypeId = 0,
+                ComponentTypeGuid = G(componentType, "metadata.componentType", filePath),
                 IsHidden = isHidden,
                 IsOverridden = isOverridden,
                 CreatedDate = File.GetCreationTimeUtc(filePath),

@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ThreatFramework.Core.Config;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
+using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Infra.Contract.Repository;
 
 namespace ThreatFramework.YamlFileGenerator.Impl
 {
@@ -11,82 +12,93 @@ namespace ThreatFramework.YamlFileGenerator.Impl
     {
         private readonly ILogger<TrcYamlFilesGenerator> _logger;
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
-        private readonly IRepositoryHubFactory _hubFactory;
+        private readonly IRepositoryHub _hub;
         private readonly IGuidIndexService _indexService;
-        private readonly YamlExportOptions _options;
+        private readonly ILibraryRepository _libraryRepository;
+        private readonly PathOptions _options;
 
         public TrcYamlFilesGenerator(
             ILogger<TrcYamlFilesGenerator> logger,
             ILogger<YamlFilesGenerator> yamlLogger,
             IRepositoryHubFactory hubFactory,
-            IOptions<YamlExportOptions> options,
+            IOptions<PathOptions> options,
+            ILibraryRepository libraryRepository,
             IGuidIndexService indexService)
         {
             _logger = logger;
             _yamlLogger = yamlLogger;
-            _hubFactory = hubFactory;
+            _hub = hubFactory.Create(DataPlane.Trc);
             _indexService = indexService;
+            _libraryRepository = libraryRepository;
             _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
-        public async Task GenerateAsync(string outputFolderPath)
+        public async Task GenerateAsync(string outputFolderPath, List<Guid> libraryIds)
         {
             if (string.IsNullOrWhiteSpace(outputFolderPath))
                 throw new ArgumentException("Output path is required.", nameof(outputFolderPath));
 
-            var cfg = _options.Trc ?? throw new InvalidOperationException("YamlExport:Trc is not configured.");
-            if (cfg.LibraryIds is null || cfg.LibraryIds.Count == 0)
-                throw new InvalidOperationException("YamlExport:Trc:LibraryIds must contain at least one GUID.");
+            var cfg = _options.TrcOutput ?? throw new InvalidOperationException("YamlExport:Trc is not configured.");
+          
 
             Directory.CreateDirectory(outputFolderPath);
-
-            // plane-scoped repository hub for TRC
-            var hub = _hubFactory.Create(DataPlane.Trc);
 
             // construct your existing generator with plane-specific repos
             var gen = new YamlFilesGenerator(
                 logger: _yamlLogger,
-                threatRepository: hub.Threats,
-                componentRepository: hub.Components,
-                libraryRepository: hub.Libraries,
-                securityRequirementRepository: hub.SecurityRequirements,
-                propertyRepository: hub.Properties,
-                propertyOptionRepository: hub.PropertyOptions,
-                testcaseRepository: hub.Testcases,
-                componentThreatMappingRepository: hub.ComponentThreatMappings,
-                componentSecurityRequirementMappingRepository: hub.ComponentSecurityRequirementMappings,
-                componentThreatSecurityRequirementMappingRepository: hub.ComponentThreatSecurityRequirementMappings,
-                threatSecurityRequirementMappingRepository: hub.ThreatSecurityRequirementMappings,
-                componentPropertyMappingRepository: hub.ComponentPropertyMappings,
-                componentPropertyOptionMappingRepository: hub.ComponentPropertyOptionMappings,
-                componentPropertyOptionThreatMappingRepository: hub.ComponentPropertyOptionThreatMappings,
-                componentPropertyOptionThreatSecurityRequirementMappingRepository: hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
+                threatRepository: _hub.Threats,
+                componentRepository: _hub.Components,
+                componentTypeRepository: _hub.ComponentTypes,
+                libraryRepository: _hub.Libraries,
+                securityRequirementRepository: _hub.SecurityRequirements,
+                propertyRepository: _hub.Properties,
+                propertyTypeRepository: _hub.PropertyTypes,
+                propertyOptionRepository: _hub.PropertyOptions,
+                testcaseRepository: _hub.Testcases,
+                componentThreatMappingRepository: _hub.ComponentThreatMappings,
+                componentSecurityRequirementMappingRepository: _hub.ComponentSecurityRequirementMappings,
+                componentThreatSecurityRequirementMappingRepository: _hub.ComponentThreatSecurityRequirementMappings,
+                threatSecurityRequirementMappingRepository: _hub.ThreatSecurityRequirementMappings,
+                componentPropertyMappingRepository: _hub.ComponentPropertyMappings,
+                componentPropertyOptionMappingRepository: _hub.ComponentPropertyOptionMappings,
+                componentPropertyOptionThreatMappingRepository: _hub.ComponentPropertyOptionThreatMappings,
+                componentPropertyOptionThreatSecurityRequirementMappingRepository: _hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
                 indexService: _indexService
             );
 
-            var ids = cfg.LibraryIds;
             var root = outputFolderPath;
 
-            // Entities
-            await gen.GenerateYamlFilesForSpecificLibraries(Path.Combine(root, "libraries"), ids);
-            await gen.GenerateYamlFilesForSpecificComponents(Path.Combine(root, "components"), ids);
-            await gen.GenerateYamlFilesForSpecificThreats(Path.Combine(root, "threats"), ids);
-            await gen.GenerateYamlFilesForSpecificSecurityRequirements(Path.Combine(root, "security-requirements"), ids);
-            await gen.GenerateYamlFilesForSpecificProperties(Path.Combine(root, "properties"), ids);
-            await gen.GenerateYamlFilesForSpecificPropertyOptions(Path.Combine(root, "property-options"));
-            await gen.GenerateYamlFilesForSpecificTestCases(Path.Combine(root, "test-cases"), ids);
+            await gen.GenerateYamlFilesForSpecificLibraries(root, libraryIds);
+            await gen.GenerateYamlFilesForSpecificComponents(root, libraryIds);
+            await gen.GenerateYamlFilesForAllComponentTypes(root);
+            await gen.GenerateYamlFilesForSpecificThreats(root, libraryIds);
+            await gen.GenerateYamlFilesForSpecificSecurityRequirements(root, libraryIds);
+            await gen.GenerateYamlFilesForSpecificProperties(root, libraryIds);
+            await gen.GenerateYamlFilesForPropertyTypes(root);
+            await gen.GenerateYamlFilesForSpecificTestCases(root, libraryIds);
+            await gen.GenerateYamlFilesForPropertyOptions(root);
 
-            // Mappings (all for TRC)
-            await gen.GenerateYamlFilesForComponentSecurityRequirementMappings(Path.Combine(root, "mappings", "component-security-requirement"), ids);
-            await gen.GenerateYamlFilesForComponentThreatMappings(Path.Combine(root, "mappings", "component-threat"), ids);
-            await gen.GenerateYamlFilesForComponentThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "component-threat-security-requirement"), ids);
-            await gen.GenerateYamlFilesForThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "threat-security-requirement"), ids);
-            await gen.GenerateYamlFilesForComponentPropertyMappings(Path.Combine(root, "mappings", "component-property"), ids);
-            await gen.GenerateYamlFilesForComponentPropertyOptionMappings(Path.Combine(root, "mappings", "component-property-option"), ids);
-            await gen.GenerateYamlFilesForComponentPropertyOptionThreatMappings(Path.Combine(root, "mappings", "component-property-option-threat"), ids);
-            await gen.GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "component-property-option-threat-security-requirement"), ids);
+            await gen.GenerateYamlFilesForComponentSecurityRequirementMappings(Path.Combine(root, "mappings", "component-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForComponentThreatMappings(Path.Combine(root, "mappings", "component-threat"), libraryIds);
+            await gen.GenerateYamlFilesForComponentThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "component-threat-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "threat-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyMappings(Path.Combine(root, "mappings", "component-property"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionMappings(Path.Combine(root, "mappings", "component-property-option"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionThreatMappings(Path.Combine(root, "mappings", "component-property-option-threat"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "component-property-option-threat-security-requirement"), libraryIds);
 
             _logger.LogInformation("TRC export completed to {Root}.", root);
+        }
+
+        public async Task GenerateForLibraryIdsAsync(string outputFolderPath, IEnumerable<Guid> libraryIds)
+        {
+            await GenerateAsync(outputFolderPath, libraryIds.ToList());
+        }
+
+        public async Task GenerateForReadOnlyLibraryAsync(string outputFolderPath)
+        {
+            var libraryCaches = await _hub.Libraries.GetLibrariesCacheAsync();
+           await GenerateAsync(outputFolderPath, libraryCaches.Where(_ => _.IsReadonly).Select(_ => _.Guid).ToList());
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ThreatFramework.Core.PropertyMapping;
+using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
 {
@@ -8,19 +9,15 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.cpo-threat-sr")
-                .AddChild("apiVersion: v1")
-                .AddParent("spec:", b =>
+                .AddQuoted("componentGuid", cpoSecurityRequirement.ComponentGuid.ToString())
+                .AddQuoted("propertyGuid", cpoSecurityRequirement.PropertyGuid.ToString())
+                .AddQuoted("propertyOptionGuid", cpoSecurityRequirement.PropertyOptionGuid.ToString())
+                .AddQuoted("threatGuid", cpoSecurityRequirement.ThreatGuid.ToString())
+                .AddQuoted("securityRequirementGuid", cpoSecurityRequirement.SecurityRequirementGuid.ToString())
+                .AddParent("flags:", b2 =>
                 {
-                    b.AddChild($"componentGuid: {cpoSecurityRequirement.ComponentGuid}");
-                    b.AddChild($"propertyGuid: {cpoSecurityRequirement.PropertyGuid}");
-                    b.AddChild($"propertyOptionGuid: {cpoSecurityRequirement.PropertyOptionGuid}");
-                    b.AddChild($"threatGuid: {cpoSecurityRequirement.ThreatGuid}");
-                    b.AddChild($"securityRequirementGuid: \"{cpoSecurityRequirement.SecurityRequirementGuid}\"");
-                    b.AddParent("flags:", b2 =>
-                    {
-                        b2.AddChild($"isHidden: {cpoSecurityRequirement.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {cpoSecurityRequirement.IsOverridden.ToString().ToLower()}");
-                    });
+                    b2.AddBool("isHidden", cpoSecurityRequirement.IsHidden);
+                    b2.AddBool("isOverridden", cpoSecurityRequirement.IsOverridden);
                 })
                 .Build();
 

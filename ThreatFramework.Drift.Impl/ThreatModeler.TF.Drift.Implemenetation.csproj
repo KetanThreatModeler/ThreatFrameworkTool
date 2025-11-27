@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ThreatFramework.Drift.Contract\ThreatModeler.TF.Drift.Contract.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Infra.Contract\ThreatModeler.TF.Infra.Contract.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Infrastructure\ThreatModeler.TF.Infra.Implmentation.csproj" />
+  </ItemGroup>
+
+</Project>

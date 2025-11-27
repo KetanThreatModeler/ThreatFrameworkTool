@@ -68,8 +68,10 @@ namespace ThreatFramework.Infrastructure.Repository
         {
             return @"SELECT p.Id, p.LibraryId, p.PropertyTypeId, p.isSelected, p.IsOptional, p.IsGlobal, 
                             p.isHidden, p.IsOverridden, p.CreatedDate, p.LastUpdated, p.Guid, p.Name, 
-                            p.ChineseName, p.Labels, p.Description, p.ChineseDescription 
-                    FROM Properties p";
+                            p.ChineseName, p.Labels, p.Description, p.ChineseDescription,
+                            pt.Guid AS PropertyTypeGuid, pt.Name AS PropertyTypeName
+                    FROM Properties p
+                    INNER JOIN PropertyTypes pt ON p.PropertyTypeId = pt.Id";
         }
 
         private async Task<IEnumerable<Property>> ExecutePropertyReaderAsync(SqlCommand command)
@@ -83,7 +85,8 @@ namespace ThreatFramework.Infrastructure.Repository
                 {
                     Id = (int)reader["Id"],
                     LibraryGuid = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
-                    PropertyTypeId = (int)reader["PropertyTypeId"],
+                    PropertyTypeGuid = (Guid)reader["PropertyTypeGuid"],
+                    PropertyTypeName = reader["PropertyTypeName"] as string,
                     IsSelected = (bool)reader["isSelected"],
                     IsOptional = (bool)reader["IsOptional"],
                     IsGlobal = (bool)reader["IsGlobal"],
@@ -118,6 +121,30 @@ namespace ThreatFramework.Infrastructure.Repository
             }
 
             return guids;
+        }
+
+        public async Task<IEnumerable<(Guid PropertyGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync()
+        {
+            const string sql = @"
+        SELECT p.Guid AS PropertyGuid, l.Guid AS LibraryGuid
+        FROM Properties p
+        INNER JOIN Libraries l ON p.LibraryId = l.Id";
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+
+            var results = new List<(Guid, Guid)>();
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var propertyGuid = reader.GetGuid(reader.GetOrdinal("PropertyGuid"));
+                var libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
+
+                results.Add((propertyGuid, libraryGuid));
+            }
+
+            return results;
         }
     }
 }

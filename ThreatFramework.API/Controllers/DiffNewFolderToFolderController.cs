@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using ThreatFramework.Core.Config;
 using ThreatFramework.Drift.Contract.FolderDiff;
-using ThreatFramework.YamlFileGenerator.Contract.Model;
+using ThreatModeler.TF.Core.Config;
 
 namespace ThreatFramework.API.Controllers
 {
@@ -12,10 +11,10 @@ namespace ThreatFramework.API.Controllers
     {
         private readonly IFolderDiffService _service;
         private readonly IConfiguration _configuration;
-        private readonly YamlExportOptions _exportOptions;
+        private readonly PathOptions _exportOptions;
 
         public DiffNewFolderToFolderController(IFolderDiffService service, IConfiguration configuration,
-            IOptions<YamlExportOptions> exportOptions)
+            IOptions<PathOptions> exportOptions)
         {
             _service = service;
             _configuration = configuration;
@@ -25,8 +24,8 @@ namespace ThreatFramework.API.Controllers
         [HttpPost]
         public ActionResult<FolderComparisionResult> Post()
         {
-            var goldenPath = _exportOptions.Trc.OutputPath;
-            var clientPath= _exportOptions.Client.OutputPath;
+            var goldenPath = _exportOptions.TrcOutput;
+            var clientPath= _exportOptions.ClientOutput;
 
             if (string.IsNullOrWhiteSpace(goldenPath))
                 return BadRequest("TRC output path not configured in appsettings.json");

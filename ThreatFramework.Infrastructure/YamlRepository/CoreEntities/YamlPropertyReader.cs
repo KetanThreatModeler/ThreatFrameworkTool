@@ -135,7 +135,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         Id = 0, // Typically set by persistence layer
                         Guid = G(guidStr, "metadata.guid", file),
                         LibraryGuid = G(libraryGuidStr, "metadata.libraryGuid", file),
-                        PropertyTypeId = int.TryParse(propertyTypeGuidStr, out var typeId) ? typeId : 0,
+                        PropertyTypeGuid = G(propertyTypeGuidStr, "spec.propertyTypeGuid", file),
                         IsSelected = isSelected,
                         IsOptional = isOptional,
                         IsGlobal = isGlobal,

@@ -8,6 +8,6 @@ namespace ThreatFramework.Infra.Contract.Index
 {
     public interface IGuidIndexRepository
     {
-        Task<IReadOnlyDictionary<Guid, int>> LoadAsync(string path, CancellationToken ct = default);
+        Task<IEnumerable<GuidIndex>> LoadAsync(string path, CancellationToken ct = default);
     }
 }

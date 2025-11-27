@@ -4,7 +4,8 @@
     {
         public int Id { get; set; }
         public Guid LibraryGuid { get; set; }
-        public int PropertyTypeId { get; set; }
+        public Guid PropertyTypeGuid { get; set; }
+        public string PropertyTypeName { get; set; }
         public bool IsSelected { get; set; }
         public bool IsOptional { get; set; }
         public bool IsGlobal { get; set; }

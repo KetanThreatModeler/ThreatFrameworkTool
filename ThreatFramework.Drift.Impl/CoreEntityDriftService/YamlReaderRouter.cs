@@ -2,6 +2,7 @@
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Global;
 
 namespace ThreatFramework.Drift.Impl.CoreEntityDriftService
 {

@@ -1,4 +1,5 @@
 ﻿using ThreatFramework.Core.ComponentMapping;
+using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
 {
@@ -8,21 +9,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-threat")
-                .AddChild("apiVersion: v1")
-                .AddParent("metadata:", b =>
+                .AddQuoted("componentGuid", ctMapping.ComponentGuid.ToString())
+                .AddQuoted("threatGuid", ctMapping.ThreatGuid.ToString())
+                .AddParent("flags:", b2 =>
                 {
-                    b.AddChild($"id: {ctMapping.Id}");
-                })
-                .AddParent("spec:", b =>
-                {
-                    b.AddChild($"componentGuid: \"{ctMapping.ComponentGuid}\"");
-                    b.AddChild($"threatGuid: \"{ctMapping.ThreatGuid}\"");
-                    b.AddParent("flags:", b2 =>
-                    {
-                        b2.AddChild($"isHidden: {ctMapping.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {ctMapping.IsOverridden.ToString().ToLower()}");
-                        b2.AddChild($"usedForMitigation: {ctMapping.UsedForMitigation.ToString().ToLower()}");
-                    });
+                    b2.AddBool("isHidden", ctMapping.IsHidden);
+                    b2.AddBool("isOverridden", ctMapping.IsOverridden);
+                    b2.AddBool("usedForMitigation", ctMapping.UsedForMitigation);
                 })
                 .Build();
 

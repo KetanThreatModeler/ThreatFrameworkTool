@@ -1,4 +1,5 @@
 ﻿using ThreatFramework.Core.PropertyMapping;
+using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
 {
@@ -8,18 +9,14 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.cpo-threat")
-                .AddChild("apiVersion: v1")
-                .AddParent("spec:", b =>
+                .AddQuoted("componentGuid", cpoThreat.ComponentGuid.ToString())
+                .AddQuoted("propertyGuid", cpoThreat.PropertyGuid.ToString())
+                .AddQuoted("propertyOptionGuid", cpoThreat.PropertyOptionGuid.ToString())
+                .AddQuoted("threatGuid", cpoThreat.ThreatGuid.ToString())
+                .AddParent("flags:", b2 =>
                 {
-                    b.AddChild($"componentGuid: {cpoThreat.ComponentGuid}");
-                    b.AddChild($"propertyGuid: {cpoThreat.PropertyGuid}");
-                    b.AddChild($"propertyOptionGuid: {cpoThreat.PropertyOptionGuid}");
-                    b.AddChild($"threatGuid: \"{cpoThreat.ThreatGuid}\"");
-                    b.AddParent("flags:", b2 =>
-                    {
-                        b2.AddChild($"isHidden: {cpoThreat.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {cpoThreat.IsOverridden.ToString().ToLower()}");
-                    });
+                    b2.AddBool("isHidden", cpoThreat.IsHidden);
+                    b2.AddBool("isOverridden", cpoThreat.IsOverridden);
                 })
                 .Build();
 

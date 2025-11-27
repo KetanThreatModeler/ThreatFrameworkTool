@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.PropertyMapping;
+using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
 {
@@ -13,20 +14,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: relation.component-property")
-                .AddParent("metadata:", b =>
+                .AddQuoted("componentGuid", componentProperty.ComponentGuid.ToString())
+                .AddQuoted("propertyGuid", componentProperty.PropertyGuid.ToString())
+                .AddParent("flags:", b2 =>
                 {
-                    b.AddChild($"id: {componentProperty.Id}");
-                })
-                .AddParent("spec:", b =>
-                {
-                    b.AddChild($"componentGuid: \"{componentProperty.ComponentGuid}\"");
-                    b.AddChild($"propertyGuid: \"{componentProperty.PropertyGuid}\"");
-                    b.AddParent("flags:", b2 =>
-                    {
-                        b2.AddChild($"isOptional: {componentProperty.IsOptional.ToString().ToLower()}");
-                        b2.AddChild($"isHidden: {componentProperty.IsHidden.ToString().ToLower()}");
-                        b2.AddChild($"isOverridden: {componentProperty.IsOverridden.ToString().ToLower()}");
-                    });
+                    b2.AddBool("isOptional", componentProperty.IsOptional);
+                    b2.AddBool("isHidden", componentProperty.IsHidden);
+                    b2.AddBool("isOverridden", componentProperty.IsOverridden);
                 })
                 .Build();
 

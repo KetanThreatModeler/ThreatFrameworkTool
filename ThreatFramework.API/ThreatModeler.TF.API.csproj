@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ThreatFramework.Drift.Contract\ThreatModeler.TF.Drift.Contract.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Drift.Impl\ThreatModeler.TF.Drift.Implemenetation.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Git.Contract\ThreatModeler.TF.Git.Contract.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Git.Impl\ThreatModeler.TF.Git.Implementation.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Infrastructure\ThreatModeler.TF.Infra.Implmentation.csproj" />
+    <ProjectReference Include="..\ThreatFramework.YamlFileGenerator.Contract\ThreatModeler.TF.YamlFileGenerator.Contract.csproj" />
+    <ProjectReference Include="..\ThreatFramework.YamlFileGenerator.Impl\ThreatModeler.TF.YamlFileGenerator.Implementation.csproj" />
+  </ItemGroup>
+
+</Project>

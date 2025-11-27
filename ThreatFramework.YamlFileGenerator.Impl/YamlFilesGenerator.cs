@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
-using ThreatFramework.Core.IndexModel;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl.Templates;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping;
+using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.YamlFileGenerator.Implementation.Templates;
+using ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.Global;
 
 namespace ThreatFramework.YamlFileGenerator.Impl
 {
@@ -17,9 +19,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly ILibraryRepository _libraryRepository;
         private readonly IThreatRepository _threatRepository;
         private readonly IComponentRepository _componentRepository;
+        private readonly IComponentTypeRepository _componentTypeRepository;
         private readonly ISecurityRequirementRepository _securityRequirementRepository;
         private readonly ITestcaseRepository _testcaseRepository;
         private readonly IPropertyRepository _propertyRepository;
+        private readonly IPropertyTypeRepository _propertyTypeRepository;
         private readonly IPropertyOptionRepository _propertyOptionRepository;
         private readonly IComponentSecurityRequirementMappingRepository _componentLibraryMappingRepository;
         private readonly IComponentThreatMappingRepository _componentThreatMappingRepository;
@@ -35,9 +39,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             ILogger<YamlFilesGenerator> logger,
             IThreatRepository threatRepository,
             IComponentRepository componentRepository,
+            IComponentTypeRepository componentTypeRepository,
             ILibraryRepository libraryRepository,
             ISecurityRequirementRepository securityRequirementRepository,
             IPropertyRepository propertyRepository,
+            IPropertyTypeRepository propertyTypeRepository,
             IPropertyOptionRepository propertyOptionRepository,
             ITestcaseRepository testcaseRepository,
             IComponentThreatMappingRepository componentThreatMappingRepository,
@@ -54,9 +60,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _threatRepository = threatRepository ?? throw new ArgumentNullException(nameof(threatRepository));
             _componentRepository = componentRepository ?? throw new ArgumentNullException(nameof(componentRepository));
+            _componentTypeRepository = componentTypeRepository ?? throw new ArgumentNullException(nameof(componentTypeRepository));
             _libraryRepository = libraryRepository ?? throw new ArgumentNullException(nameof(libraryRepository));
             _securityRequirementRepository = securityRequirementRepository ?? throw new ArgumentNullException(nameof(securityRequirementRepository));
             _propertyRepository = propertyRepository ?? throw new ArgumentNullException(nameof(propertyRepository));
+            _propertyTypeRepository = propertyTypeRepository ?? throw new ArgumentNullException(nameof(propertyTypeRepository));
             _propertyOptionRepository = propertyOptionRepository ?? throw new ArgumentNullException(nameof(propertyOptionRepository));
             _testcaseRepository = testcaseRepository ?? throw new ArgumentNullException(nameof(testcaseRepository));
             _componentThreatMappingRepository = componentThreatMappingRepository ?? throw new ArgumentNullException(nameof(componentThreatMappingRepository));
@@ -114,76 +122,234 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _logger.LogInformation("Generating YAML files for {LibraryCount} libraries", libraryIds.Count);
             var libraries = await _libraryRepository.GetLibrariesByGuidsAsync(libraryIds);
             
-            return await GenerateYamlFiles(
-                path,
-                libraries,
-                lib => $"{_indexService.GetInt(lib.Guid)}.yaml",
-                libraryItem => LibraryTemplate.Generate(libraryItem)  
-            );
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            int totalFileCount = 0;
+            _logger.LogInformation("Starting YAML file generation in path: {Path}", path);
+
+            foreach (var library in libraries)
+            {
+                var libraryIdFolder = _indexService.GetInt(library.Guid).ToString();
+                var libraryFolderPath = Path.Combine(path, libraryIdFolder);
+                EnsureDirectoryExists(libraryFolderPath);
+
+                var fileName = $"{_indexService.GetInt(library.Guid)}.yaml";
+                var filePath = Path.Combine(libraryFolderPath, fileName);
+                var yamlContent = LibraryTemplate.Generate(library);
+
+                await File.WriteAllTextAsync(filePath, yamlContent);
+                totalFileCount++;
+            }
+              
+            _logger.LogInformation("Generated {FileCount} YAML files in path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
         }
 
         public async Task<(string path, int fileCount)> GenerateYamlFilesForSpecificThreats(string path, List<Guid> libraryIds)
         {
             _logger.LogInformation("Generating YAML files for threats from {LibraryCount} libraries", libraryIds.Count);
+            
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            int totalFileCount = 0;
+            _logger.LogInformation("Starting YAML file generation in path: {Path}", path);
+
+            // Get all threats for the specified libraries
             var threats = await _threatRepository.GetThreatsByLibraryIdAsync(libraryIds);
-            return await GenerateYamlFiles(
-                path,
-                threats,
-                threat => $"{_indexService.GetInt(threat.Guid)}.yaml",
-                threatItem => ThreatTemplate.Generate(threatItem));
+            
+            // Group threats by library
+            var threatsGroupedByLibrary = threats.GroupBy(t => t.LibraryGuid);
+
+            foreach (var libraryGroup in threatsGroupedByLibrary)
+            {
+                var libraryGuid = libraryGroup.Key;
+                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryFolderPath = Path.Combine(path, libraryIdFolder, "threats");
+                EnsureDirectoryExists(libraryFolderPath);
+
+                foreach (var threat in libraryGroup)
+                {
+                    var fileName = $"{_indexService.GetInt(threat.Guid)}.yaml";
+                    var filePath = Path.Combine(libraryFolderPath, fileName);
+                    var yamlContent = ThreatTemplate.Generate(threat);
+
+                    await File.WriteAllTextAsync(filePath, yamlContent);
+                    totalFileCount++;
+                }
+            }
+
+            _logger.LogInformation("Generated {FileCount} YAML files in path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
         }
 
         public async Task<(string path, int fileCount)> GenerateYamlFilesForSpecificComponents(string path, List<Guid> libraryIds)
         {
             _logger.LogInformation("Generating YAML files for components from {LibraryCount} libraries", libraryIds.Count);
+            
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            int totalFileCount = 0;
+            _logger.LogInformation("Starting YAML file generation in path: {Path}", path);
+
+            // Get all components for the specified libraries
             var components = await _componentRepository.GetComponentsByLibraryIdAsync(libraryIds);
-            return await GenerateYamlFiles(
-                path,
-                components,
-                component => $"{_indexService.GetInt(component.Guid)}.yaml",
-                componentItem => ComponentTemplate.Generate(componentItem));
+            
+            // Group components by library
+            var componentsGroupedByLibrary = components.GroupBy(c => c.LibraryGuid);
+
+            foreach (var libraryGroup in componentsGroupedByLibrary)
+            {
+                var libraryGuid = libraryGroup.Key;
+                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryFolderPath = Path.Combine(path, libraryIdFolder, "components");
+                EnsureDirectoryExists(libraryFolderPath);
+
+                foreach (var component in libraryGroup)
+                {
+                    var fileName = $"{_indexService.GetInt(component.Guid)}.yaml";
+                    var filePath = Path.Combine(libraryFolderPath, fileName);
+                    var yamlContent = ComponentTemplate.Generate(component);
+
+                    await File.WriteAllTextAsync(filePath, yamlContent);
+                    totalFileCount++;
+                }
+            }
+
+            _logger.LogInformation("Generated {FileCount} YAML files in path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
         }
 
         public async Task<(string path, int fileCount)> GenerateYamlFilesForSpecificSecurityRequirements(string path, List<Guid> libraryIds)
         {
             _logger.LogInformation("Generating YAML files for security requirements from {LibraryCount} libraries", libraryIds.Count);
+            
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            int totalFileCount = 0;
+            _logger.LogInformation("Starting YAML file generation in path: {Path}", path);
+
+            // Get all security requirements for the specified libraries
             var securityRequirements = await _securityRequirementRepository.GetSecurityRequirementsByLibraryIdAsync(libraryIds);
-            return await GenerateYamlFiles(
-                path,
-                securityRequirements,
-                sr => $"{_indexService.GetInt(sr.Guid)}.yaml",
-                srItem => SecurityRequirementTemplate.Generate(srItem));
+            
+            // Group security requirements by library
+            var securityRequirementsGroupedByLibrary = securityRequirements.GroupBy(sr => sr.LibraryId);
+
+            foreach (var libraryGroup in securityRequirementsGroupedByLibrary)
+            {
+                var libraryGuid = libraryGroup.Key;
+                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryFolderPath = Path.Combine(path, libraryIdFolder, "security-requirements");
+                EnsureDirectoryExists(libraryFolderPath);
+
+                foreach (var securityRequirement in libraryGroup)
+                {
+                    var fileName = $"{_indexService.GetInt(securityRequirement.Guid)}.yaml";
+                    var filePath = Path.Combine(libraryFolderPath, fileName);
+                    var yamlContent = SecurityRequirementTemplate.Generate(securityRequirement);
+
+                    await File.WriteAllTextAsync(filePath, yamlContent);
+                    totalFileCount++;
+                }
+            }
+
+            _logger.LogInformation("Generated {FileCount} YAML files in path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
         }
 
         public async Task<(string path, int fileCount)> GenerateYamlFilesForSpecificTestCases(string path, List<Guid> libraryIds)
         {
             _logger.LogInformation("Generating YAML files for test cases from {LibraryCount} libraries", libraryIds.Count);
+            
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            int totalFileCount = 0;
+            _logger.LogInformation("Starting YAML file generation in path: {Path}", path);
+
+            // Get all test cases for the specified libraries
             var testCases = await _testcaseRepository.GetTestcasesByLibraryIdAsync(libraryIds);
-            return await GenerateYamlFiles(
-                path,
-                testCases,
-                tc => $"{_indexService.GetInt(tc.Guid)}.yaml",
-                tcItem => TestCaseTemplate.Generate(tcItem));
+            
+            // Group test cases by library
+            var testCasesGroupedByLibrary = testCases.GroupBy(tc => tc.LibraryId);
+
+            foreach (var libraryGroup in testCasesGroupedByLibrary)
+            {
+                var libraryGuid = libraryGroup.Key;
+                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryFolderPath = Path.Combine(path, libraryIdFolder, "testcases");
+                EnsureDirectoryExists(libraryFolderPath);
+
+                foreach (var testCase in libraryGroup)
+                {
+                    var fileName = $"{_indexService.GetInt(testCase.Guid)}.yaml";
+                    var filePath = Path.Combine(libraryFolderPath, fileName);
+                    var yamlContent = TestCaseTemplate.Generate(testCase);
+
+                    await File.WriteAllTextAsync(filePath, yamlContent);
+                    totalFileCount++;
+                }
+            }
+
+            _logger.LogInformation("Generated {FileCount} YAML files in path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
         }
 
-        public async Task<(string path, int fileCount)> GenerateYamlFilesForSpecificProperties(string path, List<Guid> propertyIds)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForSpecificProperties(string path, List<Guid> libraryIds)
         {
-            _logger.LogInformation("Generating YAML files for properties from {LibraryCount} libraries", propertyIds.Count);
-            var properties = await _propertyRepository.GetPropertiesByLibraryIdAsync(propertyIds);
-            return await GenerateYamlFiles(
-                path,
-                properties,
-                prop => $"{_indexService.GetInt(prop.Guid)}.yaml",
-                propItem => PropertyTemplate.Generate(propItem));
+            _logger.LogInformation("Generating YAML files for properties from {LibraryCount} libraries", libraryIds.Count);
+            
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            int totalFileCount = 0;
+            _logger.LogInformation("Starting YAML file generation in path: {Path}", path);
+
+            // Get all properties for the specified libraries
+            var properties = await _propertyRepository.GetPropertiesByLibraryIdAsync(libraryIds);
+            
+            // Group properties by library
+            var propertiesGroupedByLibrary = properties.GroupBy(p => p.LibraryGuid);
+
+            foreach (var libraryGroup in propertiesGroupedByLibrary)
+            {
+                var libraryGuid = libraryGroup.Key;
+                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryFolderPath = Path.Combine(path, libraryIdFolder, "properties");
+                EnsureDirectoryExists(libraryFolderPath);
+
+                foreach (var property in libraryGroup)
+                {
+                    var fileName = $"{_indexService.GetInt(property.Guid)}.yaml";
+                    var filePath = Path.Combine(libraryFolderPath, fileName);
+                    var yamlContent = PropertyTemplate.Generate(property);
+
+                    await File.WriteAllTextAsync(filePath, yamlContent);
+                    totalFileCount++;
+                }
+            }
+
+            _logger.LogInformation("Generated {FileCount} YAML files in path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
         }
 
-        public async Task<(string path, int fileCount)> GenerateYamlFilesForSpecificPropertyOptions(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForPropertyOptions(string path)
         {
             _logger.LogInformation("Generating YAML files for all property options");
-            var properties = await _propertyOptionRepository.GetAllPropertyOptionsAsync();
+            
+            ValidatePath(path);
+            
+            var globalFolderPath = Path.Combine(path, "global", "property-options");
+            EnsureDirectoryExists(globalFolderPath);
+            
+            
+            var propertyOptions = await _propertyOptionRepository.GetAllPropertyOptionsAsync();
             return await GenerateYamlFiles(
-                path,
-                properties,
+                globalFolderPath,
+                propertyOptions,
                 prop => $"{_indexService.GetInt(prop.Guid)}.yaml",
                 propItem => PropertyOptionTemplate.Generate(propItem));
         }
@@ -276,205 +442,31 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 mappingItem => CPOTSRTemplate.Generate(mappingItem));
         }
 
-        public async Task GenerateFilesToPathAsync(string path)
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForAllComponentTypes(string path)
         {
-            _logger.LogInformation("Starting complete YAML file generation to path: {Path}", path);
-            
-            try
-            {
-                ValidatePath(path);
-                EnsureDirectoryExists(path);
+            var globalFolderPath = Path.Combine(path, "global", "component-type");
+            EnsureDirectoryExists(globalFolderPath);
+            _logger.LogInformation("Generating YAML files for componentTypes");
+            var componentTypes = await _componentTypeRepository.GetComponentTypesAsync();
+            return await GenerateYamlFiles(
+                globalFolderPath,
+                componentTypes,
+                componentType => $"{_indexService.GetInt(componentType.Guid)}.yaml",
+                componentType => ComponentTypeTemplate.Generate(componentType));
+        }
 
-                // Get all libraries to extract library IDs
-                _logger.LogInformation("Retrieving all readonly libraries...");
-                var allLibraries = await _libraryRepository.GetReadonlyLibrariesAsync();
-                var libraryIds = allLibraries.Select(lib => lib.Guid).ToList();
-                _logger.LogInformation("Found {LibraryCount} libraries for YAML generation", libraryIds.Count);
 
-                if (!libraryIds.Any())
-                {
-                    _logger.LogWarning("No libraries found for YAML generation. Skipping all generation steps.");
-                    return;
-                }
-
-                // Generate files for each entity type in separate folders
-                _logger.LogInformation("Starting entity file generation...");
-                
-                try
-                {
-                    _logger.LogInformation("Generating library files...");
-                    await GenerateYamlFilesForSpecificLibraries(Path.Combine(path, "libraries"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate library files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating threat files...");
-                    await GenerateYamlFilesForSpecificThreats(Path.Combine(path, "threats"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate threat files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating component files...");
-                    await GenerateYamlFilesForSpecificComponents(Path.Combine(path, "components"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating security requirement files...");
-                    await GenerateYamlFilesForSpecificSecurityRequirements(Path.Combine(path, "security-requirements"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate security requirement files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating test case files...");
-                    await GenerateYamlFilesForSpecificTestCases(Path.Combine(path, "test-cases"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate test case files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating property files...");
-                    await GenerateYamlFilesForSpecificProperties(Path.Combine(path, "properties"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate property files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating property option files...");
-                    await GenerateYamlFilesForSpecificPropertyOptions(Path.Combine(path, "property-options"));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate property option files");
-                    throw;
-                }
-                
-                // Generate mapping files
-                _logger.LogInformation("Starting mapping file generation...");
-                
-                try
-                {
-                    _logger.LogInformation("Generating component-security requirement mapping files...");
-                    await GenerateYamlFilesForComponentSecurityRequirementMappings(Path.Combine(path, "mappings", "component-security-requirement"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component-security requirement mapping files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating component-threat mapping files...");
-                    await GenerateYamlFilesForComponentThreatMappings(Path.Combine(path, "mappings", "component-threat"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component-threat mapping files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating component-threat-security requirement mapping files...");
-                    await GenerateYamlFilesForComponentThreatSecurityRequirementMappings(Path.Combine(path, "mappings", "component-threat-security-requirement"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component-threat-security requirement mapping files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating threat-security requirement mapping files...");
-                    await GenerateYamlFilesForThreatSecurityRequirementMappings(Path.Combine(path, "mappings", "threat-security-requirement"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate threat-security requirement mapping files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating component-property mapping files...");
-                    await GenerateYamlFilesForComponentPropertyMappings(Path.Combine(path, "mappings", "component-property"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component-property mapping files - this is likely where the 'ComponentProperty' table error occurs");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating component-property-option mapping files...");
-                    await GenerateYamlFilesForComponentPropertyOptionMappings(Path.Combine(path, "mappings", "component-property-option"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component-property-option mapping files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating component-property-option-threat mapping files...");
-                    await GenerateYamlFilesForComponentPropertyOptionThreatMappings(Path.Combine(path, "mappings", "component-property-option-threat"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component-property-option-threat mapping files");
-                    throw;
-                }
-
-                try
-                {
-                    _logger.LogInformation("Generating component-property-option-threat-security requirement mapping files...");
-                    await GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(path, "mappings", "component-property-option-threat-security-requirement"), libraryIds);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to generate component-property-option-threat-security requirement mapping files");
-                    throw;
-                }
-                
-                _logger.LogInformation("Completed YAML file generation to path: {Path}", path);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Critical error during YAML file generation to path: {Path}", path);
-                throw;
-            }
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForPropertyTypes(string path)
+        {
+            var globalFolderPath = Path.Combine(path, "global", "property-type");
+            EnsureDirectoryExists(globalFolderPath);
+            _logger.LogInformation("Generating YAML files for PropertyTypes");
+            var propertyTypes = await _propertyTypeRepository.GetAllPropertyTypeAsync();
+            return await GenerateYamlFiles(
+                globalFolderPath,
+                propertyTypes,
+                propertyType => $"{_indexService.GetInt(propertyType.Guid)}.yaml",
+                propertyType => PropertyTypeTemplate.Generate(propertyType));
         }
     }
 }

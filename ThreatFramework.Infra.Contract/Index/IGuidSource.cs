@@ -2,6 +2,6 @@
 {
     public interface IGuidSource
     {
-        Task<IEnumerable<Guid>> GetAllGuidsAsync();
+        Task<IEnumerable<EntityIdentifier>> GetAllGuidsWithTypeAsync();
     }
 }

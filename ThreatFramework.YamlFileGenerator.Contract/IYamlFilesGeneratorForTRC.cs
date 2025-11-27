@@ -8,6 +8,7 @@ namespace ThreatFramework.YamlFileGenerator.Contract
 {
     public interface IYamlFilesGeneratorForTRC
     {
-        Task GenerateAsync(string outputFolderPath);
+        Task GenerateForLibraryIdsAsync(string outputFolderPath, IEnumerable<Guid> libraryIds);
+        Task GenerateForReadOnlyLibraryAsync(string outputFolderPath);
     }
 }

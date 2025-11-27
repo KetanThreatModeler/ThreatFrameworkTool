@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿  using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 using ThreatFramework.Infra.Contract.Index;
+using ThreatModeler.TF.Core.Config;
 
 namespace ThreatFramework.API.Controllers
 {
@@ -10,40 +12,44 @@ namespace ThreatFramework.API.Controllers
     public sealed class GuidIndexController : ControllerBase
     {
         private readonly IGuidIndexService _service;
+        private readonly PathOptions _pathOptions;
+        public GuidIndexController(IGuidIndexService service, IOptions<PathOptions> options) {
+            _service = service;
+            _pathOptions = options.Value ?? throw new ArgumentNullException(nameof(options));
+        } 
 
-        public GuidIndexController(IGuidIndexService service) => _service = service;
-
-        // 1) Generate index.yaml (uses IGuidSource internally)
         [HttpPost("generate")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GenerateAsync([FromBody] GenerateRequest request, CancellationToken ct)
+        public async Task<IActionResult> GenerateAsync(CancellationToken ct)
         {
-            if (string.IsNullOrWhiteSpace(request?.Path))
+            string path = _pathOptions.IndexYaml;
+            if (string.IsNullOrWhiteSpace(path))
                 return Problem(statusCode: 400, title: "Bad request", detail: "Path is required.");
             try
             {
-                await _service.GenerateAsync(request.Path!);
-                return Ok(new { message = "Index generated.", path = request.Path });
+                await _service.GenerateAsync(path);
+                return Ok(new { message = "Index generated.", path });
             }
             catch (Exception ex)
             {
+                throw ex;
                 return Problem(statusCode: 400, title: "Generation failed", detail: ex.Message);
             }
         }
 
-        // 2) Refresh in-memory cache from file (uses GuidIndexRepository)
         [HttpPost("refresh")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RefreshAsync([FromBody] RefreshRequest request)
+        public async Task<IActionResult> RefreshAsync()
         {
-            if (string.IsNullOrWhiteSpace(request?.Path))
+            string path = _pathOptions.IndexYaml;
+            if (string.IsNullOrWhiteSpace(path))
                 return Problem(statusCode: 400, title: "Bad request", detail: "Path is required.");
             try
             {
-                await _service.RefreshAsync(request.Path!);
-                return Ok(new { message = "Cache refreshed.", path = request.Path });
+                await _service.RefreshAsync(path);
+                return Ok(new { message = "Cache refreshed.", path });
             }
             catch (Exception ex)
             {
@@ -51,9 +57,9 @@ namespace ThreatFramework.API.Controllers
             }
         }
 
+
         // 3) Get int id for a GUID (uses in-memory; if cache empty, loads from file)
         [HttpGet("{guid:guid}")]
-        [ProducesResponseType(typeof(GetIntResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAsync([FromRoute] Guid guid)
@@ -61,7 +67,7 @@ namespace ThreatFramework.API.Controllers
             try
             {
                 var id =  _service.GetInt(guid);
-                return Ok(new GetIntResponse { Guid = guid, Id = id });
+                return Ok(new { Guid = guid, Id = id });
             }
             catch (KeyNotFoundException)
             {
@@ -72,10 +78,5 @@ namespace ThreatFramework.API.Controllers
                 return Problem(statusCode: 400, title: "Lookup failed", detail: ex.Message);
             }
         }
-
-        // DTOs (controller-only)
-        public sealed class GenerateRequest { [Required] public string? Path { get; init; } }
-        public sealed class RefreshRequest { [Required] public string? Path { get; init; } }
-        public sealed class GetIntResponse { public Guid Guid { get; init; } public int Id { get; init; } }
     }
 }
