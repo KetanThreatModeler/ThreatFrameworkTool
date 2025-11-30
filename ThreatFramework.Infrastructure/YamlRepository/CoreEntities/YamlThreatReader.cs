@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Helper;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
@@ -135,7 +136,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         LastUpdated = File.GetLastWriteTimeUtc(file),
                         Name = name,
                         ChineseName = string.IsNullOrWhiteSpace(chineseName) ? null : chineseName,
-                        Labels = labels,
+                        Labels = labels.ToListWithTrim(),
                         Description = description,
                         Reference = string.IsNullOrWhiteSpace(reference) ? null : reference,
                         Intelligence = string.IsNullOrWhiteSpace(intelligence) ? null : intelligence,

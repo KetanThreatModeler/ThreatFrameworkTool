@@ -36,10 +36,9 @@ namespace ThreatFramework.Infrastructure
             var libraryCache = new LibraryCacheService(libraries);
 
             // now construct the rest with required deps
-            var threats = new ThreatRepository(libraryCache, factory);
-            var components = new ComponentRepository(libraryCache, factory);
-            var compTypeLogger = _loggerFactory.CreateLogger<ComponentTypeRepository>();
-            var componentTypes = new ComponentTypeRepository(libraryCache, factory, compTypeLogger);
+            var threats = new ThreatRepository(libraryCache, factory, _loggerFactory.CreateLogger<ThreatRepository>());
+            var components = new ComponentRepository(libraryCache, factory, _loggerFactory.CreateLogger<ComponentRepository>());
+            var componentTypes = new ComponentTypeRepository(libraryCache, factory, _loggerFactory.CreateLogger<ComponentTypeRepository>());
             var securityReqs = new SecurityRequirementRepository(libraryCache, factory);
             var testcases = new TestcaseRepository(libraryCache, factory);
             var properties = new PropertyRepository(libraryCache, factory);

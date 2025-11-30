@@ -4,6 +4,7 @@ using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Infra.Implmentation.Helper;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
@@ -167,7 +168,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                 LastUpdated = File.GetLastWriteTimeUtc(filePath),
                 Name = name,
                 ImagePath = string.IsNullOrWhiteSpace(imagePath) ? null : imagePath,
-                Labels = labels,
+                Labels = labels.ToLabelList(),
                 Version = string.IsNullOrWhiteSpace(version) ? null : version,
                 Description = description,
                 ChineseDescription = null

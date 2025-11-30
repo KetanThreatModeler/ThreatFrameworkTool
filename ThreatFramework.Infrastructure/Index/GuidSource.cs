@@ -80,16 +80,16 @@ namespace ThreatFramework.Infrastructure.Index
                 var tasks = new List<Task<IEnumerable<EntityIdentifier>>>
                 {
                     // A. Entities belonging to these libraries
-                    FetchFilteredAsync(hub, repo => repo.Components.GetGuidsByLibraryIds(libIdList), EntityType.Component),
-                    FetchFilteredAsync(hub, repo => repo.Threats.GetGuidsByLibraryIds(libIdList), EntityType.Threat),
-                    FetchFilteredAsync(hub, repo => repo.Testcases.GetGuidsByLibraryIds(libIdList), EntityType.TestCase),
-                    FetchFilteredAsync(hub, repo => repo.SecurityRequirements.GetGuidsByLibraryIds(libIdList), EntityType.SecurityRequirement),
-                    FetchFilteredAsync(hub, repo => repo.Properties.GetGuidsByLibraryIds(libIdList), EntityType.Property),
+                    FetchFilteredAsync(hub, repo => repo.Components.GetGuidsByLibraryIds(libIdList), EntityType.Component, true),
+                    FetchFilteredAsync(hub, repo => repo.Threats.GetGuidsByLibraryIds(libIdList), EntityType.Threat, true),
+                    FetchFilteredAsync(hub, repo => repo.Testcases.GetGuidsByLibraryIds(libIdList), EntityType.TestCase, true),
+                    FetchFilteredAsync(hub, repo => repo.SecurityRequirements.GetGuidsByLibraryIds(libIdList), EntityType.SecurityRequirement, true),
+                    FetchFilteredAsync(hub, repo => repo.Properties.GetGuidsByLibraryIds(libIdList), EntityType.Property, true),
                     
                     // B. The Libraries themselves
                     FetchFilteredAsync(hub, repo => repo.Libraries.GetGuidsByLibraryIds(libIdList), EntityType.Library, isLibraryEntity: true),
 
-                      FetchAllGlobalAsync(hub, repo => repo.PropertyTypes.GetAllPropertyTypeGuidsAsync(), EntityType.PropertyType),
+                    FetchAllGlobalAsync(hub, repo => repo.PropertyTypes.GetAllPropertyTypeGuidsAsync(), EntityType.PropertyType),
                     FetchAllGlobalAsync(hub, repo => repo.PropertyOptions.GetAllPropertyOptionGuidsAsync(), EntityType.PropertyOption),
                     FetchAllGlobalAsync(hub, repo => repo.ComponentTypes.GetGuidsAndLibraryGuidsAsync(), EntityType.ComponentType)
                 };

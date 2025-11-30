@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ThreatFramework.Git.Contract\ThreatModeler.TF.Git.Contract.csproj" />
     <ProjectReference Include="..\ThreatFramework.Infra.Contract\ThreatModeler.TF.Infra.Contract.csproj" />
     <ProjectReference Include="..\ThreatFramework.YamlFileGenerator.Contract\ThreatModeler.TF.YamlFileGenerator.Contract.csproj" />
   </ItemGroup>

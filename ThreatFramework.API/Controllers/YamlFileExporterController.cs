@@ -1,73 +1,173 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ThreatFramework.YamlFileGenerator.Contract;
+using ThreatModeler.TF.API.Controllers.Dtos;
 using ThreatModeler.TF.Core.Config;
 
-namespace ThreatFramework.API.Controllers
+[ApiController]
+[Route("api/[controller]")]
+[Produces("application/json")]
+public sealed class YamlExportsController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public sealed class YamlExportsController : ControllerBase
+    private readonly ILogger<YamlExportsController> _logger;
+    private readonly IYamlFileGeneratorForClient _clientGenerator;
+    private readonly IYamlFilesGeneratorForTRC _trcGenerator;
+    private readonly PathOptions _exportOptions;
+
+    public YamlExportsController(
+        ILogger<YamlExportsController> logger,
+        IYamlFileGeneratorForClient clientGenerator,
+        IYamlFilesGeneratorForTRC trcGenerator,
+        IOptions<PathOptions> exportOptions)
     {
-        private readonly ILogger<YamlExportsController> _logger;
-        private readonly IYamlFileGeneratorForClient _clientGenerator;
-        private readonly IYamlFilesGeneratorForTRC _trcGenerator;
-        private readonly PathOptions _exportOptions;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _clientGenerator = clientGenerator ?? throw new ArgumentNullException(nameof(clientGenerator));
+        _trcGenerator = trcGenerator ?? throw new ArgumentNullException(nameof(trcGenerator));
+        _exportOptions = exportOptions?.Value ?? throw new ArgumentNullException(nameof(exportOptions));
+    }
 
-        public YamlExportsController(
-            ILogger<YamlExportsController> logger,
-            IYamlFileGeneratorForClient clientGenerator,
-            IYamlFilesGeneratorForTRC trcGenerator,
-            IOptions<PathOptions> exportOptions)
+    [HttpPost("client")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GenerateClientAsync(CancellationToken ct)
+    {
+        using (_logger.BeginScope("Action: GenerateClientYaml"))
         {
-            _logger = logger;
-            _clientGenerator = clientGenerator;
-            _trcGenerator = trcGenerator;
-            _exportOptions = exportOptions.Value;
+            if (!TryGetPath(_exportOptions.ClientOutput, "Client", out string path, out var errorResult))
+            {
+                return errorResult;
+            }
+
+            try
+            {
+                _logger.LogInformation("Starting Client YAML export to {Output}", path);
+
+                // Assuming Client Generator signature hasn't changed yet. 
+                // If it has, pass the push param here too.
+                await _clientGenerator.GenerateForLibraryIdsAsync(path, Enumerable.Empty<Guid>().ToList());
+
+                _logger.LogInformation("Completed Client YAML export.");
+
+                return Ok(new
+                {
+                    tenant = "Client",
+                    outputPath = path,
+                    status = "completed"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate Client YAMLs.");
+                return Problem(statusCode: 500, title: "Export Failed", detail: ex.Message);
+            }
+        }
+    }
+
+    [HttpPost("trc/readonly")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GenerateTrcReadOnlyAsync(
+        [FromQuery] bool push = false,
+        CancellationToken ct = default)
+    {
+        using (_logger.BeginScope("Action: GenerateTrcReadOnly Push={Push}", push))
+        {
+            if (!TryGetPath(_exportOptions.TrcOutput, "TRC", out string path, out var errorResult))
+            {
+                return errorResult;
+            }
+
+            try
+            {
+                _logger.LogInformation("Starting TRC ReadOnly export to {Output}", path);
+
+                // Updated Contract Call
+                await _trcGenerator.GenerateForReadOnlyLibraryAsync(path, pushToRemote: push);
+
+                _logger.LogInformation("Completed TRC ReadOnly export.");
+
+                return Ok(new
+                {
+                    tenant = "TRC",
+                    scope = "ReadOnly",
+                    outputPath = path,
+                    pushedToGit = push,
+                    status = "completed"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate TRC ReadOnly YAMLs.");
+                return Problem(statusCode: 500, title: "Export Failed", detail: ex.Message);
+            }
+        }
+    }
+
+    [HttpPost("trc")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GenerateTrcLibrariesAsync(
+        [FromBody] LibraryExportRequest request,
+        [FromQuery] bool push = false,
+        CancellationToken ct = default)
+    {
+        using (_logger.BeginScope("Action: GenerateTrcLibraries Push={Push}", push))
+        {
+            if (!TryGetPath(_exportOptions.TrcOutput, "TRC", out string path, out var errorResult))
+            {
+                return errorResult;
+            }
+
+            if (request == null || !request.LibraryIds.Any())
+            {
+                _logger.LogWarning("No library IDs provided in request body.");
+                return BadRequest(new { error = "Please provide a list of Library IDs." });
+            }
+
+            try
+            {
+                _logger.LogInformation("Starting TRC export for {Count} libraries to {Output}", request.LibraryIds.Count(), path);
+
+                // Updated Contract Call
+                await _trcGenerator.GenerateForLibraryIdsAsync(path, request.LibraryIds, pushToRemote: push);
+
+                _logger.LogInformation("Completed TRC Library export.");
+
+                return Ok(new
+                {
+                    tenant = "TRC",
+                    scope = "SpecificLibraries",
+                    count = request.LibraryIds.Count(),
+                    outputPath = path,
+                    pushedToGit = push,
+                    status = "completed"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate TRC Library YAMLs.");
+                return Problem(statusCode: 500, title: "Export Failed", detail: ex.Message);
+            }
+        }
+    }
+
+    // --- Private Helper (DRY) ---
+
+    private bool TryGetPath(string? configuredPath, string contextName, out string validPath, out IActionResult? errorResult)
+    {
+        if (string.IsNullOrWhiteSpace(configuredPath))
+        {
+            _logger.LogError("{Context} output path is not configured in appsettings.", contextName);
+            validPath = string.Empty;
+            errorResult = Problem(statusCode: 400, title: "Configuration Error", detail: $"{contextName} output path not configured.");
+            return false;
         }
 
-       
-        [HttpPost("client")]
-        public async Task<IActionResult> GenerateClientAsync(CancellationToken ct)
-        {
-            var path = _exportOptions.ClientOutput;
-            if (string.IsNullOrWhiteSpace(path))
-                return BadRequest("Client output path not configured in appsettings.json");
-
-            _logger.LogInformation("Starting Client YAML export to {Output}", path);
-            await _clientGenerator.GenerateForLibraryIdsAsync(path, new List<Guid> { });
-            _logger.LogInformation("Completed Client YAML export to {Output}", path);
-
-            return Ok(new { tenant = "Client", outputPath = path, status = "completed" });
-        }
-
-      
-        [HttpPost("trc/readonly")]
-        public async Task<IActionResult> GenerateTrcAsync(CancellationToken ct)
-        {
-            var path = _exportOptions.TrcOutput;
-            if (string.IsNullOrWhiteSpace(path))
-                return BadRequest("TRC output path not configured in appsettings.json");
-
-            _logger.LogInformation("Starting TRC YAML export to {Output}", path);
-            await _trcGenerator.GenerateForReadOnlyLibraryAsync(path);
-            _logger.LogInformation("Completed TRC YAML export to {Output}", path);
-
-            return Ok(new { tenant = "TRC", outputPath = path, status = "completed" });
-        }
-
-        [HttpPost("trc")]
-        public async Task<IActionResult> GenerateTrcAsync(List<Guid> libraryIds, CancellationToken ct)
-        {
-            var path = _exportOptions.TrcOutput;
-            if (string.IsNullOrWhiteSpace(path))
-                return BadRequest("TRC output path not configured in appsettings.json");
-
-            _logger.LogInformation("Starting TRC YAML export to {Output}", path);
-            await _trcGenerator.GenerateForLibraryIdsAsync(path, libraryIds);
-            _logger.LogInformation("Completed TRC YAML export to {Output}", path);
-
-            return Ok(new { tenant = "TRC", outputPath = path, status = "completed" });
-        }
+        validPath = configuredPath;
+        errorResult = null;
+        return true;
     }
 }

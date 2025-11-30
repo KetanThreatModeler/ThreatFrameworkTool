@@ -13,7 +13,9 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
         private readonly ILibraryCacheService _libraryCacheService;
         private readonly ILogger<ComponentTypeRepository> _logger;
 
-        // SQL Constants to keep the code clean
+        // SQL Column Order:
+        // 0:[Id], 1:[Name], 2:[Description], 3:[LibraryId], 4:[Guid], 
+        // 5:[isHidden], 6:[IsSecurityControl], 7:[ChineseName], 8:[ChineseDescription]
         private const string SqlGetAll = @"
             SELECT [Id], [Name], [Description], [LibraryId], [Guid], 
                    [isHidden], [IsSecurityControl], [ChineseName], [ChineseDescription]
@@ -40,20 +42,50 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
             {
                 return await ExecuteQueryAsync(SqlGetAll, async reader =>
                 {
-                    // Map LibraryId (int) to LibraryGuid using the Cache Service
+                    // STRICT SEQUENTIAL READ ORDER (1 -> 8)
+                    // We skip [Id] (Index 0) as it is not mapped to the model.
+
+                    // 1. Read Name (Index 1)
+                    string name = GetStringSafe(reader, "Name");
+
+                    // 2. Read Description (Index 2)
+                    string description = GetStringSafe(reader, "Description");
+
+                    // 3. Read LibraryId (Index 3)
                     int libraryId = reader.GetInt32(reader.GetOrdinal("LibraryId"));
+
+                    // 4. Read Guid (Index 4)
+                    Guid guid = reader.GetGuid(reader.GetOrdinal("Guid"));
+
+                    // 5. Read isHidden (Index 5)
+                    bool isHidden = reader.GetBoolean(reader.GetOrdinal("isHidden"));
+
+                    // 6. Read IsSecurityControl (Index 6)
+                    bool isSecurityControl = reader.GetBoolean(reader.GetOrdinal("IsSecurityControl"));
+
+                    // 7. Read ChineseName (Index 7)
+                    string chineseName = GetStringSafe(reader, "ChineseName");
+
+                    // 8. Read ChineseDescription (Index 8)
+                    string chineseDescription = GetStringSafe(reader, "ChineseDescription");
+
+                    // ---------------------------------------------------------
+                    // DATA READING COMPLETE. NOW SAFE TO DO LOGIC/ASYNC CALLS.
+                    // ---------------------------------------------------------
+
+                    // Resolve Library Guid using the ID we read earlier
                     Guid libraryGuid = await _libraryCacheService.GetGuidByIdAsync(libraryId);
 
                     return new ComponentType
                     {
-                        Guid = reader.GetGuid(reader.GetOrdinal("Guid")),
-                        Name = GetStringSafe(reader, "Name"),
-                        Description = GetStringSafe(reader, "Description"),
+                        Guid = guid,
+                        Name = name,
+                        Description = description,
                         LibraryGuid = libraryGuid,
-                        IsHidden = reader.GetBoolean(reader.GetOrdinal("isHidden")),
-                        IsSecurityControl = reader.GetBoolean(reader.GetOrdinal("IsSecurityControl")),
-                        ChineseName = GetStringSafe(reader, "ChineseName"),
-                        ChineseDescription = GetStringSafe(reader, "ChineseDescription")
+                        IsHidden = isHidden,
+                        IsSecurityControl = isSecurityControl,
+                        ChineseName = chineseName,
+                        ChineseDescription = chineseDescription
                     };
                 });
             }
@@ -63,8 +95,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
         {
             using (_logger.BeginScope("Operation: GetComponentTypeGuids"))
             {
-                // Note: The original request signature returns IEnumerable<Guid>, 
-                // so we only map the ComponentTypeGuid.
                 return await ExecuteQueryAsync(SqlGetGuids, reader =>
                 {
                     return Task.FromResult(reader.GetGuid(reader.GetOrdinal("ComponentTypeGuid")));
@@ -86,7 +116,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
                 using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using SqlCommand command = new SqlCommand(sql, connection);
 
-                // SequentialAccess provides better performance for reading rows
+                // SequentialAccess improves performance by reading data as a stream
                 using SqlDataReader reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
 
                 while (await reader.ReadAsync())

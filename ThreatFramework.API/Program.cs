@@ -31,6 +31,7 @@ using ThreatModeler.TF.Core.Config;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.Infra.Implmentation.Repository;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -127,6 +128,9 @@ builder.Services.AddScoped<IComponentThreatSRGraphBuilder, ComponentThreatSRGrap
 builder.Services.AddScoped<IGuidLookupRepository, SqlServerGuidLookupRepository>();
 builder.Services.AddScoped<IGuidIntegrityService, GuidIntegrityService>();
 builder.Services.AddScoped<IDriftApplier, DriftApplier>();
+
+
+builder.Services.AddScoped<IGitFolderDiffService, GitFolderDiffService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,4 +1,5 @@
 ﻿using ThreatFramework.Core.CoreEntities;
+using ThreatModeler.TF.Core.Helper;
 
 namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates
 {
@@ -12,7 +13,7 @@ namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates
                 .AddQuoted("guid", threat.Guid.ToString())
                 .AddQuoted("name", threat.Name)
                 .AddQuoted("libraryGuid", threat.LibraryGuid.ToString())
-                .AddLabels("labels", threat.Labels)
+                .AddLabels("labels", threat.Labels.ToDelimitedString())
                 .AddQuoted("description", threat.Description ?? string.Empty)
                 .AddQuoted("reference", threat.Reference ?? string.Empty)
                 .AddQuoted("intelligence", threat.Intelligence ?? string.Empty)

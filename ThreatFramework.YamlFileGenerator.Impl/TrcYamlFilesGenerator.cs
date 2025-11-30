@@ -2,9 +2,12 @@
 using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
-using ThreatFramework.YamlFileGenerator.Contract;
+using ThreatFramework.YamlFileGenerator.Contract; // Ensure this contains the updated IYamlFilesGeneratorForTRC interface
 using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Git.Contract;
+using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Infra.Contract.Repository;
+
 
 namespace ThreatFramework.YamlFileGenerator.Impl
 {
@@ -14,7 +17,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
         private readonly IGuidIndexService _indexService;
-        private readonly ILibraryRepository _libraryRepository;
+        private readonly IGitService _gitService;
+        private readonly GitSettings _gitSettings;
         private readonly PathOptions _options;
 
         public TrcYamlFilesGenerator(
@@ -22,29 +26,202 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             ILogger<YamlFilesGenerator> yamlLogger,
             IRepositoryHubFactory hubFactory,
             IOptions<PathOptions> options,
-            ILibraryRepository libraryRepository,
+            IOptions<GitSettings> gitOptions,
+            IGitService gitService,
             IGuidIndexService indexService)
         {
-            _logger = logger;
-            _yamlLogger = yamlLogger;
-            _hub = hubFactory.Create(DataPlane.Trc);
-            _indexService = indexService;
-            _libraryRepository = libraryRepository;
-            _options = options.Value ?? throw new ArgumentNullException(nameof(options));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _yamlLogger = yamlLogger ?? throw new ArgumentNullException(nameof(yamlLogger));
+            _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
+            _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+
+            _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _gitSettings = gitOptions?.Value ?? throw new ArgumentNullException(nameof(gitOptions));
+
+            // Create the TRC-scoped hub
+            _hub = hubFactory?.Create(DataPlane.Trc) ?? throw new ArgumentNullException(nameof(hubFactory));
         }
 
-        public async Task GenerateAsync(string outputFolderPath, List<Guid> libraryIds)
+        public async Task GenerateForLibraryIdsAsync(string outputFolderPath, IEnumerable<Guid> libraryIds, bool pushToRemote = false)
+        {
+            using (_logger.BeginScope("Operation: GenerateForLibraryIds Path={Path} Push={Push}", outputFolderPath, pushToRemote))
+            {
+                var libList = libraryIds?.ToList() ?? new List<Guid>();
+                if (!libList.Any())
+                {
+                    _logger.LogWarning("No library IDs provided. Skipping generation.");
+                    return;
+                }
+
+                // 1. Generate Files
+                await GenerateAsync(outputFolderPath, libList);
+
+                // 2. Push if requested
+                if (pushToRemote)
+                {
+                    HandleGitPush(outputFolderPath, $"Auto-Update: Generated YAMLs for {libList.Count} libraries.");
+                }
+            }
+        }
+
+        public async Task GenerateForReadOnlyLibraryAsync(string outputFolderPath, bool pushToRemote = false)
+        {
+            using (_logger.BeginScope("Operation: GenerateForReadOnlyLibrary Path={Path} Push={Push}", outputFolderPath, pushToRemote))
+            {
+                _logger.LogInformation("Fetching ReadOnly libraries from cache...");
+
+                var libraryCaches = await _hub.Libraries.GetLibrariesCacheAsync();
+                var readOnlyIds = libraryCaches.Where(x => x.IsReadonly).Select(x => x.Guid).ToList();
+
+                if (!readOnlyIds.Any())
+                {
+                    _logger.LogWarning("No ReadOnly libraries found. Skipping generation.");
+                    return;
+                }
+
+                // 1. Generate Files
+                await GenerateAsync(outputFolderPath, readOnlyIds);
+
+                // 2. Push if requested
+                if (pushToRemote)
+                {
+                    HandleGitPush(outputFolderPath, "Auto-Update: Generated YAMLs for ReadOnly libraries.");
+                }
+            }
+        }
+
+        // --------------------------------------------------------------------------------
+        // Core Logic (Private)
+        // --------------------------------------------------------------------------------
+
+        private async Task GenerateAsync(string outputFolderPath, List<Guid> libraryIds)
         {
             if (string.IsNullOrWhiteSpace(outputFolderPath))
                 throw new ArgumentException("Output path is required.", nameof(outputFolderPath));
 
-            var cfg = _options.TrcOutput ?? throw new InvalidOperationException("YamlExport:Trc is not configured.");
-          
+            if (_options.TrcOutput == null)
+                throw new InvalidOperationException("YamlExport:Trc is not configured.");
+
+            _logger.LogInformation("Starting TRC YAML export for {Count} libraries to {Root}.", libraryIds.Count, outputFolderPath);
 
             Directory.CreateDirectory(outputFolderPath);
 
-            // construct your existing generator with plane-specific repos
-            var gen = new YamlFilesGenerator(
+            // 1. Initialize the internal worker
+            var generator = CreateInternalGenerator();
+
+
+            // 2. Generate Index File 
+            await GenerateIndexAsync(outputFolderPath, libraryIds);
+
+            // 3. Generate Entities
+            await GenerateEntitiesAsync(generator, outputFolderPath, libraryIds);
+
+            // 4. Generate Mappings
+            await GenerateMappingsAsync(generator, outputFolderPath, libraryIds);
+
+            _logger.LogInformation("TRC export completed successfully.");
+        }
+
+        private async Task GenerateIndexAsync(string root, List<Guid> libraryIds)
+        {
+            // Place index.yaml at the root level (same level as 'mappings' folder)
+            var indexFilePath = Path.Combine(root, "index.yaml");
+
+            _logger.LogInformation("Generating Index file at {Path}...", indexFilePath);
+
+            // Call the service we created previously
+            await _indexService.GenerateForLibraryAsync(libraryIds, indexFilePath);
+        }
+
+        // --------------------------------------------------------------------------------
+        // Git Logic (Private Helper)
+        // --------------------------------------------------------------------------------
+
+        private void HandleGitPush(string outputFolderPath, string commitMessage)
+        {
+            // Safety Check: Ensure output folder is inside the configured Git Repo
+            if (!IsPathInsideRepository(outputFolderPath, _gitSettings.LocalPath))
+            {
+                var ex = new InvalidOperationException(
+                    $"Configuration Error: The output path '{outputFolderPath}' is not inside the configured Git Repository path '{_gitSettings.LocalPath}'. " +
+                    "Files were generated but cannot be pushed.");
+
+                _logger.LogError(ex, "Git Push aborted due to path mismatch.");
+                throw ex;
+            }
+
+            _logger.LogInformation("Initiating Git Push...");
+
+            var context = new GitCommitContext
+            {
+                // Connectivity
+                RepoUrl = _gitSettings.RepoUrl,
+                LocalPath = _gitSettings.LocalPath,
+                Branch = _gitSettings.Branch,
+                Username = _gitSettings.Username,
+                Password = _gitSettings.Password,
+                AuthorName = _gitSettings.AuthorName,
+                AuthorEmail = _gitSettings.AuthorEmail,
+
+                // Transactional
+                CommitMessage = commitMessage
+            };
+
+            try
+            {
+                _gitService.CommitAndPush(context);
+                _logger.LogInformation("Git Push completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to push changes to remote repository.");
+                throw;
+            }
+        }
+
+        private bool IsPathInsideRepository(string outputFolderPath, string repoRootPath)
+        {
+            var fullOutput = Path.GetFullPath(outputFolderPath);
+            var fullRepo = Path.GetFullPath(repoRootPath);
+            return fullOutput.StartsWith(fullRepo, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // --------------------------------------------------------------------------------
+        // Generator Orchestration (Private Helpers)
+        // --------------------------------------------------------------------------------
+
+        private async Task GenerateEntitiesAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)
+        {
+            _logger.LogDebug("Generating Entity YAML files...");
+            await gen.GenerateYamlFilesForSpecificLibraries(root, libraryIds);
+            await gen.GenerateYamlFilesForSpecificComponents(root, libraryIds);
+            await gen.GenerateYamlFilesForAllComponentTypes(root);
+            await gen.GenerateYamlFilesForSpecificThreats(root, libraryIds);
+            await gen.GenerateYamlFilesForSpecificSecurityRequirements(root, libraryIds);
+            await gen.GenerateYamlFilesForSpecificProperties(root, libraryIds);
+            await gen.GenerateYamlFilesForPropertyTypes(root);
+            await gen.GenerateYamlFilesForSpecificTestCases(root, libraryIds);
+            await gen.GenerateYamlFilesForPropertyOptions(root);
+        }
+
+        private async Task GenerateMappingsAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)
+        {
+            _logger.LogDebug("Generating Mapping YAML files...");
+            var mappingsRoot = Path.Combine(root, "mappings");
+
+            await gen.GenerateYamlFilesForComponentSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForComponentThreatMappings(Path.Combine(mappingsRoot, "component-threat"), libraryIds);
+            await gen.GenerateYamlFilesForComponentThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-threat-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "threat-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyMappings(Path.Combine(mappingsRoot, "component-property"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionMappings(Path.Combine(mappingsRoot, "component-property-option"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionThreatMappings(Path.Combine(mappingsRoot, "component-property-option-threat"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-property-option-threat-security-requirement"), libraryIds);
+        }
+
+        private YamlFilesGenerator CreateInternalGenerator()
+        {
+            return new YamlFilesGenerator(
                 logger: _yamlLogger,
                 threatRepository: _hub.Threats,
                 componentRepository: _hub.Components,
@@ -65,40 +242,6 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 componentPropertyOptionThreatSecurityRequirementMappingRepository: _hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
                 indexService: _indexService
             );
-
-            var root = outputFolderPath;
-
-            await gen.GenerateYamlFilesForSpecificLibraries(root, libraryIds);
-            await gen.GenerateYamlFilesForSpecificComponents(root, libraryIds);
-            await gen.GenerateYamlFilesForAllComponentTypes(root);
-            await gen.GenerateYamlFilesForSpecificThreats(root, libraryIds);
-            await gen.GenerateYamlFilesForSpecificSecurityRequirements(root, libraryIds);
-            await gen.GenerateYamlFilesForSpecificProperties(root, libraryIds);
-            await gen.GenerateYamlFilesForPropertyTypes(root);
-            await gen.GenerateYamlFilesForSpecificTestCases(root, libraryIds);
-            await gen.GenerateYamlFilesForPropertyOptions(root);
-
-            await gen.GenerateYamlFilesForComponentSecurityRequirementMappings(Path.Combine(root, "mappings", "component-security-requirement"), libraryIds);
-            await gen.GenerateYamlFilesForComponentThreatMappings(Path.Combine(root, "mappings", "component-threat"), libraryIds);
-            await gen.GenerateYamlFilesForComponentThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "component-threat-security-requirement"), libraryIds);
-            await gen.GenerateYamlFilesForThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "threat-security-requirement"), libraryIds);
-            await gen.GenerateYamlFilesForComponentPropertyMappings(Path.Combine(root, "mappings", "component-property"), libraryIds);
-            await gen.GenerateYamlFilesForComponentPropertyOptionMappings(Path.Combine(root, "mappings", "component-property-option"), libraryIds);
-            await gen.GenerateYamlFilesForComponentPropertyOptionThreatMappings(Path.Combine(root, "mappings", "component-property-option-threat"), libraryIds);
-            await gen.GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(root, "mappings", "component-property-option-threat-security-requirement"), libraryIds);
-
-            _logger.LogInformation("TRC export completed to {Root}.", root);
-        }
-
-        public async Task GenerateForLibraryIdsAsync(string outputFolderPath, IEnumerable<Guid> libraryIds)
-        {
-            await GenerateAsync(outputFolderPath, libraryIds.ToList());
-        }
-
-        public async Task GenerateForReadOnlyLibraryAsync(string outputFolderPath)
-        {
-            var libraryCaches = await _hub.Libraries.GetLibrariesCacheAsync();
-           await GenerateAsync(outputFolderPath, libraryCaches.Where(_ => _.IsReadonly).Select(_ => _.Guid).ToList());
         }
     }
 }

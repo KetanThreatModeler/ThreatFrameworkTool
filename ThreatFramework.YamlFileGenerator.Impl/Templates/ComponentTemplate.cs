@@ -1,4 +1,5 @@
 ﻿using ThreatFramework.Core.CoreEntities;
+using ThreatModeler.TF.Core.Helper;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
@@ -13,7 +14,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
                 .AddQuoted("guid", component.Guid.ToString())
                 .AddQuoted("name", component.Name)
                 .AddQuoted("libraryGuid", component.LibraryGuid.ToString())
-                .AddLabels("labels", component.Labels)
+                .AddLabels("labels", component.Labels.ToDelimitedString())
                 .AddQuoted("componentTypeGuid", component.ComponentTypeGuid.ToString())
                 .AddQuoted("version", component.Version ?? string.Empty)
                 .AddQuoted("description", component.Description ?? string.Empty)
