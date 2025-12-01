@@ -12,6 +12,7 @@ namespace ThreatFramework.Drift.Contract
 {
     public interface ILibraryDriftAggregator
     {
+       Task<TMFrameworkDrift> Drift(IEnumerable<Guid> libraryIds);
        Task<TMFrameworkDrift> Drift();
        Task<TMFrameworkDrift> Aggregate(CoreEntitiesDrift report, IEnumerable<ComponentMappingDriftDto> mappingDrift);
     }

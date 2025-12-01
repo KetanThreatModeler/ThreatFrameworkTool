@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Runtime.CompilerServices;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract;
@@ -11,6 +12,7 @@ using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Config;
 using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Git.Contract;
 
 namespace ThreatFramework.Drift.Impl
 {
@@ -21,16 +23,19 @@ namespace ThreatFramework.Drift.Impl
         private readonly IComponentMappingDriftService _componentMappingDriftService;
         private readonly PathOptions _exportOptions;
         private readonly IYamlComponentReader _yamlComponentReader;
+        private readonly IGitFolderDiffService _gitFolderDiffService;
 
         public LibraryDriftAggregator(IFolderDiffService folderDiffService, ICoreEntityDrift coreEntityDrift,
             IComponentMappingDriftService componentMappingDriftService,
-            IOptions<PathOptions> exportOptions, IYamlComponentReader yamlComponentReader)
+            IOptions<PathOptions> exportOptions, IYamlComponentReader yamlComponentReader,
+            IGitFolderDiffService gitFolderDiffService)
         {
             _folderDiffService = folderDiffService;
             _coreEntityDrift = coreEntityDrift ?? throw new ArgumentNullException(nameof(coreEntityDrift));
             _componentMappingDriftService = componentMappingDriftService ?? throw new ArgumentNullException(nameof(componentMappingDriftService));
             _exportOptions = exportOptions?.Value ?? throw new ArgumentNullException(nameof(exportOptions));
             _yamlComponentReader = yamlComponentReader ?? throw new ArgumentNullException(nameof(yamlComponentReader));
+            _gitFolderDiffService = gitFolderDiffService ?? throw new ArgumentNullException(nameof(gitFolderDiffService));
         }
 
         public async Task<TMFrameworkDrift> Drift()
@@ -774,6 +779,11 @@ namespace ThreatFramework.Drift.Impl
 
             // Fallback: strict reflection-based compare
             return FieldComparer.CompareByNames(existing, updated, fields).ToList();
+        }
+
+        public Task<TMFrameworkDrift> Drift(IEnumerable<Guid> libraryIds)
+        {
+            throw new NotImplementedException();
         }
 
         private class ComponentCollections

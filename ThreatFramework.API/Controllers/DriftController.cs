@@ -30,11 +30,6 @@ namespace ThreatFramework.API.Controllers
                 aggregationStopwatch.Stop();
                 Console.WriteLine($"Drift aggregation completed in {aggregationStopwatch.ElapsedMilliseconds} ms");
 
-                /*var applyStopwatch = Stopwatch.StartNew();
-                await _driftApplier.ApplyAsync(drift);
-                applyStopwatch.Stop();
-                Console.WriteLine($"Drift application completed in {applyStopwatch.ElapsedMilliseconds} ms");*/
-
                 return Ok(drift);
             }
             catch (Exception ex)

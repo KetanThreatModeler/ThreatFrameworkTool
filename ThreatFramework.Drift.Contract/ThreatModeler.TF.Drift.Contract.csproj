@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ThreatFramework.Core\ThreatModeler.TF.Core.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Git.Contract\ThreatModeler.TF.Git.Contract.csproj" />
   </ItemGroup>
 
 </Project>
