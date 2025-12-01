@@ -75,7 +75,8 @@ namespace ThreatModeler.TF.Git.Implementation
                             return;
                         }
 
-                        var localReport = new FolderDiffReport();
+                        // include repo paths in report
+                        var localReport = new FolderDiffReport(repo1Path, repo2Path);
 
                         var folderEntry1 = FindTreeEntry(tree1, folderPath);
                         var folderEntry2 = FindTreeEntry(tree2, folderPath);
@@ -103,7 +104,7 @@ namespace ThreatModeler.TF.Git.Implementation
                     }
                 });
 
-            var finalReport = new FolderDiffReport();
+            var finalReport = new FolderDiffReport(repo1Path, repo2Path);
             foreach (var report in reports)
             {
                 finalReport.Merge(report);
@@ -151,7 +152,7 @@ namespace ThreatModeler.TF.Git.Implementation
                 prefixes.Count,
                 includeUncommittedChanges);
 
-            var report = new FolderDiffReport();
+            var report = new FolderDiffReport(repo1Path, repo2Path);
             var prefixSet = new HashSet<string>(prefixes);
 
             try
@@ -248,7 +249,7 @@ namespace ThreatModeler.TF.Git.Implementation
                 ignoreSet.Count,
                 includeUncommittedChanges);
 
-            var report = new FolderDiffReport();
+            var report = new FolderDiffReport(repo1Path, repo2Path);
 
             try
             {
