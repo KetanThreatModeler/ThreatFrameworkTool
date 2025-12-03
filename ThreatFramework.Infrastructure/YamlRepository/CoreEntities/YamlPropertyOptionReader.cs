@@ -122,8 +122,6 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         IsDefault = isDefault,
                         IsHidden = isHidden,
                         IsOverridden = isOverridden,
-                        CreatedDate = createdDate,
-                        LastUpdated = lastUpdated,
                         Guid = guid,
                         OptionText = optionText,
                         ChineseOptionText = string.IsNullOrWhiteSpace(chineseOptionText) ? null : chineseOptionText

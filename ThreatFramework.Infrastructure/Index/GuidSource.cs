@@ -80,14 +80,14 @@ namespace ThreatFramework.Infrastructure.Index
                 var tasks = new List<Task<IEnumerable<EntityIdentifier>>>
                 {
                     // A. Entities belonging to these libraries
-                    FetchFilteredAsync(hub, repo => repo.Components.GetGuidsByLibraryIds(libIdList), EntityType.Component, true),
-                    FetchFilteredAsync(hub, repo => repo.Threats.GetGuidsByLibraryIds(libIdList), EntityType.Threat, true),
-                    FetchFilteredAsync(hub, repo => repo.Testcases.GetGuidsByLibraryIds(libIdList), EntityType.TestCase, true),
-                    FetchFilteredAsync(hub, repo => repo.SecurityRequirements.GetGuidsByLibraryIds(libIdList), EntityType.SecurityRequirement, true),
-                    FetchFilteredAsync(hub, repo => repo.Properties.GetGuidsByLibraryIds(libIdList), EntityType.Property, true),
+                    FetchAllScopedAsync(hub, repo => repo.Components.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.Component),
+                    FetchAllScopedAsync(hub, repo => repo.Threats.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.Threat),
+                    FetchAllScopedAsync(hub, repo => repo.Testcases.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.TestCase),
+                    FetchAllScopedAsync(hub, repo => repo.SecurityRequirements.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.SecurityRequirement),
+                    FetchAllScopedAsync(hub, repo => repo.Properties.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.Property),
                     
                     // B. The Libraries themselves
-                    FetchFilteredAsync(hub, repo => repo.Libraries.GetGuidsByLibraryIds(libIdList), EntityType.Library, isLibraryEntity: true),
+                    FetchAllScopedAsync(hub, repo => repo.Libraries.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.Library),
 
                     FetchAllGlobalAsync(hub, repo => repo.PropertyTypes.GetAllPropertyTypeGuidsAsync(), EntityType.PropertyType),
                     FetchAllGlobalAsync(hub, repo => repo.PropertyOptions.GetAllPropertyOptionGuidsAsync(), EntityType.PropertyOption),
@@ -162,38 +162,6 @@ namespace ThreatFramework.Infrastructure.Index
                 {
                     Guid = guid,
                     LibraryGuid = Guid.Empty,
-                    EntityType = type
-                });
-            }
-            catch (Exception ex)
-            {
-                LogFetchError(ex, type);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// 3. Fetches Filtered Data (Guid only): Uses the new SQL-Optimized Repository methods.
-        /// </summary>
-        private async Task<IEnumerable<EntityIdentifier>> FetchFilteredAsync(
-            IRepositoryHub hub,
-            Func<IRepositoryHub, Task<IEnumerable<Guid>>> fetchAction,
-            EntityType type,
-            bool isLibraryEntity = false)
-        {
-            try
-            {
-                // This calls the SQL method: GetGuidsByLibraryIds(...)
-                var guids = await fetchAction(hub);
-
-                return guids.Select(guid => new EntityIdentifier
-                {
-                    Guid = guid,
-                    // LIMITATION: The 'GetGuidsByLibraryIds' interface only returns the Entity Guid, 
-                    // not the parent Library Guid.
-                    // If this is the Library itself, the ID *is* the LibraryGuid.
-                    // Otherwise, we must leave it Empty or inferred by context downstream.
-                    LibraryGuid = isLibraryEntity ? guid : Guid.Empty,
                     EntityType = type
                 });
             }

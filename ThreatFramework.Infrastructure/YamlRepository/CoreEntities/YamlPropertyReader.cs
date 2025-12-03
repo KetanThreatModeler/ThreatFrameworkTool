@@ -59,53 +59,63 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         continue;
                     }
 
-                    // Root + spec
-                    if (!TryLoadSpec(yaml, out var spec, out var root))
+                    // Load root mapping (flat structure)
+                    var yamlStream = new YamlStream();
+                    using (var sr = new StringReader(yaml))
                     {
-                        _logger?.LogWarning("Missing 'spec' node. Skipping: {File}", file);
+                        yamlStream.Load(sr);
+                    }
+
+                    if (yamlStream.Documents.Count == 0 || yamlStream.Documents[0].RootNode is not YamlMappingNode root)
+                    {
+                        _logger?.LogWarning("YAML root is not a mapping. Skipping: {File}", file);
                         continue;
                     }
 
-                    // metadata
-                    if (!TryGetMap(root, "metadata", out var metadata))
-                    {
-                        _logger?.LogWarning("Missing 'metadata' node. Skipping: {File}", file);
-                        continue;
-                    }
+                    // Required top-level scalars
+                    var guidStr = RequiredScalar(root, "guid", file);
+                    var name = RequiredScalar(root, "name", file);
+                    var libraryGuidStr = RequiredScalar(root, "libraryGuid", file);
+                    var propertyTypeGuidStr = RequiredScalar(root, "propertyTypeGuid", file);
 
-                    // Required metadata scalars
-                    var guidStr = RequiredScalar(metadata, "guid", file);
-                    var name = RequiredScalar(metadata, "name", file);
-                    var libraryGuidStr = RequiredScalar(metadata, "libraryGuid", file);
-
-                    // metadata.labels: sequence -> comma-separated string (null if empty)
+                    // labels: [] => comma-separated string or null
                     string? labels = null;
-                    if (metadata.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
+                    if (root.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
                         && labelsNode is YamlSequenceNode seq && seq.Children.Count > 0)
                     {
                         var labelValues = seq.Children
                             .OfType<YamlScalarNode>()
                             .Where(s => !string.IsNullOrWhiteSpace(s.Value))
                             .Select(s => s.Value!.Trim());
+
                         var joined = string.Join(",", labelValues);
                         labels = string.IsNullOrWhiteSpace(joined) ? null : joined;
                     }
 
-                    // spec fields
-                    var propertyTypeGuidStr = RequiredScalar(spec, "propertyTypeGuid", file);
-                    TryGetScalar(spec, "description", out var descriptionRaw);
+                    // description
+                    TryGetScalar(root, "description", out var descriptionRaw);
                     var description = string.IsNullOrWhiteSpace(descriptionRaw)
                         ? null
                         : System.Net.WebUtility.HtmlDecode(descriptionRaw);
 
-                    // spec.flags
+                    // ChineseName / ChineseDescription (note the casing from your YAML)
+                    TryGetScalar(root, "ChineseName", out var chineseNameRaw);
+                    string? chineseName = string.IsNullOrWhiteSpace(chineseNameRaw) ? null : chineseNameRaw;
+
+                    TryGetScalar(root, "ChineseDescription", out var chineseDescRaw);
+                    string? chineseDescription = string.IsNullOrWhiteSpace(chineseDescRaw)
+                        ? null
+                        : System.Net.WebUtility.HtmlDecode(chineseDescRaw);
+
+                    // flags:
+                    //   isSelected, isOptional, isGlobal, isHidden, isOverridden
                     bool isSelected = false;
                     bool isOptional = false;
                     bool isGlobal = false;
                     bool isHidden = false;
                     bool isOverridden = false;
 
-                    if (TryGetMap(spec, "flags", out var flags))
+                    if (TryGetMap(root, "flags", out var flags))
                     {
                         isSelected = GetBool(flags, "isSelected", false);
                         isOptional = GetBool(flags, "isOptional", false);
@@ -114,37 +124,23 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         isOverridden = GetBool(flags, "isOverridden", false);
                     }
 
-                    // spec.i18n.zh for Chinese translations
-                    string? chineseName = null;
-                    string? chineseDescription = null;
-                    if (TryGetMap(spec, "i18n", out var i18n) && TryGetMap(i18n, "zh", out var zh))
-                    {
-                        TryGetScalar(zh, "name", out chineseName);
-                        TryGetScalar(zh, "description", out var chineseDescRaw);
-                        chineseDescription = string.IsNullOrWhiteSpace(chineseDescRaw)
-                            ? null
-                            : System.Net.WebUtility.HtmlDecode(chineseDescRaw);
-                    }
-
-                    // Parse dates (use file timestamps as fallback)
+                    // Use file timestamps
                     var createdDate = File.GetCreationTimeUtc(file);
                     var lastUpdated = File.GetLastWriteTimeUtc(file);
 
                     var property = new Property
                     {
                         Id = 0, // Typically set by persistence layer
-                        Guid = G(guidStr, "metadata.guid", file),
-                        LibraryGuid = G(libraryGuidStr, "metadata.libraryGuid", file),
-                        PropertyTypeGuid = G(propertyTypeGuidStr, "spec.propertyTypeGuid", file),
+                        Guid = G(guidStr, "guid", file),
+                        LibraryGuid = G(libraryGuidStr, "libraryGuid", file),
+                        PropertyTypeGuid = G(propertyTypeGuidStr, "propertyTypeGuid", file),
                         IsSelected = isSelected,
                         IsOptional = isOptional,
                         IsGlobal = isGlobal,
                         IsHidden = isHidden,
                         IsOverridden = isOverridden,
-                        CreatedDate = createdDate,
-                        LastUpdated = lastUpdated,
                         Name = name,
-                        ChineseName = string.IsNullOrWhiteSpace(chineseName) ? null : chineseName,
+                        ChineseName = chineseName,
                         Labels = labels,
                         Description = description,
                         ChineseDescription = chineseDescription
@@ -161,4 +157,4 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
             return properties;
         }
     }
-}
+    }

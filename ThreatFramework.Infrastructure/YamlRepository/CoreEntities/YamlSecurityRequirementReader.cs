@@ -30,7 +30,6 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
 
             var securityRequirements = new List<SecurityRequirement>();
 
-            // We iterate sequentially (like the other reader) to keep logging + error flow simple and predictable.
             foreach (var file in yamlFilePaths.Where(p => !string.IsNullOrWhiteSpace(p)))
             {
                 try
@@ -60,28 +59,41 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         continue;
                     }
 
-                    // Root + spec
-                    if (!TryLoadSpec(yaml, out var spec, out var root))
+                    // Load root mapping (flat structure)
+                    var yamlStream = new YamlStream();
+                    using (var sr = new StringReader(yaml))
                     {
-                        _logger?.LogWarning("Missing 'spec' node. Skipping: {File}", file);
+                        yamlStream.Load(sr);
+                    }
+
+                    if (yamlStream.Documents.Count == 0 || yamlStream.Documents[0].RootNode is not YamlMappingNode root)
+                    {
+                        _logger?.LogWarning("YAML root is not a mapping. Skipping: {File}", file);
                         continue;
                     }
 
-                    // metadata
-                    if (!TryGetMap(root, "metadata", out var metadata))
+                    // Required top-level scalars
+                    var guidStr = RequiredScalar(root, "guid", file);
+                    var name = RequiredScalar(root, "name", file);
+                    var libraryGuidStr = RequiredScalar(root, "libraryGuid", file);
+
+                    // riskId (present in YAML, Id is not)
+                    // try both "riskId" and "riskID" to be safe
+                    string riskIdRaw;
+                    if (!TryGetScalar(root, "riskId", out riskIdRaw) &&
+                        !TryGetScalar(root, "riskID", out riskIdRaw))
                     {
-                        _logger?.LogWarning("Missing 'metadata' node. Skipping: {File}", file);
-                        continue;
+                        throw new InvalidOperationException($"Missing 'riskId' in security requirement YAML: {file}");
                     }
 
-                    // Required metadata scalars
-                    var guidStr = RequiredScalar(metadata, "guid", file);
-                    var name = RequiredScalar(metadata, "name", file);
-                    var libraryGuidStr = RequiredScalar(metadata, "libraryGuid", file);
+                    if (!int.TryParse(riskIdRaw, out var riskId))
+                    {
+                        throw new InvalidOperationException($"Invalid 'riskId' value '{riskIdRaw}' in file: {file}");
+                    }
 
-                    // metadata.labels: sequence -> comma-separated string (null if empty)
+                    // labels: sequence -> comma-separated string (null if empty)
                     string? labels = null;
-                    if (metadata.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
+                    if (root.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
                         && labelsNode is YamlSequenceNode seq && seq.Children.Count > 0)
                     {
                         var labelValues = seq.Children
@@ -92,48 +104,43 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         labels = string.IsNullOrWhiteSpace(joined) ? null : joined;
                     }
 
-                    // spec fields
-                    TryGetScalar(spec, "description", out var descriptionRaw);
+                    // description
+                    TryGetScalar(root, "description", out var descriptionRaw);
                     var description = string.IsNullOrWhiteSpace(descriptionRaw)
                         ? null
                         : System.Net.WebUtility.HtmlDecode(descriptionRaw);
 
-                    // spec.flags
+                    // ChineseName / ChineseDescription (note the casing from YAML)
+                    TryGetScalar(root, "ChineseName", out var chineseNameRaw);
+                    string? chineseName = string.IsNullOrWhiteSpace(chineseNameRaw) ? null : chineseNameRaw;
+
+                    TryGetScalar(root, "ChineseDescription", out var chineseDescRaw);
+                    string? chineseDescription = string.IsNullOrWhiteSpace(chineseDescRaw)
+                        ? null
+                        : System.Net.WebUtility.HtmlDecode(chineseDescRaw);
+
+                    // flags
                     bool isCompensatingControl = false, isHidden = false, isOverridden = false;
-                    if (TryGetMap(spec, "flags", out var flags))
+                    if (TryGetMap(root, "flags", out var flags))
                     {
                         isCompensatingControl = GetBool(flags, "isCompensatingControl", false);
                         isHidden = GetBool(flags, "isHidden", false);
                         isOverridden = GetBool(flags, "isOverridden", false);
                     }
 
-                    // i18n.zh for Chinese translations
-                    string? chineseName = null, chineseDescription = null;
-                    if (TryGetMap(spec, "i18n", out var i18n) && TryGetMap(i18n, "zh", out var zh))
-                    {
-                        TryGetScalar(zh, "name", out chineseName);
-                        TryGetScalar(zh, "description", out var chineseDescRaw);
-                        chineseDescription = string.IsNullOrWhiteSpace(chineseDescRaw)
-                            ? null
-                            : System.Net.WebUtility.HtmlDecode(chineseDescRaw);
-                    }
-
                     var securityRequirement = new SecurityRequirement
                     {
-                        Id = 0, // Typically set by persistence layer
-                        RiskId = 0, // Not available in YAML, set by persistence layer
-                        Guid = G(guidStr, "metadata.guid", file),
-                        LibraryId = G(libraryGuidStr, "metadata.libraryGuid", file),
+                        RiskId = riskId, // now comes from YAML
+                        Guid = G(guidStr, "guid", file),
+                        LibraryId = G(libraryGuidStr, "libraryGuid", file),
                         IsCompensatingControl = isCompensatingControl,
                         IsHidden = isHidden,
                         IsOverridden = isOverridden,
-                        CreatedDate = File.GetCreationTimeUtc(file),
-                        LastUpdated = File.GetLastWriteTimeUtc(file),
                         Name = name,
-                        ChineseName = string.IsNullOrWhiteSpace(chineseName) ? null : chineseName,
+                        ChineseName = chineseName,
                         Labels = labels,
                         Description = description,
-                        ChineseDescription = chineseDescription
+                        ChineseDescription = chineseDescription,
                     };
 
                     securityRequirements.Add(securityRequirement);
@@ -147,4 +154,4 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
             return securityRequirements;
         }
     }
-}
+    }

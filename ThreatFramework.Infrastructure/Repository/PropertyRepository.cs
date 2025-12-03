@@ -92,8 +92,6 @@ namespace ThreatFramework.Infrastructure.Repository
                     IsGlobal = (bool)reader["IsGlobal"],
                     IsHidden = (bool)reader["isHidden"],
                     IsOverridden = (bool)reader["IsOverridden"],
-                    CreatedDate = (DateTime)reader["CreatedDate"],
-                    LastUpdated = reader["LastUpdated"] as DateTime?,
                     Guid = (Guid)reader["Guid"],
                     Name = reader["Name"] as string,
                     ChineseName = reader["ChineseName"] as string,
@@ -182,6 +180,48 @@ namespace ThreatFramework.Infrastructure.Repository
             }
 
             return guids;
+        }
+
+        public async Task<IEnumerable<(Guid PropertyGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(IEnumerable<Guid> libraryIds)
+        {
+            if (libraryIds == null || !libraryIds.Any())
+                return Enumerable.Empty<(Guid PropertyGuid, Guid LibraryGuid)>();
+
+            // Convert library GUIDs to integer IDs used in DB
+            var ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
+
+            if (!ids.Any())
+                return Enumerable.Empty<(Guid PropertyGuid, Guid LibraryGuid)>();
+
+            var libraryIdList = ids.ToList();
+            var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
+
+            var sql = $@"
+        SELECT p.Guid AS PropertyGuid, l.Guid AS LibraryGuid
+        FROM Properties p
+        INNER JOIN Libraries l ON p.LibraryId = l.Id
+        WHERE p.LibraryId IN ({libraryParameters})";
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+
+            for (int i = 0; i < libraryIdList.Count; i++)
+            {
+                command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
+            }
+
+            var results = new List<(Guid PropertyGuid, Guid LibraryGuid)>();
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var propertyGuid = reader.GetGuid(reader.GetOrdinal("PropertyGuid"));
+                var libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
+
+                results.Add((propertyGuid, libraryGuid));
+            }
+
+            return results;
         }
     }
 }

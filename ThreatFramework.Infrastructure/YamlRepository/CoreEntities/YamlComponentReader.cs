@@ -25,7 +25,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
         public async Task<Component> GetComponentByGuid(Guid guid)
         {
             var componentId = _guidIndexService.GetInt(guid);
-            
+
             var filePath = Path.Combine(_pathOptions.TrcOutput, "components", $"{componentId}.yaml");
 
             if (!File.Exists(filePath))
@@ -107,50 +107,56 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                 throw new InvalidOperationException($"Invalid YAML kind '{kind}' in file: {filePath}");
             }
 
-            // Root + spec
-            if (!TryLoadSpec(yaml, out var spec, out var root))
+            // Load root mapping (flat structure)
+            var yamlStream = new YamlStream();
+            using (var sr = new StringReader(yaml))
             {
-                throw new InvalidOperationException($"Missing 'spec' node in file: {filePath}");
+                yamlStream.Load(sr);
             }
 
-            // metadata
-            if (!TryGetMap(root, "metadata", out var metadata))
+            if (yamlStream.Documents.Count == 0 || yamlStream.Documents[0].RootNode is not YamlMappingNode root)
             {
-                throw new InvalidOperationException($"Missing 'metadata' node in file: {filePath}");
+                throw new InvalidOperationException($"YAML root is not a mapping in file: {filePath}");
             }
 
-            // Required metadata scalars
-            var guidStr = RequiredScalar(metadata, "guid", filePath);
-            var name = RequiredScalar(metadata, "name", filePath);
-            var libraryGuidStr = RequiredScalar(metadata, "libraryId", filePath);
-            var componentType = RequiredScalar(metadata, "componentType", filePath);
+            // Required top-level scalars
+            var guidStr = RequiredScalar(root, "guid", filePath);
+            var name = RequiredScalar(root, "name", filePath);
+            var libraryGuidStr = RequiredScalar(root, "libraryGuid", filePath);
+            var componentTypeGuid = RequiredScalar(root, "componentTypeGuid", filePath);
 
-            // Optional metadata scalars
-            TryGetScalar(metadata, "version", out var version);
+            // Optional scalars
+            TryGetScalar(root, "version", out var version);
+            TryGetScalar(root, "imagePath", out var imagePathRaw);
+            TryGetScalar(root, "description", out var descriptionRaw);
+            var description = string.IsNullOrWhiteSpace(descriptionRaw)
+                ? null
+                : System.Net.WebUtility.HtmlDecode(descriptionRaw);
 
-            // metadata.labels: sequence -> comma-separated string (null if empty)
+            // ChineseDescription (note: casing from YAML)
+            TryGetScalar(root, "ChineseDescription", out var chineseDescRaw);
+            string? chineseDescription = string.IsNullOrWhiteSpace(chineseDescRaw)
+                ? null
+                : System.Net.WebUtility.HtmlDecode(chineseDescRaw);
+
+            // labels: [] → comma-separated string → ToLabelList()
             string? labels = null;
-            if (metadata.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
+            if (root.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
                 && labelsNode is YamlSequenceNode seq && seq.Children.Count > 0)
             {
                 var labelValues = seq.Children
                     .OfType<YamlScalarNode>()
                     .Where(s => !string.IsNullOrWhiteSpace(s.Value))
                     .Select(s => s.Value!.Trim());
+
                 var joined = string.Join(",", labelValues);
                 labels = string.IsNullOrWhiteSpace(joined) ? null : joined;
             }
 
-            // spec fields
-            TryGetScalar(spec, "imagePath", out var imagePath);
-            TryGetScalar(spec, "description", out var descriptionRaw);
-            var description = string.IsNullOrWhiteSpace(descriptionRaw)
-                ? null
-                : System.Net.WebUtility.HtmlDecode(descriptionRaw);
-
-            // spec.flags
+            // flags:
+            //   isHidden, isOverridden
             bool isHidden = false, isOverridden = false;
-            if (TryGetMap(spec, "flags", out var flags))
+            if (TryGetMap(root, "flags", out var flags))
             {
                 isHidden = GetBool(flags, "isHidden", false);
                 isOverridden = GetBool(flags, "isOverridden", false);
@@ -159,19 +165,17 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
             return new Component
             {
                 Id = componentId,
-                Guid = G(guidStr, "metadata.guid", filePath),
-                LibraryGuid = G(libraryGuidStr, "metadata.libraryId", filePath),
-                ComponentTypeGuid = G(componentType, "metadata.componentType", filePath),
+                Guid = G(guidStr, "guid", filePath),
+                LibraryGuid = G(libraryGuidStr, "libraryGuid", filePath),
+                ComponentTypeGuid = G(componentTypeGuid, "componentTypeGuid", filePath),
                 IsHidden = isHidden,
                 IsOverridden = isOverridden,
-                CreatedDate = File.GetCreationTimeUtc(filePath),
-                LastUpdated = File.GetLastWriteTimeUtc(filePath),
                 Name = name,
-                ImagePath = string.IsNullOrWhiteSpace(imagePath) ? null : imagePath,
+                ImagePath = string.IsNullOrWhiteSpace(imagePathRaw) ? null : imagePathRaw,
                 Labels = labels.ToLabelList(),
                 Version = string.IsNullOrWhiteSpace(version) ? null : version,
                 Description = description,
-                ChineseDescription = null
+                ChineseDescription = chineseDescription
             };
         }
     }

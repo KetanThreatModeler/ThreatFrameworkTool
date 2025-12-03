@@ -18,10 +18,6 @@ namespace ThreatFramework.Core.CoreEntities
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
 
-        // --- Dates ---
-        public DateTime CreatedDate { get; set; }
-        public DateTime? LastUpdated { get; set; }
-
         // --- Strings ---
         public string Name { get; set; } = string.Empty;
         public string ChineseName { get; set; } = string.Empty; 
@@ -49,7 +45,6 @@ namespace ThreatFramework.Core.CoreEntities
                     case nameof(Automated):
                     case nameof(IsHidden):
                     case nameof(IsOverridden):
-                    case nameof(LastUpdated):
                         CompareValueTypes(changes, field, other);
                         break;
 
@@ -89,7 +84,6 @@ namespace ThreatFramework.Core.CoreEntities
                 case nameof(Automated): ComparisonHelper.Compare(changes, field, this.Automated, other.Automated); break;
                 case nameof(IsHidden): ComparisonHelper.Compare(changes, field, this.IsHidden, other.IsHidden); break;
                 case nameof(IsOverridden): ComparisonHelper.Compare(changes, field, this.IsOverridden, other.IsOverridden); break;
-                case nameof(LastUpdated): ComparisonHelper.Compare(changes, field, this.LastUpdated, other.LastUpdated); break;
             }
         }
 

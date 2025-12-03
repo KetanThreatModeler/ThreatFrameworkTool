@@ -96,8 +96,6 @@ namespace ThreatFramework.Infrastructure.Repository
                     Id = (int)reader["Id"],
                     Guid = (Guid)reader["Guid"],
                     DepartmentId = (int)reader["DepartmentId"],
-                    DateCreated = (DateTime)reader["DateCreated"],
-                    LastUpdated = (DateTime)reader["LastUpdated"],
                     Readonly = (bool)reader["Readonly"],
                     IsDefault = (bool)reader["IsDefault"],
                     Name = (string)reader["Name"],
@@ -163,5 +161,21 @@ namespace ThreatFramework.Infrastructure.Repository
 
             return result;
         }
+
+        public async Task<IEnumerable<(Guid LibGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(IEnumerable<Guid> libraryIds)
+        {
+            if (libraryIds == null || !libraryIds.Any())
+            {
+                return Enumerable.Empty<(Guid LibGuid, Guid LibraryGuid)>();
+            }
+
+            // Reuse existing method to fetch the valid library GUIDs
+            var guids = await GetGuidsByLibraryIds(libraryIds);
+
+            // Since Id and LibraryId are both the library Guid in this context,
+            // map each Guid to a (LibraryGuid, LibraryGuid) tuple.
+            return guids.Select(g => (LibGuid: g, LibraryGuid: g));
+        }
+
     }
 }

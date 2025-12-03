@@ -16,11 +16,6 @@ namespace ThreatModeler.TF.Core.Global
         public bool IsDefault { get; set; }
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
-
-        // Excluded from comparison
-        public DateTime CreatedDate { get; set; }
-        public DateTime? LastUpdated { get; set; }
-
         public string OptionText { get; set; }
         public string ChineseOptionText { get; set; }
 

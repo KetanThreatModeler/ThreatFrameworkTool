@@ -22,10 +22,6 @@ namespace ThreatFramework.Core.CoreEntities
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
 
-        // Excluded from comparison
-        public DateTime CreatedDate { get; set; }
-        public DateTime? LastUpdated { get; set; }
-
         public string Name { get; set; }
         public string? ChineseName { get; set; }
         public string? Labels { get; set; }

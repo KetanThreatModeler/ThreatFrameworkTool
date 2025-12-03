@@ -16,10 +16,6 @@ namespace ThreatFramework.Core.CoreEntities
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
 
-        // --- Dates (Excluded from comparison logic) ---
-        public DateTime CreatedDate { get; set; }
-        public DateTime? LastUpdated { get; set; }
-
         // --- Strings ---
         public string Name { get; set; } = string.Empty;
         public string ImagePath { get; set; } = string.Empty;

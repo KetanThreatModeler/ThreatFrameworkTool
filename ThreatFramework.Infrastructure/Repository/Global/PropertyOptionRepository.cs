@@ -57,8 +57,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
                     IsDefault = (bool)reader["IsDefault"],
                     IsHidden = (bool)reader["isHidden"],
                     IsOverridden = (bool)reader["IsOverridden"],
-                    CreatedDate = (DateTime)reader["CreatedDate"],
-                    LastUpdated = reader["LastUpdated"] as DateTime?,
                     Guid = (Guid)reader["Guid"],
                     OptionText = reader["OptionText"] as string,
                     ChineseOptionText = reader["ChineseOptionText"] as string

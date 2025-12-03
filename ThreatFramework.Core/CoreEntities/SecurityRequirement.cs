@@ -7,7 +7,6 @@ namespace ThreatFramework.Core.CoreEntities
 {
     public class SecurityRequirement : IFieldComparable<SecurityRequirement>
     {
-        public int Id { get; set; }
         public int RiskId { get; set; }
         public Guid LibraryId { get; set; } // Note: Guid type, but name is LibraryId
         public Guid Guid { get; set; }
@@ -16,10 +15,6 @@ namespace ThreatFramework.Core.CoreEntities
         public bool IsCompensatingControl { get; set; }
         public bool IsHidden { get; set; }
         public bool IsOverridden { get; set; }
-
-        // Excluded from comparison
-        public DateTime CreatedDate { get; set; }
-        public DateTime? LastUpdated { get; set; }
 
         public string Name { get; set; }
         public string? ChineseName { get; set; }

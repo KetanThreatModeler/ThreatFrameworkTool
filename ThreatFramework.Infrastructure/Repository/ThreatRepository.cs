@@ -234,11 +234,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                     Automated = reader.GetBoolean(reader.GetOrdinal("Automated")),
                     IsHidden = reader.GetBoolean(reader.GetOrdinal("isHidden")),
                     IsOverridden = reader.GetBoolean(reader.GetOrdinal("IsOverridden")),
-
-                    CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
-                    // Handle Nullable DateTime
-                    LastUpdated = reader["LastUpdated"] == DBNull.Value ? null : (DateTime?)reader["LastUpdated"],
-
                     Guid = reader.GetGuid(reader.GetOrdinal("Guid")),
 
                     // CLEAN CODE: Using Extension methods for Strings
@@ -255,6 +250,65 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
             }
 
             return threats;
+        }
+
+        public async Task<IEnumerable<(Guid ThreatGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(IEnumerable<Guid> libraryIds)
+        {
+            _logger.LogInformation("Starting GetGuidsAndLibraryGuidsAsync for {Count} libraries.", libraryIds?.Count() ?? 0);
+
+            try
+            {
+                if (libraryIds == null || !libraryIds.Any())
+                {
+                    _logger.LogInformation("No library GUIDs provided. Returning empty result.");
+                    return Enumerable.Empty<(Guid ThreatGuid, Guid LibraryGuid)>();
+                }
+
+                // Convert library GUIDs to integer IDs used in DB
+                HashSet<int> ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
+
+                if (!ids.Any())
+                {
+                    _logger.LogWarning("No matching Library IDs found for the provided GUIDs.");
+                    return Enumerable.Empty<(Guid ThreatGuid, Guid LibraryGuid)>();
+                }
+
+                List<int> libraryIdList = ids.ToList();
+                string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
+
+                string sql = $@"
+            SELECT t.Guid AS ThreatGuid, l.Guid AS LibraryGuid
+            FROM Threats t
+            INNER JOIN Libraries l ON t.LibraryId = l.Id
+            WHERE t.LibraryId IN ({libraryParameters})";
+
+                using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
+                using SqlCommand command = new(sql, connection);
+
+                for (int i = 0; i < libraryIdList.Count; i++)
+                {
+                    _ = command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
+                }
+
+                List<(Guid ThreatGuid, Guid LibraryGuid)> results = new();
+                using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    Guid threatGuid = reader.GetGuid(reader.GetOrdinal("ThreatGuid"));
+                    Guid libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
+
+                    results.Add((threatGuid, libraryGuid));
+                }
+
+                _logger.LogInformation("Successfully retrieved {Count} Threat/Library GUID pairs.", results.Count);
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Threat/Library GUID pairs for specified libraries.");
+                throw;
+            }
         }
     }
 }

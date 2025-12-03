@@ -10,11 +10,6 @@ namespace ThreatFramework.Core.CoreEntities
         public int Id { get; set; }
         public Guid Guid { get; set; }
         public int DepartmentId { get; set; }
-
-        // Excluded from comparison logic
-        public DateTime DateCreated { get; set; }
-        public DateTime LastUpdated { get; set; }
-
         public bool Readonly { get; set; }
         public bool IsDefault { get; set; }
 

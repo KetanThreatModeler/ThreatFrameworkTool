@@ -54,30 +54,37 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         continue;
                     }
 
-                    // Root + spec
-                    if (!TryLoadSpec(yaml, out var spec, out var root))
+                    // Load root mapping (flat structure)
+                    var yamlStream = new YamlStream();
+                    using (var sr = new StringReader(yaml))
                     {
-                        _logger?.LogWarning("Missing 'spec' node. Skipping: {File}", file);
+                        yamlStream.Load(sr);
+                    }
+
+                    if (yamlStream.Documents.Count == 0 || yamlStream.Documents[0].RootNode is not YamlMappingNode root)
+                    {
+                        _logger?.LogWarning("YAML root is not a mapping. Skipping: {File}", file);
                         continue;
                     }
 
-                    // metadata
-                    if (!TryGetMap(root, "metadata", out var metadata))
-                    {
-                        _logger?.LogWarning("Missing 'metadata' node. Skipping: {File}", file);
-                        continue;
-                    }
+                    // Required root-level scalars
+                    var guidStr = RequiredScalar(root, "guid", file);
+                    var name = RequiredScalar(root, "name", file);
 
-                    // Required metadata scalars
-                    var guidStr = RequiredScalar(metadata, "guid", file);
-                    var name = RequiredScalar(metadata, "name", file);
+                    // Optional scalars
+                    TryGetScalar(root, "version", out var version);
+                    TryGetScalar(root, "description", out var descriptionRaw);
+                    var description = string.IsNullOrWhiteSpace(descriptionRaw)
+                        ? null
+                        : System.Net.WebUtility.HtmlDecode(descriptionRaw);
 
-                    // Optional metadata scalars
-                    TryGetScalar(metadata, "version", out var version);
+                    TryGetScalar(root, "imageUrl", out var imageUrl);
+                    TryGetScalar(root, "createdAt", out var createdAtStr);
+                    TryGetScalar(root, "updatedAt", out var updatedAtStr);
 
-                    // metadata.labels: sequence -> comma-separated string (null if empty)
+                    // labels: [] -> comma-separated string (null if empty)
                     string? labels = null;
-                    if (metadata.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
+                    if (root.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
                         && labelsNode is YamlSequenceNode seq && seq.Children.Count > 0)
                     {
                         var labelValues = seq.Children
@@ -88,49 +95,14 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         labels = string.IsNullOrWhiteSpace(joined) ? null : joined;
                     }
 
-                    // spec fields
-                    TryGetScalar(spec, "description", out var descriptionRaw);
-                    var description = string.IsNullOrWhiteSpace(descriptionRaw)
-                        ? null
-                        : System.Net.WebUtility.HtmlDecode(descriptionRaw);
-
-                    TryGetScalar(spec, "imageUrl", out var imageUrl);
-                    TryGetScalar(spec, "createdAt", out var createdAtStr);
-                    TryGetScalar(spec, "updatedAt", out var updatedAtStr);
-
-                    // spec flags
-                    bool readonlyFlag = GetBool(spec, "readonly", false);
-                    bool isDefault = GetBool(spec, "isDefault", false);
-
-                    // Parse dates
-                    var dateCreated = DateTime.UtcNow;
-                    var lastUpdated = DateTime.UtcNow;
-
-                    if (!string.IsNullOrWhiteSpace(createdAtStr) && DateTime.TryParse(createdAtStr, out var parsedCreated))
-                    {
-                        dateCreated = parsedCreated.ToUniversalTime();
-                    }
-                    else
-                    {
-                        dateCreated = File.GetCreationTimeUtc(file);
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(updatedAtStr) && DateTime.TryParse(updatedAtStr, out var parsedUpdated))
-                    {
-                        lastUpdated = parsedUpdated.ToUniversalTime();
-                    }
-                    else
-                    {
-                        lastUpdated = File.GetLastWriteTimeUtc(file);
-                    }
+                    // flags at root
+                    bool readonlyFlag = GetBool(root, "readonly", false);
+                    bool isDefault = GetBool(root, "isDefault", false);
 
                     var library = new Library
                     {
-                        Id = 0, // Typically set by persistence layer
-                        Guid = G(guidStr, "metadata.guid", file),
+                        Guid = G(guidStr, "guid", file),
                         DepartmentId = 0, // Not present in YAML; set elsewhere if needed
-                        DateCreated = dateCreated,
-                        LastUpdated = lastUpdated,
                         Readonly = readonlyFlag,
                         IsDefault = isDefault,
                         Name = name,
@@ -152,5 +124,6 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
 
             return libraries;
         }
+
     }
 }
