@@ -160,5 +160,164 @@ namespace ThreatFramework.API.Controllers
                 return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
             }
         }
+
+        /// <summary>
+        /// Retrieves the GUID for a given integer ID.
+        /// </summary>
+        [HttpGet("id/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetGuid([FromRoute] int id)
+        {
+            try
+            {
+                _logger.LogDebug("Looking up GUID for ID: {Id}", id);
+
+                var guid = _service.GetGuid(id);
+
+                return Ok(new { Id = id, Guid = guid });
+            }
+            catch (KeyNotFoundException)
+            {
+                _logger.LogWarning("ID {Id} not found in index.", id);
+                return NotFound(new { error = "ID not found", id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error looking up ID {Id}", id);
+                return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all integer IDs for a given Library and EntityType.
+        /// </summary>
+        [HttpGet("library/{libraryId:guid}/type/{entityType}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetIdsByLibraryAndType(
+            [FromRoute] Guid libraryId,
+            [FromRoute] EntityType entityType)
+        {
+            try
+            {
+                _logger.LogDebug(
+                    "Looking up IDs for Library {LibraryId} and EntityType {EntityType}",
+                    libraryId, entityType);
+
+                var ids = _service.GetIdsByLibraryAndType(libraryId, entityType);
+
+                return Ok(new { LibraryId = libraryId, EntityType = entityType, Ids = ids });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Unexpected error looking up IDs for Library {LibraryId} and EntityType {EntityType}",
+                    libraryId, entityType);
+
+                return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all Component IDs for a given Library.
+        /// </summary>
+        [HttpGet("library/{libraryId:guid}/components")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetComponentIds([FromRoute] Guid libraryId)
+        {
+            try
+            {
+                var ids = _service.GetComponentIds(libraryId);
+                return Ok(new { LibraryId = libraryId, Ids = ids });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving component ids for library {LibraryId}.", libraryId);
+                return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all Threat IDs for a given Library.
+        /// </summary>
+        [HttpGet("library/{libraryId:guid}/threats")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetThreatIds([FromRoute] Guid libraryId)
+        {
+            try
+            {
+                var ids = _service.GetThreatIds(libraryId);
+                return Ok(new { LibraryId = libraryId, Ids = ids });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving threat ids for library {LibraryId}.", libraryId);
+                return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all Security Requirement IDs for a given Library.
+        /// </summary>
+        [HttpGet("library/{libraryId:guid}/security-requirements")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetSecurityRequirementIds([FromRoute] Guid libraryId)
+        {
+            try
+            {
+                var ids = _service.GetSecurityRequirementIds(libraryId);
+                return Ok(new { LibraryId = libraryId, Ids = ids });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving security requirement ids for library {LibraryId}.", libraryId);
+                return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all Property IDs for a given Library.
+        /// </summary>
+        [HttpGet("library/{libraryId:guid}/properties")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetPropertyIds([FromRoute] Guid libraryId)
+        {
+            try
+            {
+                var ids = _service.GetPropertyIds(libraryId);
+                return Ok(new { LibraryId = libraryId, Ids = ids });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving property ids for library {LibraryId}.", libraryId);
+                return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all Test Case IDs for a given Library.
+        /// </summary>
+        [HttpGet("library/{libraryId:guid}/test-cases")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult GetTestCaseIds([FromRoute] Guid libraryId)
+        {
+            try
+            {
+                var ids = _service.GetTestCaseIds(libraryId);
+                return Ok(new { LibraryId = libraryId, Ids = ids });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving test case ids for library {LibraryId}.", libraryId);
+                return Problem(statusCode: 500, title: "Lookup Failed", detail: ex.Message);
+            }
+        }
     }
 }

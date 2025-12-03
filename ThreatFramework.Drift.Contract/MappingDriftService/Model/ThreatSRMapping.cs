@@ -23,5 +23,7 @@ namespace ThreatFramework.Drift.Contract.MappingDriftService.Model
 
         public Guid ThreatId { get; set; }
         public Guid? SRId { get; set; }
+        public string ThreatName { get; set; }
+        public string SRName { get; set; }
     }
 }

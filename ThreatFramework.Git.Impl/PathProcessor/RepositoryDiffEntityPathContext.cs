@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using ThreatModeler.TF.Git.Contract.Models;
+﻿using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Git.Implementation.PathProcessor

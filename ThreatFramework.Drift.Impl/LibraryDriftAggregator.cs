@@ -12,6 +12,7 @@ using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Config;
 using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
 using ThreatModeler.TF.Git.Contract;
 
 namespace ThreatFramework.Drift.Impl
@@ -115,7 +116,7 @@ namespace ThreatFramework.Drift.Impl
                 {
                     addedComponent.Mappings = new ComponentMappingCollection
                     {
-                        SecurityRequirements = mapping.SecurityRequirementsAdded,
+                        SecurityRequirements = ToSRMappingDtos(mapping.SecurityRequirementsAdded),
                         ThreatSRMappings = mapping.MappingsAdded,
                         PropertyThreatSRMappings = mapping.PropertyThreatSRMappingsAdded
                     };
@@ -132,7 +133,7 @@ namespace ThreatFramework.Drift.Impl
                 {
                     deletedComponent.Mappings = new ComponentMappingCollection
                     {
-                        SecurityRequirements = mapping.SecurityRequirementsRemoved,
+                        SecurityRequirements = ToSRMappingDtos(mapping.SecurityRequirementsRemoved),
                         ThreatSRMappings = mapping.MappingsRemoved,
                         PropertyThreatSRMappings = mapping.PropertyThreatSRMappingsRemoved
                     };
@@ -157,13 +158,13 @@ namespace ThreatFramework.Drift.Impl
                 {
                     modifiedComponent.MappingsAdded = new ComponentMappingCollection
                     {
-                        SecurityRequirements = mapping.SecurityRequirementsAdded,
+                        SecurityRequirements = ToSRMappingDtos(mapping.SecurityRequirementsAdded),
                         ThreatSRMappings = mapping.MappingsAdded,
                         PropertyThreatSRMappings = mapping.PropertyThreatSRMappingsAdded
                     };
                     modifiedComponent.MappingsRemoved = new ComponentMappingCollection
                     {
-                        SecurityRequirements = mapping.SecurityRequirementsRemoved,
+                        SecurityRequirements = ToSRMappingDtos(mapping.SecurityRequirementsRemoved),
                         ThreatSRMappings = mapping.MappingsRemoved,
                         PropertyThreatSRMappings = mapping.PropertyThreatSRMappingsRemoved
                     };
@@ -202,13 +203,13 @@ namespace ThreatFramework.Drift.Impl
                     ChangedFields = [], // No field changes, only mapping changes
                     MappingsAdded = new ComponentMappingCollection
                     {
-                        SecurityRequirements = mapping.SecurityRequirementsAdded,
+                        SecurityRequirements = ToSRMappingDtos(mapping.SecurityRequirementsAdded),
                         ThreatSRMappings = mapping.MappingsAdded,
                         PropertyThreatSRMappings = mapping.PropertyThreatSRMappingsAdded
                     },
                     MappingsRemoved = new ComponentMappingCollection
                     {
-                        SecurityRequirements = mapping.SecurityRequirementsRemoved,
+                        SecurityRequirements = ToSRMappingDtos(mapping.SecurityRequirementsRemoved),
                         ThreatSRMappings = mapping.MappingsRemoved,
                         PropertyThreatSRMappings = mapping.PropertyThreatSRMappingsRemoved
                     }
@@ -781,16 +782,30 @@ namespace ThreatFramework.Drift.Impl
             return FieldComparer.CompareByNames(existing, updated, fields).ToList();
         }
 
-        public Task<TMFrameworkDrift> Drift(IEnumerable<Guid> libraryIds)
+        public async Task<TMFrameworkDrift> Drift(IEnumerable<Guid> libraryIds)
         {
-            throw new NotImplementedException();
+            var drift = new TMFrameworkDrift();
+            return drift;
         }
+
+
 
         private class ComponentCollections
         {
             public Dictionary<Guid, AddedComponent> Added { get; } = [];
             public Dictionary<Guid, DeletedComponent> Deleted { get; } = [];
             public Dictionary<Guid, ModifiedComponent> Modified { get; } = [];
+        }
+
+        private List<SRMappingDto> ToSRMappingDtos(IEnumerable<Guid> securityRequirementIds)
+        {
+            return securityRequirementIds
+                .Select(id => new SRMappingDto
+                {
+                    SecurityRequirementId = id,
+                    SecurityRequirementName = string.Empty // Name can be populated if needed
+                })
+                .ToList();
         }
     }
 }

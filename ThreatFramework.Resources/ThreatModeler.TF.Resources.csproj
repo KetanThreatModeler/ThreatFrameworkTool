@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Client\**" />
+    <EmbeddedResource Remove="Client\**" />
+    <None Remove="Client\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ThreatFramework.Infrastructure\ThreatModeler.TF.Infra.Implmentation.csproj" />
   </ItemGroup>
 

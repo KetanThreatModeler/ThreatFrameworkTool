@@ -1,6 +1,7 @@
 ﻿using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.MappingDriftService.Model;
+using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
 
 namespace ThreatFramework.Drift.Contract.Model
 {
@@ -26,7 +27,7 @@ namespace ThreatFramework.Drift.Contract.Model
     // Reusable mapping collection for composition
     public class ComponentMappingCollection
     {
-        public List<Guid> SecurityRequirements { get; set; } = new();
+        public List<SRMappingDto> SecurityRequirements { get; set; } = new();
         public List<ThreatSRMapping> ThreatSRMappings { get; set; } = new();
         public List<PropertyThreatSRMapping> PropertyThreatSRMappings { get; set; } = new();
     }

@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract.Index;
+using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Infra.Implmentation.Index;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using Microsoft.Extensions.Caching.Memory;
-using ThreatModeler.TF.Infra.Implmentation.Index;
 
 namespace ThreatFramework.Infrastructure.Index
 {
@@ -17,77 +19,59 @@ namespace ThreatFramework.Infrastructure.Index
         private readonly IGuidIndexRepository _reader;
         private readonly IMemoryCache _cache;
         private readonly ILogger<GuidIndexService> _log;
+        private readonly PathOptions _pathOptions;
 
         // Synchronization objects
         private static readonly ConcurrentDictionary<string, object> Gates = new();
         private static readonly ConcurrentDictionary<Guid, int> DynamicAssignments = new();
 
         private static readonly ISerializer Serializer =
-            new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+            new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                .Build();
 
         public GuidIndexService(
             IGuidSource source,
             IGuidIndexRepository reader,
             IMemoryCache cache,
+            IOptions<PathOptions> options,
             ILogger<GuidIndexService> log)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _reader = reader ?? throw new ArgumentNullException(nameof(reader));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _log = log ?? throw new ArgumentNullException(nameof(log));
-        }
+            _pathOptions = options?.Value ?? throw new ArgumentNullException(nameof(options));
 
-        public async Task RefreshAsync(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Path is required.", nameof(path));
-
-            using (_log.BeginScope("Operation: RefreshIndex Path={Path}", path))
+            if (string.IsNullOrWhiteSpace(_pathOptions.IndexYaml))
             {
-                var indices = await _reader.LoadAsync(path).ConfigureAwait(false);
-                var indexData = new GuidIndexData(indices);
-
-                _cache.Set(MapKey, indexData);
-                _cache.Set(PathKey, Path.GetFullPath(path));
-
-                _log.LogInformation("Refreshed index cache. Loaded {Count} entities.", indexData.Count);
-            }
-        }
-
-        public int GetInt(Guid guid)
-        {
-            // 1) Try current cached map
-            if (_cache.TryGetValue(MapKey, out GuidIndexData? indexData) && indexData is not null)
-            {
-                if (indexData.TryGetId(guid, out var id)) return id;
+                throw new ArgumentException(
+                    "Configuration error: 'IndexYaml' path is missing in PathOptions.",
+                    nameof(options));
             }
 
-            // 2) Try dynamic assignments (InMemory)
-            if (DynamicAssignments.TryGetValue(guid, out var dynamicId)) return dynamicId;
-
-            // 3) Lazy-load from last known path if cache miss
-            if (_cache.TryGetValue(PathKey, out string? lastPath) && !string.IsNullOrWhiteSpace(lastPath))
-            {
-                return LazyLoadAndLookup(guid, lastPath!, ref indexData);
-            }
-
-            // 4) Not found anywhere - assign new incremental ID
-            return AssignDynamicId(guid);
+            // Prime cache with configured path so we always have a known location
+            var indexPath = Path.GetFullPath(_pathOptions.IndexYaml);
+            _cache.Set(PathKey, indexPath);
         }
+
+        #region Public API
 
         public async Task GenerateAsync(string? outputPath = null)
         {
-            if (string.IsNullOrWhiteSpace(outputPath)) throw new ArgumentException("Path is required.", nameof(outputPath));
+            var targetPath = ResolveIndexPathOrThrow(outputPath);
 
-            using (_log.BeginScope("Operation: GenerateGlobalIndex Path={Path}", outputPath))
+            using (_log.BeginScope("Operation: GenerateGlobalIndex Path={Path}", targetPath))
             {
                 _log.LogInformation("Starting generation of global index.");
 
-                // 1. Fetch Data
-                var entities = await _source.GetAllGuidsWithTypeAsync();
+                var entities = await _source
+                    .GetAllGuidsWithTypeAsync()
+                    .ConfigureAwait(false);
 
-                // 2. Process, Save to File, and Update Global Cache
-                // We pass 'updateCache: true' because this is the Master Index
-                await ProcessAndSaveIndexAsync(entities, outputPath!, updateCache: true);
+                // Master index updates the runtime cache
+                await ProcessAndSaveIndexAsync(entities, targetPath, updateCache: true)
+                    .ConfigureAwait(false);
 
                 _log.LogInformation("Global index generation completed successfully.");
             }
@@ -95,68 +79,195 @@ namespace ThreatFramework.Infrastructure.Index
 
         public async Task GenerateForLibraryAsync(IEnumerable<Guid> libIds, string? outputPath = null)
         {
-            if (string.IsNullOrWhiteSpace(outputPath)) throw new ArgumentException("Path is required.", nameof(outputPath));
-            if (libIds == null || !libIds.Any()) throw new ArgumentException("Library IDs are required.", nameof(libIds));
+            if (libIds == null || !libIds.Any())
+                throw new ArgumentException("Library IDs are required.", nameof(libIds));
 
-            using (_log.BeginScope("Operation: GenerateLibraryIndex Path={Path}", outputPath))
+            var targetPath = ResolveIndexPathOrThrow(outputPath);
+
+            using (_log.BeginScope("Operation: GenerateLibraryIndex Path={Path}", targetPath))
             {
                 _log.LogInformation("Starting generation of library-specific index.");
 
-                // 1. Fetch Data (Filtered)
-                var entities = await _source.GetGuidsWithTypeByLibraryIdsAsync(libIds);
+                var entities = await _source
+                    .GetGuidsWithTypeByLibraryIdsAsync(libIds)
+                    .ConfigureAwait(false);
 
-                // 2. Process and Save to File
-                // We pass 'updateCache: false'. 
-                // REASON: A partial library index should not replace the Global Runtime Cache, 
-                // otherwise the app would crash when trying to access entities from other libraries.
-                await ProcessAndSaveIndexAsync(entities, outputPath!, updateCache: false);
+                await ProcessAndSaveIndexAsync(entities, targetPath, updateCache: true)
+                    .ConfigureAwait(false);
 
                 _log.LogInformation("Library-specific index generation completed successfully.");
             }
         }
 
+        public async Task RefreshAsync(string? path = null)
+        {
+            var indexPath = ResolveIndexPathOrThrow(path);
+            EnsureIndexFileExistsOrThrow(indexPath);
+
+            using (_log.BeginScope("Operation: RefreshIndex Path={Path}", indexPath))
+            {
+                var indices = await _reader
+                    .LoadAsync(indexPath)
+                    .ConfigureAwait(false);
+
+                var indexData = new GuidIndexData(indices.ToList());
+
+                _cache.Set(MapKey, indexData);
+                _cache.Set(PathKey, indexPath);
+
+                _log.LogInformation("Refreshed index cache. Loaded {Count} entities.", indexData.Count);
+            }
+        }
+
+        public int GetInt(Guid guid)
+        {
+            var indexData = EnsureIndexLoaded();
+
+            // 1) Static index
+            if (indexData.TryGetId(guid, out var id))
+            {
+                return id;
+            }
+
+            // 2) Dynamic assignments (in-memory)
+            if (DynamicAssignments.TryGetValue(guid, out var dynamicId))
+            {
+                return dynamicId;
+            }
+
+            // 3) Not found – assign dynamic ID
+            return AssignDynamicId(guid);
+        }
+
+        public Guid GetGuid(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentOutOfRangeException(nameof(id), "Id must be a positive integer.");
+
+            using (_log.BeginScope("Operation: GetGuid Id={Id}", id))
+            {
+                var indexData = EnsureIndexLoaded();
+
+                // 1) Static index
+                if (indexData.TryGetGuid(id, out var guidFromIndex))
+                {
+                    _log.LogDebug("Resolved Guid {Guid} for Id={Id} from static index.", guidFromIndex, id);
+                    return guidFromIndex;
+                }
+
+                // 2) Dynamic assignments (reverse lookup)
+                var dynamicGuid = DynamicAssignments
+                    .FirstOrDefault(kvp => kvp.Value == id)
+                    .Key;
+
+                if (dynamicGuid != Guid.Empty)
+                {
+                    _log.LogDebug("Resolved Guid {Guid} for Id={Id} from dynamic assignments.", dynamicGuid, id);
+                    return dynamicGuid;
+                }
+
+                // 3) Not found anywhere – this is considered an error
+                _log.LogWarning("No Guid found for Id={Id} in index or dynamic assignments.", id);
+                throw new KeyNotFoundException($"No Guid found for Id={id}.");
+            }
+        }
+
+        public IReadOnlyCollection<int> GetIdsByLibraryAndType(Guid libraryId, EntityType entityType)
+        {
+            if (libraryId == Guid.Empty)
+                throw new ArgumentException("LibraryId must be a non-empty GUID.", nameof(libraryId));
+
+            using (_log.BeginScope("Operation: GetIdsByLibraryAndType LibraryId={LibraryId} EntityType={EntityType}",
+                                   libraryId, entityType))
+            {
+                try
+                {
+                    var indexData = EnsureIndexLoaded();
+
+                    var ids = indexData.GetIdsForLibraryAndType(libraryId, entityType);
+
+                    _log.LogDebug("Resolved {Count} IDs for LibraryId={LibraryId}, EntityType={EntityType}.",
+                                  ids.Count, libraryId, entityType);
+
+                    return ids;
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex,
+                        "Failed to resolve IDs for LibraryId={LibraryId}, EntityType={EntityType}.",
+                        libraryId, entityType);
+
+                    throw;
+                }
+            }
+        }
+
+        // Convenience wrappers
+        public IReadOnlyCollection<int> GetComponentIds(Guid libraryId)
+            => GetIdsByLibraryAndType(libraryId, EntityType.Component);
+
+        public IReadOnlyCollection<int> GetThreatIds(Guid libraryId)
+            => GetIdsByLibraryAndType(libraryId, EntityType.Threat);
+
+        public IReadOnlyCollection<int> GetSecurityRequirementIds(Guid libraryId)
+            => GetIdsByLibraryAndType(libraryId, EntityType.SecurityRequirement);
+
+        public IReadOnlyCollection<int> GetPropertyIds(Guid libraryId)
+            => GetIdsByLibraryAndType(libraryId, EntityType.Property);
+
+        public IReadOnlyCollection<int> GetTestCaseIds(Guid libraryId)
+            => GetIdsByLibraryAndType(libraryId, EntityType.TestCase);
+
+        #endregion
+
+        #region Core Index Generation
 
         /// <summary>
-        /// Core logic: Sorts entities, assigns IDs, Serializes to YAML, Writes to Disk, and optionally updates MemoryCache.
+        /// Sorts entities, assigns IDs, serializes to YAML, writes to disk, and optionally updates MemoryCache.
         /// </summary>
         private async Task ProcessAndSaveIndexAsync(IEnumerable<EntityIdentifier> entities, string outputPath, bool updateCache)
         {
-            // 1. Deterministic Ordering
+            if (entities is null) throw new ArgumentNullException(nameof(entities));
+            if (string.IsNullOrWhiteSpace(outputPath)) throw new ArgumentException("Output path is required.", nameof(outputPath));
+
+            var fullPath = Path.GetFullPath(outputPath);
+
+            // 1. Deterministic ordering
             var ordered = entities.Distinct().OrderBy(e => e.Guid).ToList();
             _log.LogDebug("Processing {Count} entities for indexing.", ordered.Count);
 
-            // 2. Map Construction (Guid -> Int) & DTO Creation
-            var guidMap = new Dictionary<Guid, int>(ordered.Count);
-            var entityIndexDto = new List<object>(ordered.Count);
+            // 2. Map construction (Guid -> Int) & DTO creation
+            var entityIndexDto = new List<GuidIndex>(ordered.Count);
 
             int i = 1;
             foreach (var entity in ordered)
             {
-                guidMap[entity.Guid] = i;
-                entityIndexDto.Add(new
+                entityIndexDto.Add(new GuidIndex
                 {
                     Id = i,
-                    Guid = entity.Guid.ToString(),
-                    LibraryId = entity.LibraryGuid.ToString(),
-                    EntityType = entity.EntityType.ToString()
+                    Guid = entity.Guid,
+                    LibraryGuid = entity.LibraryGuid,
+                    EntityType = entity.EntityType
                 });
+
                 i++;
             }
 
-            // 3. Serialize
+            // 3. Serialize – produces "entities" root (camelCase)
             var yamlData = new { Entities = entityIndexDto };
             var yamlContent = Serializer.Serialize(yamlData);
 
-            // 4. Atomic Write
-            await AtomicWriteAsync(outputPath, yamlContent);
+            // 4. Atomic write
+            await AtomicWriteAsync(fullPath, yamlContent).ConfigureAwait(false);
 
-            // 5. Update Cache (Only if requested)
+            // 5. Update cache (only if requested)
             if (updateCache)
             {
-                var properIndexData = new GuidIndexData(guidMap, ordered);
-                _cache.Set(MapKey, properIndexData);
-                _cache.Set(PathKey, Path.GetFullPath(outputPath));
-                _log.LogInformation("Global InMemory Cache updated.");
+                var indexData = new GuidIndexData(entityIndexDto);
+                _cache.Set(MapKey, indexData);
+                _cache.Set(PathKey, fullPath);
+
+                _log.LogInformation("Global InMemory Cache updated with {Count} entities.", indexData.Count);
             }
         }
 
@@ -168,13 +279,14 @@ namespace ThreatFramework.Infrastructure.Index
                 Directory.CreateDirectory(dir);
             }
 
-            var tempPath = Path.Combine(dir ?? ".", $"{Path.GetFileName(outputPath)}.tmp_{Guid.NewGuid()}");
+            var tempPath = Path.Combine(
+                dir ?? ".",
+                $"{Path.GetFileName(outputPath)}.tmp_{Guid.NewGuid()}");
 
             try
             {
                 await File.WriteAllTextAsync(tempPath, content).ConfigureAwait(false);
 
-                // Atomic Swap
                 if (File.Exists(outputPath))
                 {
                     File.Replace(tempPath, outputPath, null);
@@ -187,44 +299,26 @@ namespace ThreatFramework.Infrastructure.Index
             catch (Exception ex)
             {
                 _log.LogError(ex, "Failed to write index file to {Path}", outputPath);
-                // Ensure temp file cleanup on failure
-                if (File.Exists(tempPath)) File.Delete(tempPath);
+
+                if (File.Exists(tempPath))
+                {
+                    File.Delete(tempPath);
+                }
+
                 throw;
             }
         }
 
-        private int LazyLoadAndLookup(Guid guid, string lastPath, ref GuidIndexData? indexData)
-        {
-            var gate = Gates.GetOrAdd(lastPath, _ => new object());
-            lock (gate)
-            {
-                // Double-check locking pattern
-                if (!_cache.TryGetValue(MapKey, out indexData) || indexData is null)
-                {
-                    _log.LogInformation("Lazy-loading index from {Path}", lastPath);
-                    var indices = _reader.LoadAsync(lastPath).GetAwaiter().GetResult();
-                    indexData = new GuidIndexData(indices);
-                    _cache.Set(MapKey, indexData);
-                }
-            }
+        #endregion
 
-            if (indexData.TryGetId(guid, out var id)) return id;
-
-            // Check dynamic assignments again after loading
-            if (DynamicAssignments.TryGetValue(guid, out var dynamicId)) return dynamicId;
-
-            // Still not found
-            return AssignDynamicId(guid);
-        }
+        #region Lookup / Dynamic IDs
 
         private int AssignDynamicId(Guid guid)
         {
-            // Determine the next available ID
-            int nextId = GetMaxId() + 1;
+            var nextId = GetMaxId() + 1;
 
             var assignedId = DynamicAssignments.GetOrAdd(guid, nextId);
 
-            // Only log if we actually added a new one (not a race condition result)
             if (assignedId == nextId)
             {
                 _log.LogWarning("Guid {Guid} not found in index. Assigned dynamic ID {Id}.", guid, assignedId);
@@ -244,5 +338,88 @@ namespace ThreatFramework.Infrastructure.Index
             var maxFromDynamic = DynamicAssignments.Values.DefaultIfEmpty(0).Max();
             return Math.Max(maxFromCache, maxFromDynamic);
         }
+
+        #endregion
+
+        #region Index Loading / Path Helpers
+
+        private string ResolveIndexPathOrThrow(string? explicitPath)
+        {
+            string? path = explicitPath;
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                if (_cache.TryGetValue(PathKey, out string? cachedPath) &&
+                    !string.IsNullOrWhiteSpace(cachedPath))
+                {
+                    path = cachedPath;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(_pathOptions.IndexYaml))
+                    {
+                        _log.LogError("Guid index path is missing from configuration.");
+                        throw new InvalidOperationException("Guid index path is not configured.");
+                    }
+
+                    path = _pathOptions.IndexYaml;
+                }
+            }
+
+            var fullPath = Path.GetFullPath(path);
+            _cache.Set(PathKey, fullPath);
+
+            return fullPath;
+        }
+
+        private void EnsureIndexFileExistsOrThrow(string path)
+        {
+            if (!File.Exists(path))
+            {
+                _log.LogError("Guid index file not found at path {Path}. This file is required for mapping.", path);
+                throw new FileNotFoundException(
+                    $"Guid index file not found at '{path}'. This file is required.",
+                    path);
+            }
+        }
+
+        private GuidIndexData EnsureIndexLoaded()
+        {
+            if (_cache.TryGetValue(MapKey, out GuidIndexData? indexData) && indexData is not null)
+            {
+                return indexData;
+            }
+
+            var path = ResolveIndexPathOrThrow(null);
+            EnsureIndexFileExistsOrThrow(path);
+
+            var gate = Gates.GetOrAdd(path, _ => new object());
+            lock (gate)
+            {
+                if (_cache.TryGetValue(MapKey, out indexData) && indexData is not null)
+                {
+                    return indexData;
+                }
+
+                _log.LogInformation("Loading guid index from {Path}", path);
+
+                try
+                {
+                    var indices = _reader.LoadAsync(path).GetAwaiter().GetResult();
+                    indexData = new GuidIndexData(indices.ToList());
+
+                    _cache.Set(MapKey, indexData);
+                    _cache.Set(PathKey, path);
+
+                    return indexData;
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "Failed to load guid index from {Path}", path);
+                    throw;
+                }
+            }
+        }
+        #endregion
     }
 }

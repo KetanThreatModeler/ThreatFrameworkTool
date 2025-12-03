@@ -1,10 +1,16 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
+using ThreatFramework.Infra.Contract.YamlRepository;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Global;
 
-namespace ThreatFramework.Drift.Impl.CoreEntityDriftService
+namespace ThreatModeler.TF.Drift.Implemenetation
 {
     public sealed class YamlReaderRouter : IYamlReaderRouter
     {
@@ -15,6 +21,15 @@ namespace ThreatFramework.Drift.Impl.CoreEntityDriftService
         private readonly IYamlPropertyOptionReader _propertyOptionReader;
         private readonly IYamlLibraryReader _libraryReader;
         private readonly IYamlSecurityRequirementReader _securityRequirementReader;
+        private readonly IYamlComponentPropertyReader _yamlComponentPropertyReader;
+        private readonly IYamlComponentPropertyOptionReader _yamlComponentPropertyOption;
+        private readonly IYamlComponentPropertyOptionThreatReader _componentPropertyOptionThreatReader;
+        private readonly IYamlCpoThreatSrReader _yamlCpoThreatSrReader;
+        private readonly IYamlComponentThreatReader _yamlComponentThreatReader;
+        private readonly IYamlComponentThreatSRReader _yamlThreatSecurityRequirementReader;
+        private readonly IYamlComponentSRReader _yamlComponentSRReader;
+        private readonly IYamlThreatSrReader _yamlThreatSrReader;
+
 
         public YamlReaderRouter(
             IYamlThreatReader threatReader,
@@ -23,7 +38,14 @@ namespace ThreatFramework.Drift.Impl.CoreEntityDriftService
             IYamlPropertyReader propertyReader,
             IYamlPropertyOptionReader propertyOptionReader,
             IYamlLibraryReader libraryReader,
-            IYamlSecurityRequirementReader securityRequirementReader)
+            IYamlSecurityRequirementReader securityRequirementReader,
+            IYamlComponentPropertyReader yamlComponentPropertyReader,
+            IYamlComponentPropertyOptionReader yamlComponentPropertyOption,
+            IYamlCpoThreatSrReader yamlCpoThreatSrReader,
+            IYamlComponentThreatReader yamlComponentThreatReader,
+            IYamlComponentThreatSRReader yamlThreatSecurityRequirementReader,
+            IYamlComponentSRReader yamlComponentSRReader,
+            IYamlThreatSrReader yamlThreatSrReader)
         {
             _threatReader = threatReader;
             _componentReader = componentReader;
@@ -32,6 +54,13 @@ namespace ThreatFramework.Drift.Impl.CoreEntityDriftService
             _propertyOptionReader = propertyOptionReader;
             _libraryReader = libraryReader;
             _securityRequirementReader = securityRequirementReader;
+            _yamlComponentPropertyReader = yamlComponentPropertyReader;
+            _yamlComponentPropertyOption = yamlComponentPropertyOption;
+            _yamlCpoThreatSrReader = yamlCpoThreatSrReader;
+            _yamlComponentThreatReader = yamlComponentThreatReader;
+            _yamlThreatSecurityRequirementReader = yamlThreatSecurityRequirementReader;
+            _yamlComponentSRReader = yamlComponentSRReader;
+            _yamlThreatSrReader = yamlThreatSrReader;
         }
 
         public Task<IEnumerable<Threat>> ReadThreatsAsync(IEnumerable<string> filePaths)

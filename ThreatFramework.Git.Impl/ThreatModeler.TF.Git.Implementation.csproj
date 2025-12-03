@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ThreatFramework.Core\ThreatModeler.TF.Core.csproj" />
     <ProjectReference Include="..\ThreatFramework.Git.Contract\ThreatModeler.TF.Git.Contract.csproj" />
+    <ProjectReference Include="..\ThreatFramework.Infra.Contract\ThreatModeler.TF.Infra.Contract.csproj" />
   </ItemGroup>
 
 </Project>

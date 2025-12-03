@@ -28,6 +28,8 @@ using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
 using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Drift.Contract;
+using ThreatModeler.TF.Drift.Implemenetation;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 using ThreatModeler.TF.Git.Implementation;
@@ -137,6 +139,9 @@ builder.Services.AddScoped<IGitFolderDiffService, GitFolderDiffService>();
 
 builder.Services.AddScoped<IPathClassifier, DefaultPathClassifier>();
 builder.Services.AddScoped<IRepositoryDiffEntityPathService, RepositoryDiffEntityPathService>();
+builder.Services.AddScoped<ILibraryScopedDiffService, LibraryScopedDiffService>();
+builder.Services.AddScoped<IFinalDriftService, FinalDriftService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
