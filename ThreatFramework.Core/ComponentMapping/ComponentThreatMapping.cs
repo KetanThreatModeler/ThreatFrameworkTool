@@ -2,7 +2,6 @@
 {
     public class ComponentThreatMapping
     {
-        public int Id { get; set; }
         public Guid ThreatGuid { get; set; }
         public Guid ComponentGuid { get; set; }
         public bool IsHidden { get; set; }

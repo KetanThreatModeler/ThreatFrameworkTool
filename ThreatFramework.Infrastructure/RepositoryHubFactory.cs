@@ -39,13 +39,13 @@ namespace ThreatFramework.Infrastructure
             var threats = new ThreatRepository(libraryCache, factory, _loggerFactory.CreateLogger<ThreatRepository>());
             var components = new ComponentRepository(libraryCache, factory, _loggerFactory.CreateLogger<ComponentRepository>());
             var componentTypes = new ComponentTypeRepository(libraryCache, factory, _loggerFactory.CreateLogger<ComponentTypeRepository>());
-            var securityReqs = new SecurityRequirementRepository(libraryCache, factory);
+            var securityReqs = new SecurityRequirementRepository(libraryCache, factory, _loggerFactory.CreateLogger<SecurityRequirementRepository>());
             var testcases = new TestcaseRepository(libraryCache, factory);
             var properties = new PropertyRepository(libraryCache, factory);
             var propertyTypes = new PropertyTypeRepository(factory);
-            var propertyOptions = new PropertyOptionRepository(factory);
+            var propertyOptions = new PropertyOptionRepository(factory, _loggerFactory.CreateLogger<PropertyOptionRepository>());
 
-            var csr = new ComponentSecurityRequirementMappingRepository(factory,libraryCache);
+            var csr = new ComponentSecurityRequirementMappingRepository(factory, libraryCache);
             var ct = new ComponentThreatMappingRepository(factory, libraryCache);
             var ctsr = new ComponentThreatSecurityRequirementMappingRepository(factory, libraryCache);
             var tsr = new ThreatSecurityRequirementMappingRepository(factory, libraryCache);

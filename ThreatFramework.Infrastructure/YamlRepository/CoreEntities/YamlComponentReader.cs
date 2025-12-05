@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Helper;
 using YamlDotNet.RepresentationModel;
 
@@ -164,7 +164,6 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
 
             return new Component
             {
-                Id = componentId,
                 Guid = G(guidStr, "guid", filePath),
                 LibraryGuid = G(libraryGuidStr, "libraryGuid", filePath),
                 ComponentTypeGuid = G(componentTypeGuid, "componentTypeGuid", filePath),

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatModeler.TF.Core.Config
+namespace ThreatModeler.TF.Core.CoreEntities
 {
     public sealed class PathOptions
     {

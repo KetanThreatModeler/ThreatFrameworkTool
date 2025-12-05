@@ -229,7 +229,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 components.Add(new Component
                 {
                     // Value Types
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
                     Guid = reader.GetGuid(reader.GetOrdinal("Guid")),
                     LibraryGuid = await _libraryCacheService.GetGuidByIdAsync(reader.GetInt32(reader.GetOrdinal("LibraryId"))),
                     ComponentTypeGuid = reader.GetGuid(reader.GetOrdinal("ComponentTypeGuid")),

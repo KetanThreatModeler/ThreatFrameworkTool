@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ThreatFramework.Drift.Contract.FolderDiff;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 
 namespace ThreatFramework.API.Controllers
 {

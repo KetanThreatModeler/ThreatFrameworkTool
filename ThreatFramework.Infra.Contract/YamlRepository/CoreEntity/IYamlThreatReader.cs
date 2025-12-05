@@ -10,5 +10,6 @@ namespace ThreatFramework.Infra.Contract.YamlRepository.CoreEntity
     public interface IYamlThreatReader
     {
         Task<IEnumerable<Threat>> GetThreatsFromFilesAsync(IEnumerable<string> yamlFilePaths);
+        Task<Threat> GetThreatFromFileAsync(string yamlFilePath);
     }
 }

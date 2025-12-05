@@ -18,7 +18,6 @@ using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infra.Contract.YamlRepository;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatFramework.Infrastructure;
-using ThreatFramework.Infrastructure.Configuration;
 using ThreatFramework.Infrastructure.DataInsertion;
 using ThreatFramework.Infrastructure.Index;
 using ThreatFramework.Infrastructure.Repository;
@@ -27,7 +26,7 @@ using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Implemenetation;
 using ThreatModeler.TF.Git.Contract;
@@ -35,8 +34,10 @@ using ThreatModeler.TF.Git.Contract.PathProcessor;
 using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Git.Implementation.PathProcessor;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
 using ThreatModeler.TF.Infra.Implmentation.Repository;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
+using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Global;
 
 var builder = WebApplication.CreateBuilder(args);
 

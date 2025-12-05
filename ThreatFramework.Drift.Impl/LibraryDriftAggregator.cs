@@ -10,7 +10,7 @@ using ThreatFramework.Drift.Contract.MappingDriftService;
 using ThreatFramework.Drift.Contract.MappingDriftService.Dto;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Core.Global;
 using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
 using ThreatModeler.TF.Git.Contract;

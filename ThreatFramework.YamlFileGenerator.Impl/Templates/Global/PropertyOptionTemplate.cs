@@ -13,7 +13,8 @@ namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.Global
         {
             var yaml = new YamlBuilder()
                 .AddChild("kind: property-option")
-                .AddQuoted("propertyGuid", propertyOption.Guid.ToString())
+                .AddQuoted("id", propertyOption.Guid.ToString())
+                .AddQuoted("propertyGuid", propertyOption.PropertyGuid.ToString())
                 .AddQuoted("optionText", propertyOption.OptionText ?? string.Empty)
                 .AddQuoted("chineseOptionText", propertyOption.ChineseOptionText ?? string.Empty)
                 .AddParent("flags:", b2 =>

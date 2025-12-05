@@ -7,7 +7,6 @@ namespace ThreatFramework.Core.CoreEntities
 {
     public class Component : IFieldComparable<Component>
     {
-        public int Id { get; set; }
         public Guid Guid { get; set; }
         public Guid LibraryGuid { get; set; }
         public Guid ComponentTypeGuid { get; set; }

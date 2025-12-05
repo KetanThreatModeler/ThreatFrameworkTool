@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.API.Controllers.Dtos;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 
 [ApiController]
 [Route("api/[controller]")]

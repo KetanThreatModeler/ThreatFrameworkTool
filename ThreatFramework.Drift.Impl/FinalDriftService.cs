@@ -6,7 +6,7 @@ using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor;
 using ThreatModeler.TF.Git.Contract;

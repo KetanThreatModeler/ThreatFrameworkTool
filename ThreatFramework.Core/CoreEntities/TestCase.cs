@@ -7,7 +7,6 @@ namespace ThreatFramework.Core.CoreEntities
 {
     public class TestCase : IFieldComparable<TestCase>
     {
-        public int Id { get; set; }
         public Guid Guid { get; set; }
         public Guid LibraryId { get; set; } // Note: Guid type, named LibraryId
 

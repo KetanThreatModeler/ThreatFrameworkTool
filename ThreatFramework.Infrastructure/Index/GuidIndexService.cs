@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract.Index;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Index;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;

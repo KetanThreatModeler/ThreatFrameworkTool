@@ -1,6 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging; // Required for Logging
-using System.Data;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
@@ -19,59 +22,54 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
             ISqlConnectionFactory sqlConnectionFactory,
             ILogger<ThreatRepository> logger)
         {
-            _libraryCacheService = libraryCacheService;
-            _connectionFactory = sqlConnectionFactory;
-            _logger = logger;
+            _libraryCacheService = libraryCacheService ?? throw new ArgumentNullException(nameof(libraryCacheService));
+            _connectionFactory = sqlConnectionFactory ?? throw new ArgumentNullException(nameof(sqlConnectionFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<IEnumerable<Threat>> GetReadOnlyThreatsAsync()
         {
-            _logger.LogInformation("Starting execution of GetReadOnlyThreatsAsync.");
+            _logger.LogInformation("Starting execution of {Method}.", nameof(GetReadOnlyThreatsAsync));
 
             try
             {
-                HashSet<int> readonlyLibraryIds = await _libraryCacheService.GetReadOnlyLibraryIdAsync();
+                var readonlyLibraryIds = await _libraryCacheService
+                    .GetReadOnlyLibraryIdAsync()
+                    .ConfigureAwait(false);
 
                 if (!readonlyLibraryIds.Any())
                 {
-                    _logger.LogInformation("No read-only libraries found. Returning empty list.");
+                    _logger.LogInformation("No read-only libraries found. Returning empty threat list.");
                     return Enumerable.Empty<Threat>();
                 }
 
-                List<int> libraryIdList = readonlyLibraryIds.ToList();
-                string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
-
-                string sql = $@"{BuildThreatSelectQuery()} 
-                            WHERE LibraryId IN ({libraryParameters})";
-
-                using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
-                using SqlCommand command = new(sql, connection);
-
-                // Add parameters safely
-                for (int i = 0; i < libraryIdList.Count; i++)
-                {
-                    _ = command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
-                }
-
-                IEnumerable<Threat> result = await ExecuteThreatReaderAsync(command);
-                _logger.LogInformation("Successfully retrieved {Count} read-only threats.", result.Count());
-
-                return result;
+                return await GetByLibraryIntIdsAsync(readonlyLibraryIds).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred in GetReadOnlyThreatsAsync.");
+                _logger.LogError(ex, "Error occurred in {Method}.", nameof(GetReadOnlyThreatsAsync));
                 throw;
             }
         }
 
-        public async Task<IEnumerable<Threat>> GetThreatsByLibraryIdAsync(IEnumerable<Guid> guids)
+        public async Task<IEnumerable<Threat>> GetThreatsByLibraryIdAsync(IEnumerable<Guid> libraryGuids)
         {
-            _logger.LogInformation("Starting GetThreatsByLibraryIdAsync for {Count} libraries.", guids?.Count() ?? 0);
+            _logger.LogInformation(
+                "Starting {Method} for {Count} library GUIDs.",
+                nameof(GetThreatsByLibraryIdAsync),
+                libraryGuids?.Count() ?? 0);
 
             try
             {
-                HashSet<int> ids = await _libraryCacheService.GetIdsFromGuid(guids);
+                if (libraryGuids is null || !libraryGuids.Any())
+                {
+                    _logger.LogWarning("{Method} called with null or empty libraryGuids.", nameof(GetThreatsByLibraryIdAsync));
+                    return Enumerable.Empty<Threat>();
+                }
+
+                var ids = await _libraryCacheService
+                    .GetIdsFromGuid(libraryGuids)
+                    .ConfigureAwait(false);
 
                 if (!ids.Any())
                 {
@@ -79,46 +77,36 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                     return Enumerable.Empty<Threat>();
                 }
 
-                List<int> libraryIdList = ids.ToList();
-                string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
-
-                string sql = $@"{BuildThreatSelectQuery()} 
-                            WHERE LibraryId IN ({libraryParameters})";
-
-                using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
-                using SqlCommand command = new(sql, connection);
-
-                for (int i = 0; i < libraryIdList.Count; i++)
-                {
-                    _ = command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
-                }
-
-                IEnumerable<Threat> result = await ExecuteThreatReaderAsync(command);
-                _logger.LogInformation("Successfully retrieved {Count} threats by Library ID.", result.Count());
-
-                return result;
+                return await GetByLibraryIntIdsAsync(ids).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred in GetThreatsByLibraryIdAsync.");
+                _logger.LogError(ex, "Error occurred in {Method}.", nameof(GetThreatsByLibraryIdAsync));
                 throw;
             }
         }
 
         public async Task<IEnumerable<Guid>> GetGuidsAsync()
         {
+            const string sql = "SELECT t.Guid FROM Threats t";
+
             try
             {
-                string sql = "SELECT t.Guid FROM Threats t";
-                using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
-                using SqlCommand command = new(sql, connection);
-                using SqlDataReader reader = await command.ExecuteReaderAsync();
+                using var connection = await _connectionFactory.CreateOpenConnectionAsync().ConfigureAwait(false);
+                using var command = new SqlCommand(sql, connection);
+                using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
 
-                List<Guid> guids = new();
-                while (await reader.ReadAsync())
+                var guids = new List<Guid>();
+                var guidOrdinal = reader.GetOrdinal("Guid");
+
+                while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    guids.Add(reader.GetGuid(reader.GetOrdinal("Guid")));
+                    if (!reader.IsDBNull(guidOrdinal))
+                    {
+                        guids.Add(reader.GetGuid(guidOrdinal));
+                    }
                 }
+
                 return guids;
             }
             catch (Exception ex)
@@ -130,131 +118,75 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
 
         public async Task<IEnumerable<(Guid ThreatGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync()
         {
-            try
-            {
-                const string sql = @"
-                    SELECT t.Guid AS ThreatGuid, l.Guid AS LibraryGuid
-                    FROM Threats t
-                    INNER JOIN Libraries l ON t.LibraryId = l.Id";
+            const string sql = @"
+                SELECT t.Guid AS ThreatGuid, l.Guid AS LibraryGuid
+                FROM Threats t
+                INNER JOIN Libraries l ON t.LibraryId = l.Id";
 
-                using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
-                using SqlCommand command = new(sql, connection);
-
-                List<(Guid, Guid)> results = new();
-                using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
-                {
-                    Guid threatGuid = reader.GetGuid(reader.GetOrdinal("ThreatGuid"));
-                    Guid libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
-                    results.Add((threatGuid, libraryGuid));
-                }
-
-                return results;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving Guid mapping pairs.");
-                throw;
-            }
+            return await FetchThreatLibraryGuidPairsAsync(sql, null).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<Guid>> GetGuidsByLibraryIds(IEnumerable<Guid> libraryIds)
         {
             try
             {
-                if (libraryIds == null || !libraryIds.Any())
+                if (libraryIds is null || !libraryIds.Any())
                 {
+                    _logger.LogInformation("{Method} called with empty libraryIds.", nameof(GetGuidsByLibraryIds));
                     return Enumerable.Empty<Guid>();
                 }
 
-                HashSet<int> ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
+                var ids = await _libraryCacheService
+                    .GetIdsFromGuid(libraryIds)
+                    .ConfigureAwait(false);
 
                 if (!ids.Any())
                 {
+                    _logger.LogInformation("No matching Library IDs found for provided GUIDs in {Method}.", nameof(GetGuidsByLibraryIds));
                     return Enumerable.Empty<Guid>();
                 }
 
-                List<int> libraryIdList = ids.ToList();
-                string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
+                var idList = ids.ToList();
+                var libraryParameters = string.Join(",", idList.Select((_, i) => $"@lib{i}"));
 
-                string sql = $@"SELECT Guid FROM Threats WHERE LibraryId IN ({libraryParameters})";
+                var sql = $@"SELECT Guid FROM Threats WHERE LibraryId IN ({libraryParameters})";
 
-                using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
-                using SqlCommand command = new(sql, connection);
+                using var connection = await _connectionFactory.CreateOpenConnectionAsync().ConfigureAwait(false);
+                using var command = new SqlCommand(sql, connection);
 
-                for (int i = 0; i < libraryIdList.Count; i++)
+                for (var i = 0; i < idList.Count; i++)
                 {
-                    _ = command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
+                    _ = command.Parameters.AddWithValue($"@lib{i}", idList[i]);
                 }
 
-                List<Guid> guids = new();
-                using SqlDataReader reader = await command.ExecuteReaderAsync();
+                var guids = new List<Guid>();
+                using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                var guidOrdinal = reader.GetOrdinal("Guid");
 
-                while (await reader.ReadAsync())
+                while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    guids.Add(reader.GetGuid(reader.GetOrdinal("Guid")));
+                    if (!reader.IsDBNull(guidOrdinal))
+                    {
+                        guids.Add(reader.GetGuid(guidOrdinal));
+                    }
                 }
 
                 return guids;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving Guids by Library Ids.");
+                _logger.LogError(ex, "Error retrieving Threat GUIDs by Library Ids.");
                 throw;
             }
         }
 
-        // --- Private Helpers ---
-
-        private static string BuildThreatSelectQuery()
+        public async Task<IEnumerable<(Guid ThreatGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(
+            IEnumerable<Guid> libraryIds)
         {
-            return @"SELECT t.Id, t.RiskId, t.LibraryId, t.Automated, t.isHidden, t.IsOverridden, t.CreatedDate, 
-                            t.LastUpdated, t.Guid, t.Name, t.ChineseName, t.Labels, t.Description, t.Reference, 
-                            t.Intelligence, t.ChineseDescription 
-                    FROM Threats t";
-        }
-
-        private async Task<IEnumerable<Threat>> ExecuteThreatReaderAsync(SqlCommand command)
-        {
-            List<Threat> threats = new();
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                // Note: GetOrdinal is more efficient and safer than string indexing
-                threats.Add(new Threat
-                {
-                    // Value Types (Int, Guid, Bool, Date)
-                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    RiskId = reader.GetInt32(reader.GetOrdinal("RiskId")),
-                    // Assuming Service handles mapping logic
-                    LibraryGuid = await _libraryCacheService.GetGuidByIdAsync(reader.GetInt32(reader.GetOrdinal("LibraryId"))),
-
-                    Automated = reader.GetBoolean(reader.GetOrdinal("Automated")),
-                    IsHidden = reader.GetBoolean(reader.GetOrdinal("isHidden")),
-                    IsOverridden = reader.GetBoolean(reader.GetOrdinal("IsOverridden")),
-                    Guid = reader.GetGuid(reader.GetOrdinal("Guid")),
-
-                    // CLEAN CODE: Using Extension methods for Strings
-                    Name = reader["Name"].ToSafeString(),
-                    ChineseName = reader["ChineseName"].ToSafeString(),
-                    Description = reader["Description"].ToSafeString(),
-                    Reference = reader["Reference"].ToSafeString(),
-                    Intelligence = reader["Intelligence"].ToSafeString(),
-                    ChineseDescription = reader["ChineseDescription"].ToSafeString(),
-
-                    // CLEAN CODE: Using Extension method for List Parsing
-                    Labels = reader["Labels"].ToLabelList()
-                });
-            }
-
-            return threats;
-        }
-
-        public async Task<IEnumerable<(Guid ThreatGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(IEnumerable<Guid> libraryIds)
-        {
-            _logger.LogInformation("Starting GetGuidsAndLibraryGuidsAsync for {Count} libraries.", libraryIds?.Count() ?? 0);
+            _logger.LogInformation(
+                "Starting {Method} for {Count} libraries.",
+                nameof(GetGuidsAndLibraryGuidsAsync),
+                libraryIds?.Count() ?? 0);
 
             try
             {
@@ -264,8 +196,9 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                     return Enumerable.Empty<(Guid ThreatGuid, Guid LibraryGuid)>();
                 }
 
-                // Convert library GUIDs to integer IDs used in DB
-                HashSet<int> ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
+                var ids = await _libraryCacheService
+                    .GetIdsFromGuid(libraryIds)
+                    .ConfigureAwait(false);
 
                 if (!ids.Any())
                 {
@@ -273,36 +206,22 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                     return Enumerable.Empty<(Guid ThreatGuid, Guid LibraryGuid)>();
                 }
 
-                List<int> libraryIdList = ids.ToList();
-                string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
+                var idList = ids.ToList();
+                var libraryParameters = string.Join(",", idList.Select((_, i) => $"@lib{i}"));
 
-                string sql = $@"
-            SELECT t.Guid AS ThreatGuid, l.Guid AS LibraryGuid
-            FROM Threats t
-            INNER JOIN Libraries l ON t.LibraryId = l.Id
-            WHERE t.LibraryId IN ({libraryParameters})";
+                var sql = $@"
+                    SELECT t.Guid AS ThreatGuid, l.Guid AS LibraryGuid
+                    FROM Threats t
+                    INNER JOIN Libraries l ON t.LibraryId = l.Id
+                    WHERE t.LibraryId IN ({libraryParameters})";
 
-                using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
-                using SqlCommand command = new(sql, connection);
-
-                for (int i = 0; i < libraryIdList.Count; i++)
+                return await FetchThreatLibraryGuidPairsAsync(sql, cmd =>
                 {
-                    _ = command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
-                }
-
-                List<(Guid ThreatGuid, Guid LibraryGuid)> results = new();
-                using SqlDataReader reader = await command.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
-                {
-                    Guid threatGuid = reader.GetGuid(reader.GetOrdinal("ThreatGuid"));
-                    Guid libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
-
-                    results.Add((threatGuid, libraryGuid));
-                }
-
-                _logger.LogInformation("Successfully retrieved {Count} Threat/Library GUID pairs.", results.Count);
-                return results;
+                    for (var i = 0; i < idList.Count; i++)
+                    {
+                        _ = cmd.Parameters.AddWithValue($"@lib{i}", idList[i]);
+                    }
+                }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -310,5 +229,164 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 throw;
             }
         }
+
+        #region Private Query Builders
+
+        /// <summary>
+        /// Base SELECT including a join to Risks to get the Risk Name.
+        /// We no longer use RiskId at the domain level; only RiskName.
+        /// </summary>
+        private static string BuildThreatSelectQuery()
+        {
+            return @"
+                SELECT 
+                    t.LibraryId,
+                    t.Automated,
+                    t.IsHidden,
+                    t.IsOverridden,
+                    t.Guid,
+                    t.Name,
+                    t.ChineseName,
+                    t.Labels,
+                    t.Description,
+                    t.Reference,
+                    t.Intelligence,
+                    t.ChineseDescription,
+                    r.Name AS RiskName
+                FROM Threats t
+                LEFT JOIN Risks r ON t.RiskId = r.Id";
+        }
+
+        #endregion
+
+        #region Private Helpers
+
+        private async Task<IEnumerable<Threat>> GetByLibraryIntIdsAsync(IEnumerable<int> libraryIds)
+        {
+            var libraryIdList = libraryIds.ToList();
+            var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
+
+            var sql = $@"{BuildThreatSelectQuery()}
+                         WHERE t.LibraryId IN ({libraryParameters})";
+
+            try
+            {
+                using var connection = await _connectionFactory.CreateOpenConnectionAsync().ConfigureAwait(false);
+                using var command = new SqlCommand(sql, connection);
+
+                for (var i = 0; i < libraryIdList.Count; i++)
+                {
+                    _ = command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
+                }
+
+                return await ExecuteThreatReaderAsync(command).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve Threats by library IDs.");
+                throw;
+            }
+        }
+
+        private async Task<IEnumerable<Threat>> ExecuteThreatReaderAsync(SqlCommand command)
+        {
+            var threats = new List<Threat>();
+
+            using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+
+            // Cache ordinals once for performance
+            var libraryIdOrdinal = reader.GetOrdinal("LibraryId");
+            var automatedOrdinal = reader.GetOrdinal("Automated");
+            var isHiddenOrdinal = reader.GetOrdinal("IsHidden");
+            var isOverriddenOrdinal = reader.GetOrdinal("IsOverridden");
+            var guidOrdinal = reader.GetOrdinal("Guid");
+            var nameOrdinal = reader.GetOrdinal("Name");
+            var chineseNameOrdinal = reader.GetOrdinal("ChineseName");
+            var labelsOrdinal = reader.GetOrdinal("Labels");
+            var descriptionOrdinal = reader.GetOrdinal("Description");
+            var referenceOrdinal = reader.GetOrdinal("Reference");
+            var intelligenceOrdinal = reader.GetOrdinal("Intelligence");
+            var chineseDescriptionOrdinal = reader.GetOrdinal("ChineseDescription");
+            var riskNameOrdinal = reader.GetOrdinal("RiskName");
+
+            while (await reader.ReadAsync().ConfigureAwait(false))
+            {
+                try
+                {
+                    var sqlLibraryId = reader.GetInt32(libraryIdOrdinal);
+                    var libraryGuid = await _libraryCacheService
+                        .GetGuidByIdAsync(sqlLibraryId)
+                        .ConfigureAwait(false);
+
+                    var threat = new Threat
+                    {
+                        // RiskName from Risks table; fallback to empty if null
+                        RiskName = reader.IsDBNull(riskNameOrdinal)
+                            ? string.Empty
+                            : reader.GetString(riskNameOrdinal),
+
+                        LibraryGuid = libraryGuid,
+                        Automated = !reader.IsDBNull(automatedOrdinal) && reader.GetBoolean(automatedOrdinal),
+                        IsHidden = !reader.IsDBNull(isHiddenOrdinal) && reader.GetBoolean(isHiddenOrdinal),
+                        IsOverridden = !reader.IsDBNull(isOverriddenOrdinal) && reader.GetBoolean(isOverriddenOrdinal),
+                        Guid = reader.GetGuid(guidOrdinal),
+
+                        // String helpers handle DBNull safely
+                        Name = reader.IsDBNull(nameOrdinal) ? string.Empty : reader["Name"].ToSafeString(),
+                        ChineseName = reader.IsDBNull(chineseNameOrdinal) ? string.Empty : reader["ChineseName"].ToSafeString(),
+                        Description = reader.IsDBNull(descriptionOrdinal) ? string.Empty : reader["Description"].ToSafeString(),
+                        Reference = reader.IsDBNull(referenceOrdinal) ? string.Empty : reader["Reference"].ToSafeString(),
+                        Intelligence = reader.IsDBNull(intelligenceOrdinal) ? string.Empty : reader["Intelligence"].ToSafeString(),
+                        ChineseDescription = reader.IsDBNull(chineseDescriptionOrdinal) ? string.Empty : reader["ChineseDescription"].ToSafeString(),
+                        Labels = reader.IsDBNull(labelsOrdinal) ? new List<string>() : reader["Labels"].ToLabelList()
+                    };
+
+                    threats.Add(threat);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Failed to hydrate Threat from current data row. Skipping row.");
+                }
+            }
+
+            return threats;
+        }
+
+        private async Task<IEnumerable<(Guid ThreatGuid, Guid LibraryGuid)>> FetchThreatLibraryGuidPairsAsync(
+            string sql,
+            Action<SqlCommand>? configureCommand)
+        {
+            try
+            {
+                using var connection = await _connectionFactory.CreateOpenConnectionAsync().ConfigureAwait(false);
+                using var command = new SqlCommand(sql, connection);
+
+                configureCommand?.Invoke(command);
+
+                var results = new List<(Guid ThreatGuid, Guid LibraryGuid)>();
+                using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+
+                var threatGuidOrdinal = reader.GetOrdinal("ThreatGuid");
+                var libraryGuidOrdinal = reader.GetOrdinal("LibraryGuid");
+
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                {
+                    var threatGuid = reader.GetGuid(threatGuidOrdinal);
+                    var libraryGuid = reader.GetGuid(libraryGuidOrdinal);
+                    results.Add((threatGuid, libraryGuid));
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Threat/Library GUID pairs.");
+                throw;
+            }
+        }
+
+        #endregion
     }
 }

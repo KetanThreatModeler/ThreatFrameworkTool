@@ -10,5 +10,6 @@ namespace ThreatFramework.Infra.Contract.YamlRepository.CoreEntity
     public interface IYamlTestcaseReader
     {
         Task<IEnumerable<TestCase>> GetTestCasesFromFilesAsync(IEnumerable<string> yamlFilePaths);
+        Task<TestCase> GetTestCaseFromFileAsync(string yamlFilePath);
     }
 }

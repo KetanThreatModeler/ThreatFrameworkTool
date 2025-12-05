@@ -93,7 +93,6 @@ namespace ThreatFramework.Infrastructure.Repository
             {
                 libraries.Add(new Library
                 {
-                    Id = (int)reader["Id"],
                     Guid = (Guid)reader["Guid"],
                     DepartmentId = (int)reader["DepartmentId"],
                     Readonly = (bool)reader["Readonly"],

@@ -60,12 +60,12 @@ namespace ThreatFramework.Infrastructure.Services
             _cacheInitialized = true;
         }
 
-        public Task ClearCacheAsync()
+        public async Task ClearCacheAsync()
         {
             _idToGuidCache.Clear();
             _readonlyStatusCache.Clear();
             _cacheInitialized = false;
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
 
         private void EnsureCacheInitialized()

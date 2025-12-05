@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Git.Contract;
 
 namespace ThreatModeler.TF.API.Controllers
@@ -53,9 +53,6 @@ namespace ThreatModeler.TF.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Compares files in a specific folder that start with specific ID prefixes.
-        /// </summary>
         [HttpPost("prefix")]
         public async Task<IActionResult> CompareByPrefix([FromBody] ComparePrefixRequest request)
         {

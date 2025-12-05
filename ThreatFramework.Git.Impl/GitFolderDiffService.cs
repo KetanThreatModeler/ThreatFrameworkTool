@@ -75,7 +75,6 @@ namespace ThreatModeler.TF.Git.Implementation
                             return;
                         }
 
-                        // include repo paths in report
                         var localReport = new FolderDiffReport(repo1Path, repo2Path);
 
                         var folderEntry1 = FindTreeEntry(tree1, folderPath);
@@ -163,32 +162,41 @@ namespace ThreatModeler.TF.Git.Implementation
                 var rootTree1 = repo1.Head?.Tip?.Tree;
                 var rootTree2 = repo2.Head?.Tip?.Tree;
 
-                if (rootTree1 == null || rootTree2 == null)
+                if (rootTree1 == null && rootTree2 == null)
                 {
                     _logger.LogWarning(
-                        "Unable to obtain HEAD tree(s) for prefix comparison. Repo1TreeNull={Repo1TreeNull}, Repo2TreeNull={Repo2TreeNull}",
-                        rootTree1 == null,
-                        rootTree2 == null);
+                        "Unable to obtain HEAD tree(s) for prefix comparison. Both repositories have no HEAD. Repo1='{Repo1}', Repo2='{Repo2}'.",
+                        repo1Path,
+                        repo2Path);
                     return Task.FromResult(report);
                 }
 
-                var treeEntry1 = FindTreeEntry(rootTree1, folderPath);
-                var treeEntry2 = FindTreeEntry(rootTree2, folderPath);
+                var treeEntry1 = rootTree1 != null ? FindTreeEntry(rootTree1, folderPath) : null;
+                var treeEntry2 = rootTree2 != null ? FindTreeEntry(rootTree2, folderPath) : null;
+
+                if (treeEntry1 == null && treeEntry2 == null)
+                {
+                    _logger.LogWarning(
+                        "Folder path '{FolderPath}' not found in either repository '{Repo1}' or '{Repo2}'.",
+                        folderPath,
+                        repo1Path,
+                        repo2Path);
+
+                    return Task.FromResult(report);
+                }
 
                 var tree1 = treeEntry1?.Target as Tree;
                 var tree2 = treeEntry2?.Target as Tree;
 
-                var files1 = GetRelevantFiles(tree1, prefixSet);
-                var files2 = GetRelevantFiles(tree2, prefixSet);
+                var files1 = GetRelevantFiles(tree1, folderPath, prefixSet);
+                var files2 = GetRelevantFiles(tree2, folderPath, prefixSet);
 
-                var allKeys = files1.Keys.Union(files2.Keys);
+                var allKeys = files1.Keys.Union(files2.Keys, StringComparer.OrdinalIgnoreCase);
 
-                foreach (var filename in allKeys)
+                foreach (var fullPath in allKeys)
                 {
-                    var existsIn1 = files1.TryGetValue(filename, out var entry1);
-                    var existsIn2 = files2.TryGetValue(filename, out var entry2);
-
-                    var fullPath = $"{folderPath}/{filename}";
+                    var existsIn1 = files1.TryGetValue(fullPath, out var entry1);
+                    var existsIn2 = files2.TryGetValue(fullPath, out var entry2);
 
                     if (existsIn1 && !existsIn2)
                     {
@@ -517,6 +525,137 @@ namespace ThreatModeler.TF.Git.Implementation
             }
         }
 
+        /// <summary>
+        /// Recursively collects files whose names start with any of the given prefixes (e.g. "25_")
+        /// and returns them keyed by full path (e.g. "mappings/component-property/25_29.yaml").
+        /// </summary>
+        private Dictionary<string, TreeEntry> GetRelevantFiles(Tree tree, string basePath, HashSet<string> prefixSet)
+        {
+            var result = new Dictionary<string, TreeEntry>(StringComparer.OrdinalIgnoreCase);
+            var normalizedBasePath = basePath?.TrimEnd('/') ?? string.Empty;
+
+            CollectRelevantFiles(tree, normalizedBasePath, prefixSet, result);
+
+            return result;
+        }
+
+        private void CollectRelevantFiles(
+            Tree tree,
+            string currentPath,
+            HashSet<string> prefixSet,
+            Dictionary<string, TreeEntry> result)
+        {
+            if (tree == null) return;
+
+            foreach (var entry in tree)
+            {
+                var fullPath = string.IsNullOrEmpty(currentPath)
+                    ? entry.Name
+                    : $"{currentPath}/{entry.Name}";
+
+                if (entry.TargetType == TreeEntryTargetType.Tree)
+                {
+                    // Recurse into subfolder
+                    CollectRelevantFiles(entry.Target as Tree, fullPath, prefixSet, result);
+                }
+                else if (entry.TargetType == TreeEntryTargetType.Blob)
+                {
+                    if (IsPrefixMatch(entry.Name, prefixSet))
+                    {
+                        result[fullPath] = entry;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Matches files where the filename (without extension) contains
+        /// at least one '_'-separated segment equal to any prefix in the set.
+        /// Example for prefix "25":
+        ///   - "25_29.yaml"       -> match
+        ///   - "25_29_65.yaml"    -> match
+        ///   - "30_25_65_44.yaml" -> match
+        ///   - "30_26_65_25.yaml" -> match
+        /// </summary>
+        private bool IsFileMatch(string filename, HashSet<string> prefixSet)
+        {
+            var segments = GetNameSegments(filename);
+            if (segments == null || prefixSet == null || prefixSet.Count == 0)
+                return false;
+
+            var normalizedPrefixes = EnsureCaseInsensitive(prefixSet);
+
+            foreach (var segment in segments)
+            {
+                if (normalizedPrefixes.Contains(segment))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Matches files where the filename starts with prefix + "_".
+        /// Example prefix: "25" → matches "25_29.yaml", "25_12.txt"
+        /// </summary>
+        /// <summary>
+        /// Checks whether the filename starts with ANY prefix from the set,
+        /// followed by an underscore. 
+        /// Example prefix "25" → matches "25_29.yaml"
+        /// </summary>
+        private bool IsPrefixMatch(string filename, HashSet<string> prefixes)
+        {
+            if (string.IsNullOrWhiteSpace(filename) || prefixes == null || prefixes.Count == 0)
+                return false;
+
+            var name = Path.GetFileNameWithoutExtension(filename);
+            if (string.IsNullOrWhiteSpace(name))
+                return false;
+
+            foreach (var prefix in prefixes)
+            {
+                if (string.IsNullOrWhiteSpace(prefix))
+                    continue;
+
+                if (name.StartsWith(prefix + "_", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
+
+        #region Helpers
+
+        /// <summary>
+        /// Splits filename (no extension) into underscore-separated segments.
+        /// Returns null if invalid.
+        /// </summary>
+        private static string[]? GetNameSegments(string filename)
+        {
+            if (string.IsNullOrWhiteSpace(filename))
+                return null;
+
+            var name = Path.GetFileNameWithoutExtension(filename);
+            return string.IsNullOrWhiteSpace(name)
+                ? null
+                : name.Split('_', StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        /// <summary>
+        /// Ensures prefix set is using a case-insensitive comparer.
+        /// </summary>
+        private static HashSet<string> EnsureCaseInsensitive(HashSet<string> set)
+        {
+            return set.Comparer == StringComparer.OrdinalIgnoreCase
+                ? set
+                : new HashSet<string>(set, StringComparer.OrdinalIgnoreCase);
+        }
+
+        #endregion
+
+
+
         private TreeEntry? FindTreeEntry(Tree root, string path)
         {
             if (root == null || string.IsNullOrWhiteSpace(path))
@@ -526,7 +665,6 @@ namespace ThreatModeler.TF.Git.Implementation
 
             try
             {
-                // LibGit2Sharp can resolve nested paths via indexer.
                 return root[path];
             }
             catch (NotFoundException)
@@ -534,37 +672,6 @@ namespace ThreatModeler.TF.Git.Implementation
                 _logger.LogWarning("Folder path '{Path}' not found in the Git tree.", path);
                 return null;
             }
-        }
-
-        private Dictionary<string, TreeEntry> GetRelevantFiles(Tree tree, HashSet<string> prefixSet)
-        {
-            var result = new Dictionary<string, TreeEntry>();
-
-            if (tree == null) return result;
-
-            foreach (var entry in tree)
-            {
-                if (entry.TargetType != TreeEntryTargetType.Blob)
-                {
-                    continue;
-                }
-
-                if (IsFileMatch(entry.Name, prefixSet))
-                {
-                    result[entry.Name] = entry;
-                }
-            }
-
-            return result;
-        }
-
-        private bool IsFileMatch(string filename, HashSet<string> prefixSet)
-        {
-            var underscoreIndex = filename.IndexOf('_');
-            if (underscoreIndex <= 0) return false;
-
-            var filePrefix = filename.Substring(0, underscoreIndex);
-            return prefixSet.Contains(filePrefix);
         }
 
         #endregion

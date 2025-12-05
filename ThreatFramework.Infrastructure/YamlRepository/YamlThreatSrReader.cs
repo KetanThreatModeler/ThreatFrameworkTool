@@ -1,13 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ThreatFramework.Core.ComponentMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository
@@ -16,72 +14,94 @@ namespace ThreatFramework.Infrastructure.YamlRepository
     {
         private readonly ILogger<YamlThreatSrReader> _logger;
 
-        public YamlThreatSrReader(ILogger<YamlThreatSrReader> logger) => _logger = logger;
+        private const string EntityDisplayName = "ThreatSecurityRequirement";
+        private const string EntitySubFolder = YamlFolderConstants.ThreatSecurityRequirementFolder;
 
-        public async Task<List<ThreatSecurityRequirementMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
+        public YamlThreatSrReader(ILogger<YamlThreatSrReader> logger)
+            => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        public Task<List<ThreatSecurityRequirementMapping>> GetAllAsync(
+            string rootFolderPath,
+            CancellationToken ct = default)
+            => LoadYamlEntitiesFromFolderAsync(
+                rootFolderPath,
+                EntitySubFolder,
+                _logger,
+                ParseThreatSecurityRequirement,
+                EntityDisplayName,
+                ct);
+
+        public Task<ThreatSecurityRequirementMapping> GetFromFileAsync(string yamlFilePath)
+            => LoadYamlEntityAsync(
+                yamlFilePath,
+                _logger,
+                ParseThreatSecurityRequirement,
+                EntityDisplayName,
+                CancellationToken.None);
+
+        #region Parsing
+
+        private ThreatSecurityRequirementMapping? ParseThreatSecurityRequirement(
+            string yaml,
+            string filePath)
         {
-            if (!Directory.Exists(folderPath))
+            try
             {
-                _logger.LogError("YAML folder not found: {Folder}", folderPath);
-                throw new DirectoryNotFoundException(folderPath);
+                // Root is the spec for this YAML format
+                if (!TryLoadRoot(yaml, out var root))
+                {
+                    _logger.LogWarning(
+                        "Unable to load YAML root for {Entity}. File skipped: {File}",
+                        EntityDisplayName,
+                        filePath);
+
+                    return null;
+                }
+
+                var threatGuidStr = RequiredScalar(root, "threatGuid", filePath);
+                var securityRequirementGuidStr = RequiredScalar(root, "securityRequirementGuid", filePath);
+
+                var isHidden = GetFlag(root, "isHidden", defaultValue: false);
+                var isOverridden = GetFlag(root, "isOverridden", defaultValue: false);
+
+                return new ThreatSecurityRequirementMapping
+                {
+                    ThreatGuid = G(threatGuidStr, "threatGuid", filePath),
+                    SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", filePath),
+                    IsHidden = isHidden,
+                    IsOverridden = isOverridden
+                };
             }
-
-            var results = new List<ThreatSecurityRequirementMapping>();
-
-            foreach (var file in EnumerateYamlFiles(folderPath))
+            catch (OperationCanceledException)
             {
-                ct.ThrowIfCancellationRequested();
-
-                string yaml;
-                try
-                {
-                    yaml = await File.ReadAllTextAsync(file, ct);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to read YAML file: {File}", file);
-                    continue;
-                }
-
-                try
-                {
-                    var stream = new YamlStream();
-                    using var sr = new StringReader(yaml);
-                    stream.Load(sr);
-
-                    if (stream.Documents.Count == 0 ||
-                        stream.Documents[0].RootNode is not YamlMappingNode root)
-                    {
-                        _logger.LogWarning("Malformed YAML (no document/root mapping). Skipping: {File}", file);
-                        continue;
-                    }
-
-                    // SPEC ONLY
-                    if (!TryGetMap(root, "spec", out var spec))
-                    {
-                        _logger.LogWarning("Missing 'spec' node. Skipping: {File}", file);
-                        continue;
-                    }
-
-                    var threatGuidStr = RequiredScalar(spec, "threatGuid", file);
-                    var securityRequirementGuidStr = RequiredScalar(spec, "securityRequirementGuid", file);
-
-                    results.Add(new ThreatSecurityRequirementMapping
-                    {
-                        ThreatGuid = G(threatGuidStr, "threatGuid", file),
-                        SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", file),
-                        IsHidden = false,      // spec-only: flags ignored
-                        IsOverridden = false   // spec-only: flags ignored
-                    });
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to parse 'spec' for file: {File}", file);
-                }
+                _logger.LogInformation("Parsing YAML cancelled: {File}", filePath);
+                throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to parse {Entity} YAML file: {File}",
+                    EntityDisplayName,
+                    filePath);
 
-            return results;
+                return null;
+            }
         }
+
+        /// <summary>
+        /// Reads boolean flags under root.flags.flagName.
+        /// </summary>
+        private static bool GetFlag(YamlMappingNode root, string flagName, bool defaultValue)
+        {
+            if (TryGetMap(root, "flags", out var flagsMap))
+            {
+                return GetBool(flagsMap, flagName, defaultValue);
+            }
+
+            return defaultValue;
+        }
+
+        #endregion
     }
 }

@@ -11,5 +11,6 @@ namespace ThreatFramework.Infra.Contract.YamlRepository
     {
         Task<List<ComponentPropertyMapping>> GetAllAsync(
            string folderPath = null, CancellationToken ct = default);
+        Task<ComponentPropertyMapping> GetFromFileAsync(string yamlFilePath);
     }
 }

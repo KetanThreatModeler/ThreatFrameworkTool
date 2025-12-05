@@ -7,7 +7,7 @@ namespace ThreatFramework.Core.CoreEntities
 {
     public class SecurityRequirement : IFieldComparable<SecurityRequirement>
     {
-        public int RiskId { get; set; }
+        public string RiskName { get; set; }
         public Guid LibraryId { get; set; } // Note: Guid type, but name is LibraryId
         public Guid Guid { get; set; }
 
@@ -33,7 +33,7 @@ namespace ThreatFramework.Core.CoreEntities
                 switch (field)
                 {
                     // --- GROUP 1: Value Types (Int, Guid, Bool) ---
-                    case nameof(RiskId):
+                    case nameof(RiskName):
                     case nameof(LibraryId):
                     case nameof(Guid):
                     case nameof(IsCompensatingControl):
@@ -72,7 +72,7 @@ namespace ThreatFramework.Core.CoreEntities
             switch (field)
             {
                 // Identifiers
-                case nameof(RiskId): ComparisonHelper.Compare(changes, field, this.RiskId, other.RiskId); break;
+                case nameof(RiskName): ComparisonHelper.Compare(changes, field, this.RiskName, other.RiskName); break;
                 case nameof(LibraryId): ComparisonHelper.Compare(changes, field, this.LibraryId, other.LibraryId); break;
                 case nameof(Guid): ComparisonHelper.Compare(changes, field, this.Guid, other.Guid); break;
 

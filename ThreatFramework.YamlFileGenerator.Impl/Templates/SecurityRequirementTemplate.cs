@@ -18,7 +18,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
                 .AddQuoted("name", securityRequirement.Name)
                 .AddQuoted("libraryGuid", securityRequirement.LibraryId.ToString())
                 .AddLabels("labels", securityRequirement.Labels)
-                .AddQuoted("RiskId", securityRequirement.RiskId.ToString())
+                .AddQuoted("RiskName", securityRequirement.RiskName.ToString())
                 .AddQuoted("description", securityRequirement.Description ?? string.Empty)
                 .AddQuoted("ChineseName", securityRequirement.ChineseName ?? string.Empty)
                 .AddQuoted("ChineseDescription", securityRequirement.ChineseDescription ?? string.Empty)

@@ -1,14 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ThreatFramework.Core.PropertyMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
-using YamlDotNet.Core;
+using ThreatModeler.TF.Infra.Contract.YamlRepository;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository
@@ -17,114 +14,102 @@ namespace ThreatFramework.Infrastructure.YamlRepository
     {
         private readonly ILogger<YamlCpoThreatSrReader> _logger;
 
-        public YamlCpoThreatSrReader(ILogger<YamlCpoThreatSrReader> logger) => _logger = logger;
+        private const string EntityDisplayName = "ComponentPropertyOptionThreatSecurityRequirement";
+        private const string EntitySubFolder = YamlFolderConstants.ComponentPropertyOptionThreatSecurityRequirementFolder;
 
-        public async Task<List<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(
-            string folderPath, CancellationToken ct = default)
+        public YamlCpoThreatSrReader(ILogger<YamlCpoThreatSrReader> logger)
+            => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        public Task<List<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(
+            string rootFolderPath,
+            CancellationToken ct = default)
+            => LoadYamlEntitiesFromFolderAsync(
+                rootFolderPath,
+                EntitySubFolder,
+                _logger,
+                ParseCpoThreatSecurityRequirement,
+                EntityDisplayName,
+                ct);
+
+        public Task<ComponentPropertyOptionThreatSecurityRequirementMapping> GetFromFileAsync(
+            string yamlFilePath)
+            => LoadYamlEntityAsync(
+                yamlFilePath,
+                _logger,
+                ParseCpoThreatSecurityRequirement,
+                EntityDisplayName,
+                CancellationToken.None);
+
+        #region Parsing
+
+        private ComponentPropertyOptionThreatSecurityRequirementMapping? ParseCpoThreatSecurityRequirement(
+            string yaml,
+            string filePath)
         {
-            folderPath = Path.Combine(folderPath, "mappings", "component-property-option-threat-security-requirement");
-
-            if (!Directory.Exists(folderPath))
+            try
             {
-                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
-                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
+                // Root is the spec for this YAML format
+                if (!TryLoadRoot(yaml, out var root))
+                {
+                    _logger.LogWarning(
+                        "Unable to load YAML root for {Entity}. File skipped: {File}",
+                        EntityDisplayName,
+                        filePath);
+
+                    return null;
+                }
+
+                var componentGuidStr = RequiredScalar(root, "componentGuid", filePath);
+                var propertyGuidStr = RequiredScalar(root, "propertyGuid", filePath);
+                var propertyOptionGuidStr = RequiredScalar(root, "propertyOptionGuid", filePath);
+                var threatGuidStr = RequiredScalar(root, "threatGuid", filePath);
+                var securityRequirementGuidStr = RequiredScalar(root, "securityRequirementGuid", filePath);
+
+                var isHidden = GetFlag(root, "isHidden", defaultValue: false);
+                var isOverridden = GetFlag(root, "isOverridden", defaultValue: false);
+
+                return new ComponentPropertyOptionThreatSecurityRequirementMapping
+                {
+                    Id = 0,
+                    ComponentGuid = G(componentGuidStr, "componentGuid", filePath),
+                    PropertyGuid = G(propertyGuidStr, "propertyGuid", filePath),
+                    PropertyOptionGuid = G(propertyOptionGuidStr, "propertyOptionGuid", filePath),
+                    ThreatGuid = G(threatGuidStr, "threatGuid", filePath),
+                    SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", filePath),
+                    IsHidden = isHidden,
+                    IsOverridden = isOverridden
+                };
             }
-
-            var results = new List<ComponentPropertyOptionThreatSecurityRequirementMapping>();
-
-            foreach (var file in EnumerateYamlFiles(folderPath))
+            catch (OperationCanceledException)
             {
-                ct.ThrowIfCancellationRequested();
-
-                string yaml;
-                try
-                {
-                    yaml = await File.ReadAllTextAsync(file, ct);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to read YAML file: {File}", file);
-                    continue;
-                }
-
-                try
-                {
-                    var stream = new YamlStream();
-                    using var sr = new StringReader(yaml);
-                    stream.Load(sr);
-
-                    if (stream.Documents.Count == 0 ||
-                        stream.Documents[0].RootNode is not YamlMappingNode root)
-                    {
-                        _logger.LogWarning("Malformed YAML (no document/root mapping). Skipping: {File}", file);
-                        continue;
-                    }
-
-                    // SPEC ONLY
-                    if (!TryGetMap(root, "spec", out var spec))
-                    {
-                        _logger.LogWarning("Missing 'spec' node. Skipping: {File}", file);
-                        continue;
-                    }
-
-                    var componentGuidStr = RequiredScalar(spec, "componentGuid", file);
-                    var propertyGuidStr = RequiredScalar(spec, "propertyGuid", file);
-                    var propertyOptionGuidStr = RequiredScalar(spec, "propertyOptionGuid", file);
-                    var threatGuidStr = RequiredScalar(spec, "threatGuid", file);
-                    var securityRequirementGuidStr = RequiredScalar(spec, "securityRequirementGuid", file);
-
-                    results.Add(new ComponentPropertyOptionThreatSecurityRequirementMapping
-                    {
-                        Id = 0, // spec-only: no metadata.id
-                        ComponentGuid = G(componentGuidStr, "componentGuid", file),
-                        PropertyGuid = G(propertyGuidStr, "propertyGuid", file),
-                        PropertyOptionGuid = G(propertyOptionGuidStr, "propertyOptionGuid", file),
-                        ThreatGuid = G(threatGuidStr, "threatGuid", file),
-                        SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", file),
-                        IsHidden = false,      // spec-only: flags ignored
-                        IsOverridden = false   // spec-only: flags ignored
-                    });
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to parse 'spec' for file: {File}", file);
-                }
+                _logger.LogInformation("Parsing YAML cancelled: {File}", filePath);
+                throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to parse {Entity} YAML file: {File}",
+                    EntityDisplayName,
+                    filePath);
 
-            return results;
+                return null;
+            }
         }
 
-        // ----- tiny helpers (spec-only) -----
-        private static bool TryGetMap(YamlMappingNode map, string key, out YamlMappingNode child)
+        /// <summary>
+        /// Reads boolean flags under root.flags.flagName.
+        /// </summary>
+        private static bool GetFlag(YamlMappingNode root, string flagName, bool defaultValue)
         {
-            var k = new YamlScalarNode(key);
-            if (map.Children.TryGetValue(k, out var node) && node is YamlMappingNode m)
+            if (TryGetMap(root, "flags", out var flagsMap))
             {
-                child = m;
-                return true;
+                return GetBool(flagsMap, flagName, defaultValue);
             }
-            child = default!;
-            return false;
+
+            return defaultValue;
         }
 
-        private static bool TryGetScalar(YamlMappingNode map, string key, out string value)
-        {
-            value = "";
-            var k = new YamlScalarNode(key);
-            if (map.Children.TryGetValue(k, out var node) && node is YamlScalarNode s && s.Value is not null)
-            {
-                value = s.Value;
-                return true;
-            }
-            return false;
-        }
-
-        private static string RequiredScalar(YamlMappingNode map, string key, string file)
-        {
-            if (TryGetScalar(map, key, out var v) && !string.IsNullOrWhiteSpace(v)) return v;
-            throw new InvalidOperationException($"Missing required field '{key}' in '{file}'.");
-        }
+        #endregion
     }
 }
-

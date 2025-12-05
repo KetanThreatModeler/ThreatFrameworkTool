@@ -86,7 +86,6 @@ namespace ThreatFramework.Infrastructure.Repository
             {
                 mappings.Add(new ComponentThreatMapping
                 {
-                    Id = (int)reader["Id"],
                     ThreatGuid = (Guid)reader["ThreatGuid"],
                     ComponentGuid = (Guid)reader["ComponentGuid"],
                     IsHidden = (bool)reader["isHidden"],

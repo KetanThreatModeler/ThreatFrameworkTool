@@ -22,7 +22,7 @@ namespace ThreatFramework.Core
 
         public List<string> ThreatDefaultFields { get; init; } = new List<string>
         {
-            "RiskId",
+            "RiskName",
             "LibraryGuid",
             "Automated",
             "IsHidden",
@@ -38,7 +38,7 @@ namespace ThreatFramework.Core
         public List<string> ComponentDefaultFields { get; init; } = new List<string>
         {
             "LibraryGuid",
-            "ComponentTypeId",
+            "ComponentTypeGuid",
             "IsHidden",
             "Name",
             "ImagePath",
@@ -49,7 +49,7 @@ namespace ThreatFramework.Core
         };
         public List<string> SecurityRequirementDefaultFields { get; init; } = new List<string>
         {
-            "RiskId",
+            "RiskName",
             "LibraryId",
             "IsCompensatingControl",
             "IsHidden",

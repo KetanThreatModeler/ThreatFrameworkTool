@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ThreatFramework.Core.ComponentMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository;
+using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository
 {
@@ -13,78 +14,92 @@ namespace ThreatFramework.Infrastructure.YamlRepository
     {
         private readonly ILogger<YamlComponentSRReaders> _logger;
 
-        public YamlComponentSRReaders(ILogger<YamlComponentSRReaders> logger) => _logger = logger;
+        private const string EntityDisplayName = "ComponentSecurityRequirement";
+        private const string EntitySubFolder = YamlFolderConstants.ComponentSecurityRequirementFolder;
 
-        public async Task<List<ComponentSecurityRequirementMapping>> GetAllComponentSRAsync(string folderPath, CancellationToken ct = default)
+        public YamlComponentSRReaders(ILogger<YamlComponentSRReaders> logger)
+            => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        public Task<List<ComponentSecurityRequirementMapping>> GetAllComponentSRAsync(
+            string rootFolderPath,
+            CancellationToken ct = default)
+            => LoadYamlEntitiesFromFolderAsync(
+                rootFolderPath,
+                EntitySubFolder,
+                _logger,
+                ParseComponentSecurityRequirement,
+                EntityDisplayName,
+                ct);
+
+        public Task<ComponentSecurityRequirementMapping> GetComponentSRFromFileAsync(string yamlFilePath)
+            => LoadYamlEntityAsync(
+                yamlFilePath,
+                _logger,
+                ParseComponentSecurityRequirement,
+                EntityDisplayName,
+                CancellationToken.None);
+
+        #region Parsing
+
+        private ComponentSecurityRequirementMapping? ParseComponentSecurityRequirement(string yaml, string filePath)
         {
-            folderPath = Path.Combine(folderPath, "mappings", "component-security-requirement");
-
-            if (!Directory.Exists(folderPath)) 
+            try
             {
-                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
-                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
-            }
-          
-            var results = new List<ComponentSecurityRequirementMapping>();
+                // Root is the spec for this YAML format
+                if (!TryLoadRoot(yaml, out var root))
+                {
+                    _logger.LogWarning(
+                        "Unable to load YAML root for {Entity}. File skipped: {File}",
+                        EntityDisplayName,
+                        filePath);
 
-            foreach (var file in EnumerateYamlFiles(folderPath))
+                    return null;
+                }
+
+                var componentGuidStr = RequiredScalar(root, "componentGuid", filePath);
+                var securityRequirementGuidStr = RequiredScalar(root, "securityRequirementGuid", filePath);
+
+                var isHidden = GetFlag(root, "isHidden", defaultValue: false);
+                var isOverridden = GetFlag(root, "isOverridden", defaultValue: false);
+
+                return new ComponentSecurityRequirementMapping
+                {
+                    ComponentGuid = G(componentGuidStr, "componentGuid", filePath),
+                    SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", filePath),
+                    IsHidden = isHidden,
+                    IsOverridden = isOverridden
+                };
+            }
+            catch (OperationCanceledException)
             {
-                ct.ThrowIfCancellationRequested();
-
-                string yaml;
-                try
-                {
-                    yaml = await File.ReadAllTextAsync(file, ct);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to read YAML file: {File}", file);
-                    continue;
-                }
-
-                try
-                {
-                    if (!TryLoadSpec(yaml, out var spec, out _))
-                    {
-                        _logger.LogWarning("Missing 'spec' node. Skipping: {File}", file);
-                        continue;
-                    }
-
-                    var componentGuidStr = RequiredScalar(spec, "componentGuid", file);
-                    var securityRequirementGuidStr = RequiredScalar(spec, "securityRequirementGuid", file);
-
-                    // Extract flags if they exist, otherwise use defaults
-                    bool isHidden = false;
-                    bool isOverridden = false;
-                    
-                    if (TryGetMap(spec, "flags", out var flagsMap))
-                    {
-                        isHidden = GetBool(flagsMap, "isHidden", false);
-                        isOverridden = GetBool(flagsMap, "isOverridden", false);
-                    }
-                    else
-                    {
-                        // Fallback: check if flags are directly in spec (backward compatibility)
-                        isHidden = GetBool(spec, "isHidden", false);
-                        isOverridden = GetBool(spec, "isOverridden", false);
-                    }
-
-                    results.Add(new ComponentSecurityRequirementMapping
-                    {
-                        ComponentGuid = G(componentGuidStr, "componentGuid", file),
-                        SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", file),
-                        IsHidden = isHidden,
-                        IsOverridden = isOverridden
-                    });
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to parse 'spec' for file: {File}", file);
-                }
+                _logger.LogInformation("Parsing YAML cancelled: {File}", filePath);
+                throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to parse {Entity} YAML file: {File}",
+                    EntityDisplayName,
+                    filePath);
 
-            return results;
+                return null;
+            }
         }
+
+        /// <summary>
+        /// Reads boolean flags under root.flags.flagName.
+        /// </summary>
+        private static bool GetFlag(YamlMappingNode root, string flagName, bool defaultValue)
+        {
+            if (TryGetMap(root, "flags", out var flagsMap))
+            {
+                return GetBool(flagsMap, flagName, defaultValue);
+            }
+
+            return defaultValue;
+        }
+
+        #endregion
     }
 }

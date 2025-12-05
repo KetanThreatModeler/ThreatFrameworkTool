@@ -83,7 +83,6 @@ namespace ThreatFramework.Infrastructure.Repository
             {
                 mappings.Add(new ComponentThreatSecurityRequirementMapping
                 {
-                    Id = (int)reader["Id"],
                     ThreatGuid = (Guid)reader["ThreatGuid"],
                     ComponentGuid = (Guid)reader["ComponentGuid"],
                     SecurityRequirementGuid = (Guid)reader["SecurityRequirementGuid"],

@@ -2,7 +2,6 @@
 {
     public class ComponentThreatSecurityRequirementMapping
     {
-        public int Id { get; set; }
         public Guid ComponentGuid { get; set; }
         public Guid ThreatGuid { get; set; }
         public Guid SecurityRequirementGuid { get; set; }

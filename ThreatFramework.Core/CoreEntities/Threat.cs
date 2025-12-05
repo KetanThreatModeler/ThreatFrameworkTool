@@ -8,8 +8,7 @@ namespace ThreatFramework.Core.CoreEntities
     public class Threat : IFieldComparable<Threat>
     {
         // --- Identifiers ---
-        public int Id { get; set; }
-        public int RiskId { get; set; }
+        public string RiskName { get; set; } = string.Empty;
         public Guid Guid { get; set; }
         public Guid LibraryGuid { get; set; }
 
@@ -20,14 +19,14 @@ namespace ThreatFramework.Core.CoreEntities
 
         // --- Strings ---
         public string Name { get; set; } = string.Empty;
-        public string ChineseName { get; set; } = string.Empty; 
+        public string ChineseName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public string Reference { get; set; }   = string.Empty;
+        public string Reference { get; set; } = string.Empty;
         public string Intelligence { get; set; } = string.Empty;
         public string ChineseDescription { get; set; } = string.Empty;
 
         // --- Lists ---
-        public List<string> Labels { get; set; } = new List<string>();
+        public List<string> Labels { get; set; } = new();
 
         public List<FieldChange> CompareFields(Threat other, IEnumerable<string> fields)
         {
@@ -39,7 +38,7 @@ namespace ThreatFramework.Core.CoreEntities
             {
                 switch (field)
                 {
-                    case nameof(RiskId):
+                    // Identifiers / value types
                     case nameof(Guid):
                     case nameof(LibraryGuid):
                     case nameof(Automated):
@@ -48,20 +47,43 @@ namespace ThreatFramework.Core.CoreEntities
                         CompareValueTypes(changes, field, other);
                         break;
 
-                    case nameof(Name):
-                        ComparisonHelper.CompareString(changes, field, this.Name, other.Name, ignoreCase: true);
+                    // RiskName is a string identifier
+                    case nameof(RiskName):
+                        ComparisonHelper.CompareString(
+                            changes,
+                            field,
+                            this.RiskName,
+                            other.RiskName,
+                            ignoreCase: true);
                         break;
 
+                    // Case-insensitive string comparison for Name
+                    case nameof(Name):
+                        ComparisonHelper.CompareString(
+                            changes,
+                            field,
+                            this.Name,
+                            other.Name,
+                            ignoreCase: true);
+                        break;
+
+                    // Other strings (case-sensitive)
                     case nameof(Description):
                     case nameof(ChineseName):
                     case nameof(Reference):
                     case nameof(Intelligence):
                     case nameof(ChineseDescription):
-                        string? s1 = GetStringValue(field);
-                        string? s2 = other.GetStringValue(field);
-                        ComparisonHelper.CompareString(changes, field, s1, s2, ignoreCase: false);
+                        var s1 = GetStringValue(field);
+                        var s2 = other.GetStringValue(field);
+                        ComparisonHelper.CompareString(
+                            changes,
+                            field,
+                            s1,
+                            s2,
+                            ignoreCase: false);
                         break;
 
+                    // Lists
                     case nameof(Labels):
                         ComparisonHelper.CompareList(changes, field, this.Labels, other.Labels);
                         break;
@@ -78,12 +100,25 @@ namespace ThreatFramework.Core.CoreEntities
         {
             switch (field)
             {
-                case nameof(RiskId): ComparisonHelper.Compare(changes, field, this.RiskId, other.RiskId); break;
-                case nameof(Guid): ComparisonHelper.Compare(changes, field, this.Guid, other.Guid); break;
-                case nameof(LibraryGuid): ComparisonHelper.Compare(changes, field, this.LibraryGuid, other.LibraryGuid); break;
-                case nameof(Automated): ComparisonHelper.Compare(changes, field, this.Automated, other.Automated); break;
-                case nameof(IsHidden): ComparisonHelper.Compare(changes, field, this.IsHidden, other.IsHidden); break;
-                case nameof(IsOverridden): ComparisonHelper.Compare(changes, field, this.IsOverridden, other.IsOverridden); break;
+                case nameof(Guid):
+                    ComparisonHelper.Compare(changes, field, this.Guid, other.Guid);
+                    break;
+
+                case nameof(LibraryGuid):
+                    ComparisonHelper.Compare(changes, field, this.LibraryGuid, other.LibraryGuid);
+                    break;
+
+                case nameof(Automated):
+                    ComparisonHelper.Compare(changes, field, this.Automated, other.Automated);
+                    break;
+
+                case nameof(IsHidden):
+                    ComparisonHelper.Compare(changes, field, this.IsHidden, other.IsHidden);
+                    break;
+
+                case nameof(IsOverridden):
+                    ComparisonHelper.Compare(changes, field, this.IsOverridden, other.IsOverridden);
+                    break;
             }
         }
 

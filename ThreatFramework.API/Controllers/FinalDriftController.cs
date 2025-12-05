@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Index;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 

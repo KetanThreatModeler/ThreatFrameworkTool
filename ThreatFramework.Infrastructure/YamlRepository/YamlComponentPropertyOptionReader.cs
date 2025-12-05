@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using ThreatFramework.Core.PropertyMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository;
+using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository
 {
@@ -8,67 +10,97 @@ namespace ThreatFramework.Infrastructure.YamlRepository
     {
         private readonly ILogger<YamlComponentPropertyOptionReader> _logger;
 
-        public YamlComponentPropertyOptionReader(ILogger<YamlComponentPropertyOptionReader> logger) => _logger = logger;
+        private const string EntityDisplayName = "ComponentPropertyOption";
+        private const string EntitySubFolder = YamlFolderConstants.ComponentPropertyOptionFolder;
 
-        public async Task<List<ComponentPropertyOptionMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
+        public YamlComponentPropertyOptionReader(ILogger<YamlComponentPropertyOptionReader> logger)
+            => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        public Task<List<ComponentPropertyOptionMapping>> GetAllAsync(
+            string rootFolderPath,
+            CancellationToken cancellationToken = default)
+            => LoadYamlEntitiesFromFolderAsync(
+                rootFolderPath,
+                EntitySubFolder,
+                _logger,
+                ParseComponentPropertyOption,
+                EntityDisplayName,
+                cancellationToken);
+
+        public Task<ComponentPropertyOptionMapping> GetFromFileAsync(string yamlFilePath)
+            => LoadYamlEntityAsync(
+                yamlFilePath,
+                _logger,
+                ParseComponentPropertyOption,
+                EntityDisplayName,
+                CancellationToken.None);
+
+        #region Parsing
+
+        private ComponentPropertyOptionMapping? ParseComponentPropertyOption(string yaml, string filePath)
         {
-            folderPath = Path.Combine(folderPath, "mappings", "component-property-option");
-
-            if (!Directory.Exists(folderPath))
+            try
             {
-                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
-                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
+                // Root is the spec for this YAML format
+                if (!TryLoadRoot(yaml, out var root))
+                {
+                    _logger.LogWarning(
+                        "Unable to load YAML root for {Entity}. File skipped: {File}",
+                        EntityDisplayName,
+                        filePath);
+
+                    return null;
+                }
+
+                var componentGuidStr = RequiredScalar(root, "componentGuid", filePath);
+                var propertyGuidStr = RequiredScalar(root, "propertyGuid", filePath);
+                var propertyOptionGuidStr = RequiredScalar(root, "propertyOptionGuid", filePath);
+
+                var isDefault = GetFlag(root, "isDefault", defaultValue: false);
+                var isHidden = GetFlag(root, "isHidden", defaultValue: false);
+                var isOverridden = GetFlag(root, "isOverridden", defaultValue: false);
+
+                return new ComponentPropertyOptionMapping
+                {
+                    Id = 0,
+                    ComponentGuid = G(componentGuidStr, "componentGuid", filePath),
+                    PropertyGuid = G(propertyGuidStr, "propertyGuid", filePath),
+                    PropertyOptionGuid = G(propertyOptionGuidStr, "propertyOptionGuid", filePath),
+                    IsDefault = isDefault,
+                    IsHidden = isHidden,
+                    IsOverridden = isOverridden
+                };
             }
-            
-
-            var results = new List<ComponentPropertyOptionMapping>();
-
-            foreach (var file in EnumerateYamlFiles(folderPath))
+            catch (OperationCanceledException)
             {
-                ct.ThrowIfCancellationRequested();
-
-                string yaml;
-                try
-                {
-                    yaml = await File.ReadAllTextAsync(file, ct);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to read YAML file: {File}", file);
-                    continue;
-                }
-
-                try
-                {
-                    if (!TryLoadSpec(yaml, out var spec, out _))
-                    {
-                        _logger.LogWarning("Missing 'spec' node. Skipping: {File}", file);
-                        continue;
-                    }
-
-                    var componentGuidStr = RequiredScalar(spec, "componentGuid", file);
-                    var propertyGuidStr = RequiredScalar(spec, "propertyGuid", file);
-                    var propertyOptionGuidStr = RequiredScalar(spec, "propertyOptionGuid", file);
-
-                    results.Add(new ComponentPropertyOptionMapping
-                    {
-                        Id = 0,
-                        ComponentGuid = G(componentGuidStr, "componentGuid", file),
-                        PropertyGuid = G(propertyGuidStr, "propertyGuid", file),
-                        PropertyOptionGuid = G(propertyOptionGuidStr, "propertyOptionGuid", file),
-                        IsDefault = GetBool(spec, "isDefault", false),
-                        IsHidden = GetBool(spec, "isHidden", false),
-                        IsOverridden = GetBool(spec, "isOverridden", false)
-                    });
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to parse 'spec' for file: {File}", file);
-                }
+                _logger.LogInformation("Parsing YAML cancelled: {File}", filePath);
+                throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to parse {Entity} YAML file: {File}",
+                    EntityDisplayName,
+                    filePath);
 
-            return results;
+                return null;
+            }
         }
+
+        /// <summary>
+        /// Reads boolean flags under root.flags.flagName
+        /// </summary>
+        private static bool GetFlag(YamlMappingNode root, string flagName, bool defaultValue)
+        {
+            // flags: { ... }
+            if (TryGetMap(root, "flags", out var flagsMap))
+            {
+                return GetBool(flagsMap, flagName, defaultValue);
+            }
+
+            return defaultValue;
+        }
+
+        #endregion
     }
 }

@@ -74,5 +74,39 @@ namespace ThreatModeler.TF.Git.Contract.Models
                 ModifiedPaths.AddRange(other.ModifiedPaths);
             }
         }
+
+        public override string ToString()
+        {
+            var lines = new List<string>
+    {
+        $"Base Repository Path   : {BaseRepositoryPath ?? "<null>"}",
+        $"Target Repository Path : {TargetRepositoryPath ?? "<null>"}",
+        "",
+        "=== Added Paths ==="
+    };
+
+            if (AddedPaths.Count == 0)
+                lines.Add("  (none)");
+            else
+                lines.AddRange(AddedPaths.ConvertAll(p => $"  + {p}"));
+
+            lines.Add("");
+            lines.Add("=== Deleted Paths ===");
+
+            if (DeletedPaths.Count == 0)
+                lines.Add("  (none)");
+            else
+                lines.AddRange(DeletedPaths.ConvertAll(p => $"  - {p}"));
+
+            lines.Add("");
+            lines.Add("=== Modified Paths ===");
+
+            if (ModifiedPaths.Count == 0)
+                lines.Add("  (none)");
+            else
+                lines.AddRange(ModifiedPaths.ConvertAll(p => $"  * {p}"));
+
+            return string.Join(Environment.NewLine, lines);
+        }
     }
 }

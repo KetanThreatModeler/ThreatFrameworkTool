@@ -88,15 +88,13 @@ namespace ThreatModeler.TF.Git.Implementation
 
                     // 3. Prepare mapping comparisons by prefixes.
 
-                    // Component-based prefixes: "21_", "30_", ...
                     var componentPrefixes = BuildIdPrefixes(componentIds);
-                    // Threat-based prefixes: "27_", "36_", ...
                     var threatPrefixes = BuildIdPrefixes(threatIds);
 
                     // 3a. Component-based mapping folders.
                     if (componentPrefixes.Count > 0)
                     {
-                        comparisonTasks.AddRange(CreateComponentMappingTasks(
+                        comparisonTasks.Add(CreatePrefixMatchingTask(
                             baseRepositoryPath,
                             targetRepositoryPath,
                             componentPrefixes,
@@ -110,7 +108,7 @@ namespace ThreatModeler.TF.Git.Implementation
                     // 3b. Threat-based mapping folder: threat-security-requirements
                     if (threatPrefixes.Count > 0)
                     {
-                        comparisonTasks.Add(CreateThreatMappingTask(
+                        comparisonTasks.Add(CreatePrefixMatchingTask(
                             baseRepositoryPath,
                             targetRepositoryPath,
                             threatPrefixes,
@@ -132,6 +130,7 @@ namespace ThreatModeler.TF.Git.Implementation
                         combinedReport.Merge(report);
                     }
 
+                    Console.WriteLine(combinedReport.ToString());
                     _logger.LogInformation(
                         "Completed library-scoped comparison. Added={Added}, Deleted={Deleted}, Modified={Modified}.",
                         combinedReport.AddedPaths.Count,
@@ -191,7 +190,7 @@ namespace ThreatModeler.TF.Git.Implementation
             return ids?
                 .Distinct()
                 .OrderBy(id => id)
-                .Select(id => id.ToString() + "_")
+                .Select(id => id.ToString())
                 .ToList()
                 ?? new List<string>();
         }
@@ -250,6 +249,26 @@ namespace ThreatModeler.TF.Git.Implementation
                 threatPrefixes,
                 includeUncommittedChanges);
         }
+
+        private Task<FolderDiffReport> CreatePrefixMatchingTask(
+            string baseRepositoryPath,
+            string targetRepositoryPath,
+            List<string> threatPrefixes,
+            bool includeUncommittedChanges)
+        {
+            if (threatPrefixes == null) throw new ArgumentNullException(nameof(threatPrefixes));
+
+            const string folder = "mappings";
+
+            return _gitFolderDiffService.CompareByPrefixAsync(
+                baseRepositoryPath,
+                targetRepositoryPath,
+                folder,
+                threatPrefixes,
+                includeUncommittedChanges);
+        }
+
+
 
         #endregion
     }

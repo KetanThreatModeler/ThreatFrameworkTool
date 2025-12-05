@@ -7,7 +7,7 @@ using ThreatFramework.Drift.Contract.MappingDriftService.Dto;
 using ThreatFramework.Drift.Contract.MappingDriftService.Model;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infra.Contract.YamlRepository;
-using ThreatModeler.TF.Core.Config;
+using ThreatModeler.TF.Core.CoreEntities;
 
 namespace ThreatFramework.Drift.Impl.MappingDriftService
 {

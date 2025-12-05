@@ -10,5 +10,6 @@ namespace ThreatFramework.Infra.Contract.YamlRepository
     public  interface IYamlComponentPropertyOptionThreatReader
     {
         Task<List<ComponentPropertyOptionThreatMapping>> GetAllAsync(string folderPath = null, CancellationToken ct = default);
+        Task<ComponentPropertyOptionThreatMapping> GetFromFileAsync(string yamlFilePath);
     }
 }

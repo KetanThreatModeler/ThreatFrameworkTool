@@ -1,6 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using ThreatFramework.Core.ComponentMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository;
+using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository
 {
@@ -8,65 +14,94 @@ namespace ThreatFramework.Infrastructure.YamlRepository
     {
         private readonly ILogger<YamlComponentThreatReader> _logger;
 
-        public YamlComponentThreatReader(ILogger<YamlComponentThreatReader> logger) => _logger = logger;
+        private const string EntityDisplayName = "ComponentThreat";
+        private const string EntitySubFolder = YamlFolderConstants.ComponentThreatFolder;
 
-        public async Task<List<ComponentThreatMapping>> GetAllAsync(string folderPath, CancellationToken ct = default)
+        public YamlComponentThreatReader(ILogger<YamlComponentThreatReader> logger)
+            => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+        public Task<List<ComponentThreatMapping>> GetAllAsync(
+            string rootFolderPath,
+            CancellationToken cancellationToken = default)
+            => LoadYamlEntitiesFromFolderAsync(
+                rootFolderPath,
+                EntitySubFolder,
+                _logger,
+                ParseComponentThreat,
+                EntityDisplayName,
+                cancellationToken);
+
+        public Task<ComponentThreatMapping> GetFromFileAsync(string yamlFilePath)
+            => LoadYamlEntityAsync(
+                yamlFilePath,
+                _logger,
+                ParseComponentThreat,
+                EntityDisplayName,
+                CancellationToken.None);
+
+        #region Parsing
+
+        private ComponentThreatMapping? ParseComponentThreat(string yaml, string filePath)
         {
-
-            folderPath = Path.Combine(folderPath, "mappings", "component-threat");
-
-            if (!Directory.Exists(folderPath))
+            try
             {
-                _logger.LogError("YAML folder not found: {MappingFolder}", folderPath);
-                throw new DirectoryNotFoundException($"Folder {folderPath} does not exist");
+                // Root is the spec for this YAML format
+                if (!TryLoadRoot(yaml, out var root))
+                {
+                    _logger.LogWarning(
+                        "Unable to load YAML root for {Entity}. File skipped: {File}",
+                        EntityDisplayName,
+                        filePath);
+
+                    return null;
+                }
+
+                var componentGuidStr = RequiredScalar(root, "componentGuid", filePath);
+                var threatGuidStr = RequiredScalar(root, "threatGuid", filePath);
+
+                var isHidden = GetFlag(root, "isHidden", defaultValue: false);
+                var isOverridden = GetFlag(root, "isOverridden", defaultValue: false);
+                var usedForMitigation = GetFlag(root, "usedForMitigation", defaultValue: false);
+
+                return new ComponentThreatMapping
+                {
+                    ComponentGuid = G(componentGuidStr, "componentGuid", filePath),
+                    ThreatGuid = G(threatGuidStr, "threatGuid", filePath),
+                    IsHidden = isHidden,
+                    IsOverridden = isOverridden,
+                    UsedForMitigation = usedForMitigation
+                };
             }
-
-            var results = new List<ComponentThreatMapping>();
-
-            foreach (var file in EnumerateYamlFiles(folderPath))
+            catch (OperationCanceledException)
             {
-                ct.ThrowIfCancellationRequested();
-
-                string yaml;
-                try
-                {
-                    yaml = await File.ReadAllTextAsync(file, ct);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to read YAML file: {File}", file);
-                    continue;
-                }
-
-                try
-                {
-                    if (!TryLoadSpec(yaml, out var spec, out _))
-                    {
-                        _logger.LogWarning("Missing 'spec' node. Skipping: {File}", file);
-                        continue;
-                    }
-
-                    var componentGuidStr = RequiredScalar(spec, "componentGuid", file);
-                    var threatGuidStr = RequiredScalar(spec, "threatGuid", file);
-
-                    results.Add(new ComponentThreatMapping
-                    {
-                        Id = 0,
-                        ComponentGuid = G(componentGuidStr, "componentGuid", file),
-                        ThreatGuid = G(threatGuidStr, "threatGuid", file),
-                        IsHidden = GetBool(spec, "isHidden", false),
-                        IsOverridden = GetBool(spec, "isOverridden", false),
-                        UsedForMitigation = GetBool(spec, "usedForMitigation", false)
-                    });
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to parse 'spec' for file: {File}", file);
-                }
+                _logger.LogInformation("Parsing YAML cancelled: {File}", filePath);
+                throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to parse {Entity} YAML file: {File}",
+                    EntityDisplayName,
+                    filePath);
 
-            return results;
+                return null;
+            }
         }
+
+        /// <summary>
+        /// Reads boolean flags under root.flags.flagName.
+        /// </summary>
+        private static bool GetFlag(YamlMappingNode root, string flagName, bool defaultValue)
+        {
+            if (TryGetMap(root, "flags", out var flagsMap))
+            {
+                return GetBool(flagsMap, flagName, defaultValue);
+            }
+
+            return defaultValue;
+        }
+
+        #endregion
     }
 }

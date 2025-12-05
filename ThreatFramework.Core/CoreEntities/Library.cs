@@ -7,7 +7,6 @@ namespace ThreatFramework.Core.CoreEntities
 {
     public class Library : IFieldComparable<Library>
     {
-        public int Id { get; set; }
         public Guid Guid { get; set; }
         public int DepartmentId { get; set; }
         public bool Readonly { get; set; }

@@ -8,8 +8,7 @@ namespace ThreatModeler.TF.Core.Global
 {
     public class PropertyOption : IFieldComparable<PropertyOption>
     {
-        public int Id { get; set; }
-        public int? PropertyId { get; set; }
+        public int PropertyGuid { get; set; }
         public Guid Guid { get; set; }
 
         // --- Booleans ---
@@ -30,7 +29,7 @@ namespace ThreatModeler.TF.Core.Global
                 switch (field)
                 {
                     // --- GROUP 1: Value Types (Int?, Guid, Bool) ---
-                    case nameof(PropertyId):
+                    case nameof(PropertyGuid):
                     case nameof(Guid):
                     case nameof(IsDefault):
                     case nameof(IsHidden):
@@ -65,7 +64,7 @@ namespace ThreatModeler.TF.Core.Global
             switch (field)
             {
                 // Identifiers
-                case nameof(PropertyId): ComparisonHelper.Compare(changes, field, this.PropertyId, other.PropertyId); break;
+                case nameof(PropertyGuid): ComparisonHelper.Compare(changes, field, this.PropertyGuid, other.PropertyGuid); break;
                 case nameof(Guid): ComparisonHelper.Compare(changes, field, this.Guid, other.Guid); break;
 
                 // Booleans

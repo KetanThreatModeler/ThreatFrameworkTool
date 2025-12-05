@@ -81,7 +81,6 @@ namespace ThreatFramework.Infrastructure.Repository
             {
                 testCases.Add(new TestCase
                 {
-                    Id = (int)reader["Id"],
                     LibraryId = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
                     IsHidden = (bool)reader["isHidden"],
                     IsOverridden = (bool)reader["IsOverridden"],

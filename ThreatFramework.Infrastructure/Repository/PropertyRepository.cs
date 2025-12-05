@@ -83,7 +83,6 @@ namespace ThreatFramework.Infrastructure.Repository
             {
                 properties.Add(new Property
                 {
-                    Id = (int)reader["Id"],
                     LibraryGuid = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
                     PropertyTypeGuid = (Guid)reader["PropertyTypeGuid"],
                     PropertyTypeName = reader["PropertyTypeName"] as string,
