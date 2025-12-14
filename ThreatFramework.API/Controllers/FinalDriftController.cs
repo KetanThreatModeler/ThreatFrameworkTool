@@ -5,6 +5,7 @@ using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
+using ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Drift.Api.Controllers
@@ -63,7 +64,28 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
 
             _logger.LogInformation("Readonly drift calculation completed.");
 
+            _logger.LogInformation(drift.ToString());
             return Ok(drift);
         }
+
+           
+            // New v2 endpoint
+            [HttpPost("readonly/v2")]
+            [ProducesResponseType(typeof(TMFrameworkDrift1), StatusCodes.Status200OK)]
+            public async Task<IActionResult> CalculateReadonlyDriftV2Async(CancellationToken cancellationToken)
+            {
+                _logger.LogInformation("Starting readonly drift V2 calculation: refreshing GUID index...");
+                await _guidIndexService.RefreshAsync(_pathOptions.IndexYaml);
+
+                _logger.LogInformation("Refreshing library cache...");
+                await _libraryCacheService.RefreshCacheAsync();
+
+                var readOnlyLibraryGuids = await _libraryCacheService.GetReadonlyLibraryGuidsAsync();
+                if (readOnlyLibraryGuids == null || readOnlyLibraryGuids.Count == 0)
+                    return Ok(new TMFrameworkDrift1());
+
+                var drift = await _finalDriftService.DriftAsync1(readOnlyLibraryGuids, cancellationToken);
+                return Ok(drift);
+            }
+        }
     }
-}

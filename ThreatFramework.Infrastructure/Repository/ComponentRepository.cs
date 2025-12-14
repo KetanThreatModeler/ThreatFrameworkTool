@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging; // Required for Logging
+using Microsoft.Extensions.Logging;
 using System.Data;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract;
@@ -26,7 +26,8 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
 
         public async Task<IEnumerable<Component>> GetReadOnlyComponentsAsync()
         {
-            _logger.LogInformation("Starting execution of GetReadOnlyComponentsAsync.");
+            const string methodName = nameof(GetReadOnlyComponentsAsync);
+            _logger.LogInformation("{Method} - Starting execution.", methodName);
 
             try
             {
@@ -34,7 +35,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
 
                 if (!readonlyLibraryIds.Any())
                 {
-                    _logger.LogInformation("No read-only libraries found. Returning empty list.");
+                    _logger.LogInformation("{Method} - No read-only libraries found. Returning empty list.", methodName);
                     return Enumerable.Empty<Component>();
                 }
 
@@ -42,7 +43,10 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
                 string sql = $@"{BuildComponentSelectQuery()} 
-                            WHERE c.LibraryId IN ({libraryParameters})";
+                                WHERE c.LibraryId IN ({libraryParameters})";
+
+                _logger.LogDebug("{Method} - Executing SQL: {Sql} with LibraryIds: {LibraryIds}",
+                    methodName, sql, string.Join(",", libraryIdList));
 
                 using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using SqlCommand command = new(sql, connection);
@@ -53,20 +57,29 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 }
 
                 IEnumerable<Component> result = await ExecuteComponentReaderAsync(command);
-                _logger.LogInformation("Successfully retrieved {Count} read-only components.", result.Count());
+                int count = result.Count();
+                _logger.LogInformation("{Method} - Successfully retrieved {Count} read-only components.", methodName, count);
 
                 return result;
             }
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "{Method} - SQL error occurred while retrieving read-only components.", methodName);
+                throw;
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred in GetReadOnlyComponentsAsync.");
+                _logger.LogError(ex, "{Method} - Unexpected error occurred.", methodName);
                 throw;
             }
         }
 
         public async Task<IEnumerable<Component>> GetComponentsByLibraryIdAsync(IEnumerable<Guid> libraryIds)
         {
-            _logger.LogInformation("Starting GetComponentsByLibraryIdAsync for {Count} libraries.", libraryIds?.Count() ?? 0);
+            const string methodName = nameof(GetComponentsByLibraryIdAsync);
+            int inputCount = libraryIds?.Count() ?? 0;
+
+            _logger.LogInformation("{Method} - Starting for {Count} library GUIDs.", methodName, inputCount);
 
             try
             {
@@ -74,7 +87,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
 
                 if (!ids.Any())
                 {
-                    _logger.LogWarning("No matching Library IDs found for the provided GUIDs.");
+                    _logger.LogWarning("{Method} - No matching Library IDs found for the provided GUIDs.", methodName);
                     return Enumerable.Empty<Component>();
                 }
 
@@ -82,7 +95,10 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
                 string sql = $@"{BuildComponentSelectQuery()} 
-                            WHERE c.LibraryId IN ({libraryParameters})";
+                                WHERE c.LibraryId IN ({libraryParameters})";
+
+                _logger.LogDebug("{Method} - Executing SQL: {Sql} with LibraryIds: {LibraryIds}",
+                    methodName, sql, string.Join(",", libraryIdList));
 
                 using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using SqlCommand command = new(sql, connection);
@@ -93,50 +109,71 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 }
 
                 IEnumerable<Component> result = await ExecuteComponentReaderAsync(command);
-                _logger.LogInformation("Successfully retrieved {Count} components by Library IDs.", result.Count());
+                int count = result.Count();
+
+                _logger.LogInformation("{Method} - Successfully retrieved {Count} components by Library IDs.", methodName, count);
 
                 return result;
             }
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "{Method} - SQL error occurred while retrieving components by Library IDs.", methodName);
+                throw;
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred in GetComponentsByLibraryIdAsync.");
+                _logger.LogError(ex, "{Method} - Unexpected error occurred.", methodName);
                 throw;
             }
         }
 
         public async Task<IEnumerable<Guid>> GetGuidsAsync()
         {
+            const string methodName = nameof(GetGuidsAsync);
+            const string sql = "SELECT Guid FROM Components";
+
+            _logger.LogInformation("{Method} - Starting execution.", methodName);
+
             try
             {
-                string sql = "SELECT Guid FROM Components";
-
                 using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using SqlCommand command = new(sql, connection);
                 using SqlDataReader reader = await command.ExecuteReaderAsync();
 
                 List<Guid> guids = new();
+
                 while (await reader.ReadAsync())
                 {
                     guids.Add(reader.GetGuid(reader.GetOrdinal("Guid")));
                 }
+
+                _logger.LogInformation("{Method} - Successfully retrieved {Count} component GUIDs.", methodName, guids.Count);
                 return guids;
+            }
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "{Method} - SQL error occurred while retrieving component GUIDs. Query: {Sql}", methodName, sql);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving all Component GUIDs.");
+                _logger.LogError(ex, "{Method} - Unexpected error occurred.", methodName);
                 throw;
             }
         }
 
         public async Task<IEnumerable<(Guid ComponentGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync()
         {
-            try
-            {
-                const string sql = @"
+            const string methodName = "GetGuidsAndLibraryGuidsAsync_NoFilter";
+            const string sql = @"
                     SELECT c.Guid AS ComponentGuid, l.Guid AS LibraryGuid
                     FROM Components c
                     INNER JOIN Libraries l ON c.LibraryId = l.Id";
 
+            _logger.LogInformation("{Method} - Starting execution (no library filter).", methodName);
+
+            try
+            {
                 using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using SqlCommand command = new(sql, connection);
 
@@ -151,21 +188,32 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                     results.Add((componentGuid, libraryGuid));
                 }
 
+                _logger.LogInformation("{Method} - Successfully retrieved {Count} Component/Library GUID pairs.", methodName, results.Count);
                 return results;
+            }
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "{Method} - SQL error occurred while retrieving Component/Library GUID pairs. Query: {Sql}", methodName, sql);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving Component/Library GUID pairs.");
+                _logger.LogError(ex, "{Method} - Unexpected error occurred.", methodName);
                 throw;
             }
         }
 
         public async Task<IEnumerable<Guid>> GetGuidsByLibraryIds(IEnumerable<Guid> libraryIds)
         {
+            const string methodName = nameof(GetGuidsByLibraryIds);
+
+            _logger.LogInformation("{Method} - Starting for {Count} library GUIDs.", methodName, libraryIds?.Count() ?? 0);
+
             try
             {
                 if (libraryIds == null || !libraryIds.Any())
                 {
+                    _logger.LogInformation("{Method} - No library GUIDs provided. Returning empty result.", methodName);
                     return Enumerable.Empty<Guid>();
                 }
 
@@ -173,6 +221,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
 
                 if (!ids.Any())
                 {
+                    _logger.LogWarning("{Method} - No matching Library IDs found for the provided GUIDs.", methodName);
                     return Enumerable.Empty<Guid>();
                 }
 
@@ -180,8 +229,11 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
                 string sql = $@"SELECT Guid 
-                             FROM Components 
-                             WHERE LibraryId IN ({libraryParameters})";
+                                FROM Components 
+                                WHERE LibraryId IN ({libraryParameters})";
+
+                _logger.LogDebug("{Method} - Executing SQL: {Sql} with LibraryIds: {LibraryIds}",
+                    methodName, sql, string.Join(",", libraryIdList));
 
                 using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using SqlCommand command = new(sql, connection);
@@ -199,11 +251,17 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                     guids.Add(reader.GetGuid(reader.GetOrdinal("Guid")));
                 }
 
+                _logger.LogInformation("{Method} - Successfully retrieved {Count} Component GUIDs.", methodName, guids.Count);
                 return guids;
+            }
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "{Method} - SQL error occurred while retrieving GUIDs by Library IDs.", methodName);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving Component GUIDs by Library IDs.");
+                _logger.LogError(ex, "{Method} - Unexpected error occurred.", methodName);
                 throw;
             }
         }
@@ -221,56 +279,88 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
 
         private async Task<IEnumerable<Component>> ExecuteComponentReaderAsync(SqlCommand command)
         {
+            const string methodName = nameof(ExecuteComponentReaderAsync);
+
+            _logger.LogDebug("{Method} - Executing reader for command: {CommandText}", methodName, command.CommandText);
+
             List<Component> components = new();
-            using SqlDataReader reader = await command.ExecuteReaderAsync();
 
-            while (await reader.ReadAsync())
+            try
             {
-                components.Add(new Component
+                using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
                 {
-                    // Value Types
-                    Guid = reader.GetGuid(reader.GetOrdinal("Guid")),
-                    LibraryGuid = await _libraryCacheService.GetGuidByIdAsync(reader.GetInt32(reader.GetOrdinal("LibraryId"))),
-                    ComponentTypeGuid = reader.GetGuid(reader.GetOrdinal("ComponentTypeGuid")),
+                    try
+                    {
+                        var libraryId = reader.GetInt32(reader.GetOrdinal("LibraryId"));
+                        Guid libraryGuid = await _libraryCacheService.GetGuidByIdAsync(libraryId);
 
-                    IsHidden = reader.GetBoolean(reader.GetOrdinal("isHidden")),
-                    // Note: SQL Column is 'IsOverriden' (one d), Entity is 'IsOverridden' (two d's)
-                    IsOverridden = reader.GetBoolean(reader.GetOrdinal("IsOverriden")),
+                        components.Add(new Component
+                        {
+                            // Value Types
+                            Guid = reader.GetGuid(reader.GetOrdinal("Guid")),
+                            LibraryGuid = libraryGuid,
+                            ComponentTypeGuid = reader.GetGuid(reader.GetOrdinal("ComponentTypeGuid")),
 
+                            IsHidden = reader.GetBoolean(reader.GetOrdinal("isHidden")),
+                            // Note: SQL Column is 'IsOverriden' (one d), Entity is 'IsOverridden' (two d's)
+                            IsOverridden = reader.GetBoolean(reader.GetOrdinal("IsOverriden")),
 
-                    // Strings (Using DbValueExtensions for safety)
-                    Name = reader["Name"].ToSafeString(),
-                    ImagePath = reader["ImagePath"].ToSafeString(),
-                    Version = reader["Version"].ToSafeString(),
-                    Description = reader["Description"].ToSafeString(),
-                    ChineseDescription = reader["ChineseDescription"].ToSafeString(),
+                            // Strings (Using DbValueExtensions for safety)
+                            Name = reader["Name"].ToSafeString(),
+                            ImagePath = reader["ImagePath"].ToSafeString(),
+                            Version = reader["Version"].ToSafeString(),
+                            Description = reader["Description"].ToSafeString(),
+                            ChineseDescription = reader["ChineseDescription"].ToSafeString(),
 
-                    // List (Using DbValueExtensions)
-                    Labels = reader["Labels"].ToLabelList()
-                });
+                            // List (Using DbValueExtensions)
+                            Labels = reader["Labels"].ToLabelList()
+                        });
+                    }
+                    catch (Exception exRow)
+                    {
+                        _logger.LogError(exRow,
+                            "{Method} - Error mapping Component row. Skipping this row.", methodName);
+                        // You can choose to rethrow if you don't want partial results:
+                        // throw;
+                    }
+                }
+
+                _logger.LogDebug("{Method} - Successfully mapped {Count} components.", methodName, components.Count);
+                return components;
             }
-
-            return components;
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "{Method} - SQL error while executing component reader.", methodName);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Method} - Unexpected error while executing component reader.", methodName);
+                throw;
+            }
         }
 
         public async Task<IEnumerable<(Guid ComponentGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(IEnumerable<Guid> libraryIds)
         {
-            _logger.LogInformation("Starting GetGuidsAndLibraryGuidsAsync for {Count} libraries.", libraryIds?.Count() ?? 0);
+            const string methodName = nameof(GetGuidsAndLibraryGuidsAsync);
+
+            _logger.LogInformation("{Method} - Starting for {Count} library GUIDs.", methodName, libraryIds?.Count() ?? 0);
 
             try
             {
                 if (libraryIds == null || !libraryIds.Any())
                 {
-                    _logger.LogInformation("No library GUIDs provided. Returning empty result.");
+                    _logger.LogInformation("{Method} - No library GUIDs provided. Returning empty result.", methodName);
                     return Enumerable.Empty<(Guid ComponentGuid, Guid LibraryGuid)>();
                 }
 
-                // Convert library GUIDs to internal integer IDs using the cache service
                 HashSet<int> ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
 
                 if (!ids.Any())
                 {
-                    _logger.LogWarning("No matching Library IDs found for the provided GUIDs.");
+                    _logger.LogWarning("{Method} - No matching Library IDs found for the provided GUIDs.", methodName);
                     return Enumerable.Empty<(Guid ComponentGuid, Guid LibraryGuid)>();
                 }
 
@@ -278,10 +368,13 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                 string libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
                 string sql = $@"
-            SELECT c.Guid AS ComponentGuid, l.Guid AS LibraryGuid
-            FROM Components c
-            INNER JOIN Libraries l ON c.LibraryId = l.Id
-            WHERE c.LibraryId IN ({libraryParameters})";
+                    SELECT c.Guid AS ComponentGuid, l.Guid AS LibraryGuid
+                    FROM Components c
+                    INNER JOIN Libraries l ON c.LibraryId = l.Id
+                    WHERE c.LibraryId IN ({libraryParameters})";
+
+                _logger.LogDebug("{Method} - Executing SQL: {Sql} with LibraryIds: {LibraryIds}",
+                    methodName, sql, string.Join(",", libraryIdList));
 
                 using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using SqlCommand command = new(sql, connection);
@@ -302,12 +395,17 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                     results.Add((componentGuid, libraryGuid));
                 }
 
-                _logger.LogInformation("Successfully retrieved {Count} Component/Library GUID pairs.", results.Count);
+                _logger.LogInformation("{Method} - Successfully retrieved {Count} Component/Library GUID pairs.", methodName, results.Count);
                 return results;
+            }
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "{Method} - SQL error occurred while retrieving Component/Library GUID pairs for specified libraries.", methodName);
+                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving Component/Library GUID pairs for specified libraries.");
+                _logger.LogError(ex, "{Method} - Unexpected error occurred.", methodName);
                 throw;
             }
         }

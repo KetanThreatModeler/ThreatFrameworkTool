@@ -420,6 +420,56 @@ namespace ThreatFramework.Infrastructure.Index
                 }
             }
         }
+
+        public async Task<(int, int)> GetIntIdOfEntityAndLibIdByGuidAsync(Guid guid)
+        {
+            if (guid == Guid.Empty)
+                throw new ArgumentException("Guid must be a non-empty value.", nameof(guid));
+
+            using (_log.BeginScope("Operation: GetIntIdOfEntityAndLibIdByGuidAsync Guid={Guid}", guid))
+            {
+                // Ensure we have a valid index file path
+                var indexPath = ResolveIndexPathOrThrow(null);
+                EnsureIndexFileExistsOrThrow(indexPath);
+
+                // Load raw index entries (GuidIndex) from disk
+                var indices = await _reader
+                    .LoadAsync(indexPath)
+                    .ConfigureAwait(false);
+
+                var indexList = indices.ToList();
+
+                // 1) Find the entity row by Guid
+                var entityEntry = indexList.FirstOrDefault(e => e.Guid == guid);
+                if (entityEntry == null)
+                {
+                    _log.LogError(
+                        "No index entry found for Guid={Guid} in index file {Path}.",
+                        guid, indexPath);
+
+                    throw new KeyNotFoundException($"No index entry found for Guid={guid}.");
+                }
+
+                // 2) Resolve library int id from the library Guid using the in-memory index
+                var indexData = EnsureIndexLoaded();
+                if (!indexData.TryGetId(entityEntry.LibraryGuid, out var libraryIntId))
+                {
+                    _log.LogError(
+                        "Unable to resolve library int id for LibraryGuid={LibraryGuid} (entity Guid={Guid}).",
+                        entityEntry.LibraryGuid, guid);
+
+                    throw new KeyNotFoundException(
+                        $"No index entry found for LibraryGuid={entityEntry.LibraryGuid} (entity Guid={guid}).");
+                }
+
+                _log.LogDebug(
+                    "Resolved EntityId={EntityId} and LibraryIntId={LibraryIntId} for Guid={Guid}.",
+                    entityEntry.Id, libraryIntId, guid);
+
+                // Return (entityIntId, libraryIntId)
+                return (entityEntry.Id, libraryIntId);
+            }
+        }
         #endregion
     }
 }

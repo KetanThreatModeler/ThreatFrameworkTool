@@ -66,7 +66,7 @@ namespace ThreatFramework.Infrastructure.Repository
 
         private static string BuildMappingSelectQuery()
         {
-            return @"SELECT cpotm.Id, cpotm.isHidden, cpotm.IsOverridden, 
+            return @"SELECT cpotm.Id, cpotm.IsHidden, cpotm.IsOverridden, 
                             c.Guid as ComponentGuid, p.Guid as PropertyGuid, po.Guid as PropertyOptionGuid, t.Guid as ThreatGuid
                         FROM ComponentPropertyOptionThreatMapping cpotm
                         INNER JOIN ComponentPropertyOptionMapping cpom ON cpotm.ComponentPropertyOptionId = cpom.Id

@@ -15,7 +15,7 @@ namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.Global
                 throw new ArgumentNullException(nameof(componentType));
 
             var yaml = new YamlBuilder()
-                .AddChild("kind: component-type-template")
+                .AddChild("kind: component-type")
                 .AddQuoted("guid", componentType.Guid.ToString())
                 .AddQuoted("libraryGuid", componentType.LibraryGuid.ToString())
                 .AddQuoted("name", componentType.Name ?? string.Empty)

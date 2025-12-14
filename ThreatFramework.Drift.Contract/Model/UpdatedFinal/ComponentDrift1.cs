@@ -15,7 +15,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal
     public class ComponentDrift1
     {
         public List<AddedComponent1> Added { get; init; } = new();
-        public List<DeletedComponent1> Deleted { get; init; } = new();
+        public List<DeletedComponent1> Removed { get; init; } = new();
         public List<ModifiedComponent1> Modified { get; init; } = new();
     }
 

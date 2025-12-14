@@ -142,7 +142,6 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 drift.ModifiedLibraries.Add(new LibraryDrift
                 {
                     LibraryGuid = baseLib.Guid,
-                    LibraryName = targetLib.Name,
                     LibraryChanges = changedFields
                 });
 

@@ -127,6 +127,23 @@ namespace ThreatFramework.Infrastructure.Repository
             return guids;
         }
 
+        public async Task<IEnumerable<(Guid LibGuid, Guid LibraryGuid)>> GetLibraryGuidsWithLibGuidAsync()
+        {
+            List<Guid> guids = [];
+            using SqlConnection connection = await _connectionFactory.CreateOpenConnectionAsync();
+            string sql = @"SELECT Guid FROM Libraries";
+
+            using SqlCommand command = new(sql, connection);
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                guids.Add((Guid)reader["Guid"]);
+            }
+
+            return guids.Select(g => (LibGuid: g, LibraryGuid: g));
+        }
+
         public async Task<IEnumerable<Guid>> GetGuidsByLibraryIds(IEnumerable<Guid> libraryIds)
         {
             if (libraryIds == null || !libraryIds.Any())

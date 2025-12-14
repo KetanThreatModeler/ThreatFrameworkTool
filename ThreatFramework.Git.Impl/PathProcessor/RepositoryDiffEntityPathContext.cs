@@ -1,4 +1,8 @@
-﻿using ThreatModeler.TF.Git.Contract.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Git.Implementation.PathProcessor
@@ -20,90 +24,136 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
 
         #region Public API – Library definition
 
-        public EntityFileChangeSet GetLibraryFileChanges() =>
-            GetAggregatedLibraryEntityFileChanges(DomainEntityType.Library);
+        public EntityFileChangeSet GetLibraryFileChanges()
+        {
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.Library);
+        }
 
-        public IReadOnlyCollection<LibraryEntityFileChanges> GetLibraryFileChangesByLibrary() =>
-            GetLibraryEntityFileChanges(DomainEntityType.Library);
+        public IReadOnlyCollection<LibraryEntityFileChanges> GetLibraryFileChangesByLibrary()
+        {
+            return GetLibraryEntityFileChanges(DomainEntityType.Library);
+        }
 
         #endregion
 
         #region Public API – Library-specific entities (aggregated)
 
-        public EntityFileChangeSet GetComponentFileChanges() =>
-            GetAggregatedLibraryEntityFileChanges(DomainEntityType.Components);
+        public EntityFileChangeSet GetComponentFileChanges()
+        {
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.Components);
+        }
 
-        public EntityFileChangeSet GetSecurityRequirementFileChanges() =>
-            GetAggregatedLibraryEntityFileChanges(DomainEntityType.SecurityRequirements);
+        public EntityFileChangeSet GetSecurityRequirementFileChanges()
+        {
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.SecurityRequirements);
+        }
 
-        public EntityFileChangeSet GetTestCaseFileChanges() =>
-            GetAggregatedLibraryEntityFileChanges(DomainEntityType.TestCases);
+        public EntityFileChangeSet GetTestCaseFileChanges()
+        {
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.TestCases);
+        }
 
-        public EntityFileChangeSet GetThreatFileChanges() =>
-            GetAggregatedLibraryEntityFileChanges(DomainEntityType.Threats);
+        public EntityFileChangeSet GetThreatFileChanges()
+        {
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.Threats);
+        }
 
-        public EntityFileChangeSet GetPropertyFileChanges() =>
-            GetAggregatedLibraryEntityFileChanges(DomainEntityType.Properties);
+        public EntityFileChangeSet GetPropertyFileChanges()
+        {
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.Properties);
+        }
 
         #endregion
 
         #region Public API – Library-specific entities (library-wise)
 
-        public IReadOnlyCollection<LibraryEntityFileChanges> GetComponentFileChangesByLibrary() =>
-            GetLibraryEntityFileChanges(DomainEntityType.Components);
+        public IReadOnlyCollection<LibraryEntityFileChanges> GetComponentFileChangesByLibrary()
+        {
+            return GetLibraryEntityFileChanges(DomainEntityType.Components);
+        }
 
-        public IReadOnlyCollection<LibraryEntityFileChanges> GetSecurityRequirementFileChangesByLibrary() =>
-            GetLibraryEntityFileChanges(DomainEntityType.SecurityRequirements);
+        public IReadOnlyCollection<LibraryEntityFileChanges> GetSecurityRequirementFileChangesByLibrary()
+        {
+            return GetLibraryEntityFileChanges(DomainEntityType.SecurityRequirements);
+        }
 
-        public IReadOnlyCollection<LibraryEntityFileChanges> GetTestCaseFileChangesByLibrary() =>
-            GetLibraryEntityFileChanges(DomainEntityType.TestCases);
+        public IReadOnlyCollection<LibraryEntityFileChanges> GetTestCaseFileChangesByLibrary()
+        {
+            return GetLibraryEntityFileChanges(DomainEntityType.TestCases);
+        }
 
-        public IReadOnlyCollection<LibraryEntityFileChanges> GetThreatFileChangesByLibrary() =>
-            GetLibraryEntityFileChanges(DomainEntityType.Threats);
+        public IReadOnlyCollection<LibraryEntityFileChanges> GetThreatFileChangesByLibrary()
+        {
+            return GetLibraryEntityFileChanges(DomainEntityType.Threats);
+        }
 
-        public IReadOnlyCollection<LibraryEntityFileChanges> GetPropertyFileChangesByLibrary() =>
-            GetLibraryEntityFileChanges(DomainEntityType.Properties);
+        public IReadOnlyCollection<LibraryEntityFileChanges> GetPropertyFileChangesByLibrary()
+        {
+            return GetLibraryEntityFileChanges(DomainEntityType.Properties);
+        }
 
         #endregion
 
         #region Public API – Global entities
 
-        public EntityFileChangeSet GetComponentTypeFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentType);
+        public EntityFileChangeSet GetComponentTypeFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentType);
+        }
 
-        public EntityFileChangeSet GetPropertyTypeFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.PropertyType);
+        public EntityFileChangeSet GetPropertyTypeFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.PropertyType);
+        }
 
-        public EntityFileChangeSet GetPropertyOptionsFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.PropertyOptions);
+        public EntityFileChangeSet GetPropertyOptionsFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.PropertyOptions);
+        }
 
         #endregion
 
         #region Public API – Mapping entities
 
-        public EntityFileChangeSet GetComponentPropertyMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentProperty);
+        public EntityFileChangeSet GetComponentPropertyMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentProperty);
+        }
 
-        public EntityFileChangeSet GetComponentPropertyOptionsMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentPropertyOptions);
+        public EntityFileChangeSet GetComponentPropertyOptionsMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentPropertyOptions);
+        }
 
-        public EntityFileChangeSet GetComponentPropertyOptionThreatsMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentPropertyOptionThreats);
+        public EntityFileChangeSet GetComponentPropertyOptionThreatsMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentPropertyOptionThreats);
+        }
 
-        public EntityFileChangeSet GetComponentPropertyOptionThreatSecurityRequirementsMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentPropertyOptionThreatSecurityRequirements);
+        public EntityFileChangeSet GetComponentPropertyOptionThreatSecurityRequirementsMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentPropertyOptionThreatSecurityRequirements);
+        }
 
-        public EntityFileChangeSet GetComponentThreatMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentThreat);
+        public EntityFileChangeSet GetComponentThreatMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentThreat);
+        }
 
-        public EntityFileChangeSet GetComponentThreatSecurityRequirementsMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentThreatSecurityRequirements);
+        public EntityFileChangeSet GetComponentThreatSecurityRequirementsMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentThreatSecurityRequirements);
+        }
 
-        public EntityFileChangeSet GetComponentSecurityRequirementsMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ComponentSecurityRequirements);
+        public EntityFileChangeSet GetComponentSecurityRequirementsMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ComponentSecurityRequirements);
+        }
 
-        public EntityFileChangeSet GetThreatSecurityRequirementsMappingFileChanges() =>
-            GetGlobalEntityFileChanges(DomainEntityType.ThreatSecurityRequirements);
+        public EntityFileChangeSet GetThreatSecurityRequirementsMappingFileChanges()
+        {
+            return GetGlobalEntityFileChanges(DomainEntityType.ThreatSecurityRequirements);
+        }
 
         #endregion
 
@@ -111,9 +161,16 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
 
         private sealed class RelativeChangeAccumulator
         {
-            public List<string> Added { get; } = new();
-            public List<string> Deleted { get; } = new();
-            public List<string> Modified { get; } = new();
+            public List<string> Added { get; } = new List<string>();
+            public List<string> Deleted { get; } = new List<string>();
+            public List<string> Modified { get; } = new List<string>();
+        }
+
+        private enum ChangeType
+        {
+            Added,
+            Deleted,
+            Modified
         }
 
         private Dictionary<(string? libraryId, DomainEntityType entityType), RelativeChangeAccumulator>
@@ -121,71 +178,54 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
         {
             var map = new Dictionary<(string? libraryId, DomainEntityType entityType), RelativeChangeAccumulator>();
 
-            void AccumulateFromStrings(IEnumerable<string> paths, Action<RelativeChangeAccumulator, string> addAction)
-            {
-                foreach (var relativePath in paths ?? Enumerable.Empty<string>())
-                {
-                    if (string.IsNullOrWhiteSpace(relativePath))
-                    {
-                        continue;
-                    }
-
-                    var info = _pathClassifier.Classify(relativePath);
-                    if (info.EntityType == DomainEntityType.Unknown)
-                    {
-                        continue;
-                    }
-
-                    var key = (info.LibraryId, info.EntityType);
-
-                    if (!map.TryGetValue(key, out var acc))
-                    {
-                        acc = new RelativeChangeAccumulator();
-                        map[key] = acc;
-                    }
-
-                    addAction(acc, relativePath);
-                }
-            }
-
-            void AccumulateFromModified(
-                IEnumerable<ThreatModeler.TF.Git.Contract.PathProcessor.ModifiedFilePathInfo> modifiedItems,
-                Action<RelativeChangeAccumulator, string> addAction)
-            {
-                foreach (var item in modifiedItems ?? Enumerable.Empty<ThreatModeler.TF.Git.Contract.PathProcessor.ModifiedFilePathInfo>())
-                {
-                    if (item == null || string.IsNullOrWhiteSpace(item.RelativePath))
-                    {
-                        continue;
-                    }
-
-                    var relativePath = item.RelativePath;
-                    var info = _pathClassifier.Classify(relativePath);
-                    if (info.EntityType == DomainEntityType.Unknown)
-                    {
-                        continue;
-                    }
-
-                    var key = (info.LibraryId, info.EntityType);
-
-                    if (!map.TryGetValue(key, out var acc))
-                    {
-                        acc = new RelativeChangeAccumulator();
-                        map[key] = acc;
-                    }
-
-                    addAction(acc, relativePath);
-                }
-            }
-
-            // Added / Deleted are relative strings
-            AccumulateFromStrings(_diff.AddedPaths, (acc, p) => acc.Added.Add(p));
-            AccumulateFromStrings(_diff.DeletedPaths, (acc, p) => acc.Deleted.Add(p));
-
-            // Modified are string (from previous changes)
-            AccumulateFromStrings(_diff.ModifiedPaths, (acc, p) => acc.Modified.Add(p));
+            // Added / Deleted / Modified are all relative strings
+            AddStringPathsToMap(_diff.AddedPaths, map, ChangeType.Added);
+            AddStringPathsToMap(_diff.DeletedPaths, map, ChangeType.Deleted);
+            AddStringPathsToMap(_diff.ModifiedPaths, map, ChangeType.Modified);
 
             return map;
+        }
+
+        private void AddStringPathsToMap(
+            IEnumerable<string> paths,
+            Dictionary<(string? libraryId, DomainEntityType entityType), RelativeChangeAccumulator> map,
+            ChangeType changeType)
+        {
+            var safePaths = paths ?? Enumerable.Empty<string>();
+
+            foreach (var relativePath in safePaths)
+            {
+                if (string.IsNullOrWhiteSpace(relativePath))
+                {
+                    continue;
+                }
+
+                var info = _pathClassifier.Classify(relativePath);
+                if (info.EntityType == DomainEntityType.Unknown)
+                {
+                    continue;
+                }
+
+                var key = (info.LibraryId, info.EntityType);
+                if (!map.TryGetValue(key, out var accumulator))
+                {
+                    accumulator = new RelativeChangeAccumulator();
+                    map[key] = accumulator;
+                }
+
+                switch (changeType)
+                {
+                    case ChangeType.Added:
+                        accumulator.Added.Add(relativePath);
+                        break;
+                    case ChangeType.Deleted:
+                        accumulator.Deleted.Add(relativePath);
+                        break;
+                    case ChangeType.Modified:
+                        accumulator.Modified.Add(relativePath);
+                        break;
+                }
+            }
         }
 
         private IReadOnlyCollection<LibraryEntityFileChanges> GetLibraryEntityFileChanges(
@@ -196,21 +236,26 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
 
             foreach (var kvp in relativeMap)
             {
-                var (libraryId, type) = kvp.Key;
+                var key = kvp.Key;
+                var libraryId = key.libraryId;
+                var type = key.entityType;
+
                 if (type != entityType || string.IsNullOrWhiteSpace(libraryId))
                 {
                     continue;
                 }
 
-                var acc = kvp.Value;
+                var accumulator = kvp.Value;
                 var absoluteSet = new EntityFileChangeSet();
 
-                foreach (var relative in acc.Added)
+                // Added
+                foreach (var relative in accumulator.Added)
                 {
                     absoluteSet.AddedFilePaths.Add(ToBaseAbsolutePath(relative));
                 }
 
-                foreach (var relative in acc.Modified)
+                // Modified
+                foreach (var relative in accumulator.Modified)
                 {
                     var basePath = ToBaseAbsolutePath(relative);
                     var targetPath = ToTargetAbsolutePath(relative);
@@ -219,7 +264,8 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
                         new ModifiedFilePathInfo(relative, basePath, targetPath));
                 }
 
-                foreach (var relative in acc.Deleted)
+                // Deleted
+                foreach (var relative in accumulator.Deleted)
                 {
                     absoluteSet.DeletedFilePaths.Add(ToTargetAbsolutePath(relative));
                 }
@@ -238,20 +284,24 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
 
             foreach (var kvp in relativeMap)
             {
-                var (_, type) = kvp.Key;
+                var key = kvp.Key;
+                var type = key.entityType;
+
                 if (type != entityType)
                 {
                     continue;
                 }
 
-                var acc = kvp.Value;
+                var accumulator = kvp.Value;
 
-                foreach (var relative in acc.Added)
+                // Added
+                foreach (var relative in accumulator.Added)
                 {
                     result.AddedFilePaths.Add(ToBaseAbsolutePath(relative));
                 }
 
-                foreach (var relative in acc.Modified)
+                // Modified
+                foreach (var relative in accumulator.Modified)
                 {
                     var basePath = ToBaseAbsolutePath(relative);
                     var targetPath = ToTargetAbsolutePath(relative);
@@ -260,7 +310,8 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
                         new ModifiedFilePathInfo(relative, basePath, targetPath));
                 }
 
-                foreach (var relative in acc.Deleted)
+                // Deleted
+                foreach (var relative in accumulator.Deleted)
                 {
                     result.DeletedFilePaths.Add(ToTargetAbsolutePath(relative));
                 }
@@ -277,20 +328,26 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
 
             foreach (var kvp in relativeMap)
             {
-                var (libraryId, type) = kvp.Key;
+                var key = kvp.Key;
+                var libraryId = key.libraryId;
+                var type = key.entityType;
+
+                // Global entities have no library id (null)
                 if (type != entityType || libraryId != null)
                 {
                     continue;
                 }
 
-                var acc = kvp.Value;
+                var accumulator = kvp.Value;
 
-                foreach (var relative in acc.Added)
+                // Added
+                foreach (var relative in accumulator.Added)
                 {
                     changes.AddedFilePaths.Add(ToBaseAbsolutePath(relative));
                 }
 
-                foreach (var relative in acc.Modified)
+                // Modified
+                foreach (var relative in accumulator.Modified)
                 {
                     var basePath = ToBaseAbsolutePath(relative);
                     var targetPath = ToTargetAbsolutePath(relative);
@@ -299,7 +356,8 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
                         new ModifiedFilePathInfo(relative, basePath, targetPath));
                 }
 
-                foreach (var relative in acc.Deleted)
+                // Deleted
+                foreach (var relative in accumulator.Deleted)
                 {
                     changes.DeletedFilePaths.Add(ToTargetAbsolutePath(relative));
                 }
@@ -332,8 +390,10 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
             return Path.Combine(_diff.TargetRepositoryPath, NormalizePath(relativePath));
         }
 
-        private static string NormalizePath(string relativePath) =>
-            relativePath.Replace('/', Path.DirectorySeparatorChar);
+        private static string NormalizePath(string relativePath)
+        {
+            return relativePath.Replace('/', Path.DirectorySeparatorChar);
+        }
 
         #endregion
     }

@@ -68,5 +68,8 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
         public IComponentPropertyOptionMappingRepository ComponentPropertyOptionMappings { get; }
         public IComponentPropertyOptionThreatMappingRepository ComponentPropertyOptionThreatMappings { get; }
         public IComponentPropertyOptionThreatSecurityRequirementMappingRepository ComponentPropertyOptionThreatSecurityRequirementMappings { get; }
+
+        public IRiskRepository Risks { get; }
+    
     }
 }

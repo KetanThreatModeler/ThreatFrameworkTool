@@ -25,5 +25,6 @@ namespace ThreatModeler.TF.Infra.Contract.Repository
         IComponentPropertyOptionThreatSecurityRequirementMappingRepository ComponentPropertyOptionThreatSecurityRequirementMappings { get; }
         IComponentTypeRepository ComponentTypes { get; }
         IPropertyTypeRepository PropertyTypes { get; }
+        IRiskRepository Risks { get; }
     }
 }

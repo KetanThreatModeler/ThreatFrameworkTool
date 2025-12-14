@@ -9,6 +9,5 @@ namespace ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto
     public class SRMappingDto
     {
         public Guid SecurityRequirementId { get; set; }
-        public string SecurityRequirementName { get; set; } = string.Empty;
     }
 }

@@ -14,8 +14,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal
     public class LibraryDrift1
     {
 
-        public Guid LibraryGuid { get; init; }
-        public string LibraryName { get; init; } = string.Empty;
+        public Library library { get; init; }
         public List<FieldChange> LibraryChanges { get; init; } = new();
         public ComponentDrift1 Components { get; init; } = new();
         public ThreatDrift1 Threats { get; init; } = new();
@@ -56,20 +55,25 @@ namespace ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal
     public class AddedThreat1
     {
         public Threat Threat { get; init; }
-        public List<SecurityRequirement> SecurityRequirementsAdded { get; init; } = new();
+        public ThreatMappingCollection1 Added{ get; init; } = new();
     }
 
     public class DeletedThreat1
     {
         public Threat Threat { get; init; }
-        public List<SecurityRequirement> SecurityRequirementRemoved { get; init; } = new();
+        public ThreatMappingCollection1 Removed { get; init; } = new();
     }
 
     public class ModifiedThreat1
     {
         public Threat Threat { get; init; }
         public List<FieldChange> ChangedFields { get; set; } = new();
-        public List<SecurityRequirement> SecurityRequirementAdded { get; init; } = new();
-        public List<SecurityRequirement> SecurityRequirementRemoved { get; init; } = new();
+        public ThreatMappingCollection1 Added { get; init; } = new();
+        public ThreatMappingCollection1 Removed { get; init; } = new();
+    }
+
+    public class ThreatMappingCollection1
+    {
+        public List<SecurityRequirement> SecurityRequirement { get; init; } = new();
     }
 }

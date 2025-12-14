@@ -84,10 +84,10 @@ namespace ThreatFramework.Infrastructure.Index
                     FetchAllScopedAsync(hub, repo => repo.Threats.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.Threat),
                     FetchAllScopedAsync(hub, repo => repo.Testcases.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.TestCase),
                     FetchAllScopedAsync(hub, repo => repo.SecurityRequirements.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.SecurityRequirement),
-                    FetchAllScopedAsync(hub, repo => repo.Properties.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.Property),
+                    FetchAllScopedAsync(hub, repo => repo.Properties.GetGuidsAndLibraryGuidsAsync(), EntityType.Property),
                     
                     // B. The Libraries themselves
-                    FetchAllScopedAsync(hub, repo => repo.Libraries.GetGuidsAndLibraryGuidsAsync(libIdList), EntityType.Library),
+                    FetchAllScopedAsync(hub, repo => repo.Libraries.GetLibraryGuidsWithLibGuidAsync(), EntityType.Library),
 
                     FetchAllGlobalAsync(hub, repo => repo.PropertyTypes.GetAllPropertyTypeGuidsAsync(), EntityType.PropertyType),
                     FetchAllGlobalAsync(hub, repo => repo.PropertyOptions.GetAllPropertyOptionGuidsAsync(), EntityType.PropertyOption),

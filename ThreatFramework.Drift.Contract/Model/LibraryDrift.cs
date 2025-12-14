@@ -8,10 +8,9 @@ namespace ThreatFramework.Drift.Contract.Model
     public class LibraryDrift
     {
         public Guid LibraryGuid { get; init; }
-        public string LibraryName { get; init; } = string.Empty;
         public List<FieldChange> LibraryChanges { get; init; } = new();
         public ComponentDrift Components { get; init; } = new();
-        public EntityDiff<Threat> Threats { get; init; } = new();
+        public ThreatDrift Threats { get; set; } = new();
         public EntityDiff<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public EntityDiff<TestCase> TestCases { get; init; } = new();
         public EntityDiff<Property> Properties { get; init; } = new();

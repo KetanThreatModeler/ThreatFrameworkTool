@@ -17,12 +17,8 @@ namespace ThreatFramework.Drift.Contract.MappingDriftService.Model
         }
 
         public Guid PropertyId { get; set;}
-        public string PropertyName { get; set; } = string.Empty;
         public Guid PropertyOptionId { get; set;}
-        public string PropertyOptionName { get; set; } = string.Empty;
         public Guid ThreatId { get; set;}
-        public string ThreatName { get; set; } = string.Empty;
         public Guid SRId { get; set;}
-        public string SRName { get; set; } = string.Empty;
     }
 }

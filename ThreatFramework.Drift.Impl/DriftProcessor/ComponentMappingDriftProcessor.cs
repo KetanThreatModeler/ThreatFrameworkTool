@@ -22,9 +22,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
             ComponentThreat,
             ComponentThreatSecurityRequirement,
             ComponentProperty,
-            ComponentPropertyOptions,
-            ComponentPropertyOptionThreats,
-            ComponentPropertyOptionThreatSecurityRequirements
+            ComponentPropertyOption,
+            ComponentPropertyOptionThreat,
+            ComponentPropertyOptionThreatSecurityRequirement
         }
 
         private sealed class ComponentMappingChangeBucket
@@ -115,24 +115,25 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 guidIndexService,
                 logger);
 
+            
             AccumulateMappingChangeSet(
                 buckets,
                 pathContext.GetComponentPropertyOptionsMappingFileChanges(),
-                ComponentMappingType.ComponentPropertyOptions,
+                ComponentMappingType.ComponentPropertyOption,
                 guidIndexService,
                 logger);
 
             AccumulateMappingChangeSet(
                 buckets,
                 pathContext.GetComponentPropertyOptionThreatsMappingFileChanges(),
-                ComponentMappingType.ComponentPropertyOptionThreats,
+                ComponentMappingType.ComponentPropertyOptionThreat,
                 guidIndexService,
                 logger);
 
             AccumulateMappingChangeSet(
                 buckets,
                 pathContext.GetComponentPropertyOptionThreatSecurityRequirementsMappingFileChanges(),
-                ComponentMappingType.ComponentPropertyOptionThreatSecurityRequirements,
+                ComponentMappingType.ComponentPropertyOptionThreatSecurityRequirement,
                 guidIndexService,
                 logger);
 
@@ -281,7 +282,6 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                             new SRMappingDto
                             {
                                 SecurityRequirementId = srGuid,
-                                SecurityRequirementName = string.Empty
                             });
                     }
                     break;
@@ -323,7 +323,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     }
                     break;
 
-                case ComponentMappingType.ComponentPropertyOptions:
+                case ComponentMappingType.ComponentPropertyOption:
                     // component-property-options: comp_prop_propOpt.yaml → [comp, prop, opt]
                     if (ids.Length >= 3)
                     {
@@ -339,7 +339,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     }
                     break;
 
-                case ComponentMappingType.ComponentPropertyOptionThreats:
+                case ComponentMappingType.ComponentPropertyOptionThreat:
                     // component-property-option-threats: comp_prop_opt_threat.yaml → [comp, prop, opt, threat]
                     if (ids.Length >= 4)
                     {
@@ -356,7 +356,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     }
                     break;
 
-                case ComponentMappingType.ComponentPropertyOptionThreatSecurityRequirements:
+                case ComponentMappingType.ComponentPropertyOptionThreatSecurityRequirement:
                     // component-property-option-threat-security-requirements: comp_prop_opt_threat_sr.yaml
                     if (ids.Length >= 5)
                     {
@@ -714,8 +714,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
             var newDrift = new LibraryDrift
             {
-                LibraryGuid = libraryGuid,
-                LibraryName = string.Empty
+                LibraryGuid = libraryGuid
             };
 
             drift.ModifiedLibraries.Add(newDrift);

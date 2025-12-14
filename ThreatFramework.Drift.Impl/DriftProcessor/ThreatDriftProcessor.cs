@@ -1,9 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
@@ -67,7 +62,10 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
                 if (addedLib != null)
                 {
-                    addedLib.Threats.Add(threat);
+                    addedLib.Threats.Add(new AddedThreat
+                    {
+                        Threat = threat
+                    });
 
                     logger.LogInformation(
                         "Added Threat {ThreatGuid} attached to AddedLibrary {LibraryGuid}.",
@@ -80,7 +78,10 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 // 2) Otherwise under LibraryDrift.Threats.Added
                 var libDrift = GetOrCreateLibraryDrift(drift, threat.LibraryGuid, logger);
 
-                libDrift.Threats.Added.Add(threat);
+                libDrift.Threats.Added.Add(new AddedThreat
+                {
+                    Threat = threat
+                });
 
                 logger.LogInformation(
                     "Added Threat {ThreatGuid} attached to LibraryDrift.Threats.Added for Library {LibraryGuid}.",
@@ -124,7 +125,10 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
                 if (deletedLib != null)
                 {
-                    deletedLib.Threats.Add(threat);
+                    deletedLib.Threats.Add(new RemovedThreat
+                    {
+                        Threat = threat
+                    });
 
                     logger.LogInformation(
                         "Deleted Threat {ThreatGuid} attached to DeletedLibrary {LibraryGuid}.",
@@ -137,7 +141,10 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 // 2) Otherwise under LibraryDrift.Threats.Removed
                 var libDrift = GetOrCreateLibraryDrift(drift, threat.LibraryGuid, logger);
 
-                libDrift.Threats.Removed.Add(threat);
+                libDrift.Threats.Removed.Add(new RemovedThreat
+                {
+                    Threat = threat
+                });
 
                 logger.LogInformation(
                     "Deleted Threat {ThreatGuid} attached to LibraryDrift.Threats.Removed for Library {LibraryGuid}.",
@@ -224,14 +231,11 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 // Always belong to a modified library (create if needed)
                 var libDrift = GetOrCreateLibraryDrift(drift, targetThreat.LibraryGuid, logger);
 
-                var modifiedEntity = new ModifiedEntity<Threat>
+                libDrift.Threats.Modified.Add(new ModifiedThreat
                 {
-                    EntityKey = targetThreat.Guid.ToString(),
-                    EntityName = targetThreat.Name,
-                    ModifiedFields = changedFields,
-                };
-
-                libDrift.Threats.Modified.Add(modifiedEntity);
+                    Threat = targetThreat,
+                    ChangedFields = changedFields
+                });
 
                 logger.LogInformation(
                     "Modified Threat {ThreatGuid} attached to LibraryDrift.Threats.Modified for Library {LibraryGuid}.",
@@ -321,8 +325,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
             var newDrift = new LibraryDrift
             {
-                LibraryGuid = libraryGuid,
-                LibraryName = string.Empty
+                LibraryGuid = libraryGuid
             };
 
             drift.ModifiedLibraries.Add(newDrift);

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 using ThreatFramework.Core;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.Model;
@@ -8,7 +7,9 @@ using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
+using ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal;
 using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor;
+using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Global;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
@@ -17,37 +18,32 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 {
     public class FinalDriftService : IFinalDriftService
     {
-        private readonly IGitService _gitService;
-        private readonly IYamlFileGeneratorForClient _yamlFileGeneratorForClient;
         private readonly ILogger<FinalDriftService> _logger;
-        private readonly GitSettings _gitSettings;
         private readonly PathOptions _pathOptions;
         private readonly ILibraryScopedDiffService _libraryScopedDiffService;
         private readonly IRepositoryDiffEntityPathService _repositoryDiffEntityPathService;
         private readonly IYamlReaderRouter _yamlReaderRouter;
         private readonly EntityDriftAggregationOptions _driftOptions;
         private readonly IGuidIndexService _guidIndexService;
+        private readonly ITMFrameworkDriftConverter _tMFrameworkDriftConverter;
 
         public FinalDriftService(
-            IGitService gitService,
             IYamlFileGeneratorForClient yamlFileGeneratorForClient,
-            IOptions<GitSettings> gitOptions,
             IOptions<PathOptions> pathOptions,
             ILibraryScopedDiffService libraryScopedDiffService,
             IYamlReaderRouter yamlReaderRouter,
             IRepositoryDiffEntityPathService repositoryDiffEntityPathService,
             IGuidIndexService guidIndexService,
+            ITMFrameworkDriftConverter tMFrameworkDriftConverter,
             ILogger<FinalDriftService> logger)
         {
-            _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
-            _yamlFileGeneratorForClient = yamlFileGeneratorForClient ?? throw new ArgumentNullException(nameof(yamlFileGeneratorForClient));
-            _gitSettings = gitOptions?.Value ?? throw new ArgumentNullException(nameof(gitOptions));
             _pathOptions = pathOptions?.Value ?? throw new ArgumentNullException(nameof(pathOptions));
             _libraryScopedDiffService = libraryScopedDiffService ?? throw new ArgumentNullException(nameof(libraryScopedDiffService));
             _repositoryDiffEntityPathService = repositoryDiffEntityPathService ?? throw new ArgumentNullException(nameof(repositoryDiffEntityPathService));
             _yamlReaderRouter = yamlReaderRouter ?? throw new ArgumentNullException(nameof(yamlReaderRouter));
             _driftOptions = new EntityDriftAggregationOptions();
             _guidIndexService = guidIndexService ?? throw new ArgumentNullException(nameof(guidIndexService));
+            _tMFrameworkDriftConverter = tMFrameworkDriftConverter ?? throw new ArgumentNullException(nameof(tMFrameworkDriftConverter));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -75,8 +71,14 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 
             _logger.LogInformation("Processing diff report to create TMFrameworkDrift...");
             IRepositoryDiffEntityPathContext ctx = _repositoryDiffEntityPathService.Create(folderDiffReport);
-            _ = ctx.GetLibraryFileChanges();
-
+            
+            var mappingDiff0 = ctx.GetComponentPropertyMappingFileChanges();
+            var mappingDiff1 = ctx.GetComponentPropertyOptionsMappingFileChanges();
+            var mappingDiff2 = ctx.GetComponentPropertyOptionThreatsMappingFileChanges();
+            var mappingDiff3 = ctx.GetComponentPropertyOptionThreatSecurityRequirementsMappingFileChanges();
+            var mappingDiff4 = ctx.GetComponentThreatMappingFileChanges();
+            var mappingDiff5 = ctx.GetComponentThreatSecurityRequirementsMappingFileChanges();
+            var mappingDiff6 = ctx.GetComponentSecurityRequirementsMappingFileChanges();
 
             TMFrameworkDrift drift = new();
             await LibraryDriftProcessor.ProcessAsync(
@@ -93,6 +95,19 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 _driftOptions,
                 _logger);
 
+            await PropertyOptionDriftProcessor.ProcessAsync(
+                drift,
+                ctx.GetPropertyOptionsFileChanges(),
+                _yamlReaderRouter,
+                _driftOptions,
+                _logger);
+
+            await PropertyTypeDriftProcessor.ProcessAsync(
+                drift,
+                ctx.GetPropertyTypeFileChanges(),
+                _yamlReaderRouter,
+                _driftOptions,
+                _logger);
 
             await PropertyDriftProcessor.ProcessAsync(
                 drift,
@@ -116,6 +131,13 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 _driftOptions,
                 _logger);
 
+            await ComponentTypeDriftProcessor.ProcessAsync(
+               drift,
+               ctx.GetComponentTypeFileChanges(),
+               _yamlReaderRouter,
+               _driftOptions,
+               _logger);
+
             await ComponentDriftProcessor.ProcessAsync(
                 drift,
                 ctx.GetComponentFileChanges(),
@@ -130,8 +152,21 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 libraryIds,
                 _logger);
 
+            await ThreatMappingDriftProcessor.ProcessAsync(
+                drift,
+                ctx,
+                _guidIndexService,
+                libraryIds,
+                _logger);
 
             return drift;
+        }
+
+        public async Task<TMFrameworkDrift1> DriftAsync1(IEnumerable<Guid> libraryIds, CancellationToken cancellationToken = default)
+        {
+            var temp = await DriftAsync(libraryIds, cancellationToken);
+            return await _tMFrameworkDriftConverter.ConvertAsync(temp);
+
         }
     }
 }

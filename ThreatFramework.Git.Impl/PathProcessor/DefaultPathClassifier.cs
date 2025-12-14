@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ThreatModeler.TF.Git.Contract.Common;
 using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
@@ -77,35 +73,35 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
         private static DomainEntityType MapLibraryFolderToEntity(string folderName) =>
             folderName switch
             {
-                "components" => DomainEntityType.Components,
-                "security-requirements" => DomainEntityType.SecurityRequirements,
-                "testcases" => DomainEntityType.TestCases,
-                "threats" => DomainEntityType.Threats,
-                "properties" => DomainEntityType.Properties,
+                FolderNames.Components => DomainEntityType.Components,
+                FolderNames.SecurityRequirements => DomainEntityType.SecurityRequirements,
+                FolderNames.TestCases => DomainEntityType.TestCases,
+                FolderNames.Threats => DomainEntityType.Threats,
+                FolderNames.Properties => DomainEntityType.Properties,
                 _ => DomainEntityType.Unknown
             };
 
         private static DomainEntityType MapGlobalFolderToEntity(string folderName) =>
             folderName.ToLowerInvariant() switch
             {
-                "component-type" => DomainEntityType.ComponentType,
-                "property-type" => DomainEntityType.PropertyType,
-                "property-options" => DomainEntityType.PropertyOptions,
+                FolderNames.ComponentType => DomainEntityType.ComponentType,
+                FolderNames.PropertyType => DomainEntityType.PropertyType,
+                FolderNames.PropertyOptions => DomainEntityType.PropertyOptions,
                 _ => DomainEntityType.Unknown
             };
 
         private static DomainEntityType MapMappingFolderToEntity(string folderName) =>
             folderName.ToLowerInvariant() switch
             {
-                "component-property" => DomainEntityType.ComponentProperty,
-                "component-property-options" => DomainEntityType.ComponentPropertyOptions,
-                "component-property-option-threats" => DomainEntityType.ComponentPropertyOptionThreats,
-                "component-property-option-threat-security-requirements"
+                FolderNames.ComponentProperty => DomainEntityType.ComponentProperty,
+                FolderNames.ComponentPropertyOption => DomainEntityType.ComponentPropertyOptions,
+                FolderNames.ComponentPropertyOptionThreat => DomainEntityType.ComponentPropertyOptionThreats,
+                FolderNames.ComponentPropertyOptionThreatSecurityRequirement
                                                                     => DomainEntityType.ComponentPropertyOptionThreatSecurityRequirements,
-                "component-threat" => DomainEntityType.ComponentThreat,
-                "component-threat-security-requirements" => DomainEntityType.ComponentThreatSecurityRequirements,
-                "component-security-requirements" => DomainEntityType.ComponentSecurityRequirements,
-                "threat-security-requirements" => DomainEntityType.ThreatSecurityRequirements,
+                FolderNames.ComponentThreat => DomainEntityType.ComponentThreat,
+                FolderNames.ComponentThreatSecurityRequirement => DomainEntityType.ComponentThreatSecurityRequirements,
+                FolderNames.ComponentSecurityRequirement => DomainEntityType.ComponentSecurityRequirements,
+                FolderNames.ThreatSecurityRequirement => DomainEntityType.ThreatSecurityRequirements,
                 _ => DomainEntityType.Unknown
             };
     }

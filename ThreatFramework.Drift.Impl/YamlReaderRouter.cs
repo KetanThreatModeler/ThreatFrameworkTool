@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
@@ -19,7 +17,6 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         private readonly IYamlComponentReader _componentReader;
         private readonly IYamlTestcaseReader _testcaseReader;
         private readonly IYamlPropertyReader _propertyReader;
-        private readonly IYamlPropertyOptionReader _propertyOptionReader;
         private readonly IYamlLibraryReader _libraryReader;
         private readonly IYamlSecurityRequirementReader _securityRequirementReader;
         private readonly IYamlComponentPropertyReader _yamlComponentPropertyReader;
@@ -30,7 +27,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         private readonly IYamlComponentThreatSRReader _yamlThreatSecurityRequirementReader;
         private readonly IYamlComponentSRReader _yamlComponentSRReader;
         private readonly IYamlThreatSrReader _yamlThreatSrReader;
-
+        private readonly IYamlPropertyTypeReader _yamlPropertyTypeReader;
+        private readonly IYamlComponentTypeReader _yamlComponentTypeReader;
+        private readonly IYamlPropertyOptionReader _propertyOptionReader;
 
         public YamlReaderRouter(
             IYamlThreatReader threatReader,
@@ -46,7 +45,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             IYamlComponentThreatReader yamlComponentThreatReader,
             IYamlComponentThreatSRReader yamlThreatSecurityRequirementReader,
             IYamlComponentSRReader yamlComponentSRReader,
-            IYamlThreatSrReader yamlThreatSrReader)
+            IYamlThreatSrReader yamlThreatSrReader,
+            IYamlPropertyTypeReader yamlPropertyTypeReader,
+            IYamlComponentTypeReader yamlComponentTypeReader)
         {
             _threatReader = threatReader;
             _componentReader = componentReader;
@@ -62,27 +63,80 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             _yamlThreatSecurityRequirementReader = yamlThreatSecurityRequirementReader;
             _yamlComponentSRReader = yamlComponentSRReader;
             _yamlThreatSrReader = yamlThreatSrReader;
+            _yamlPropertyTypeReader = yamlPropertyTypeReader;
+            _yamlComponentTypeReader = yamlComponentTypeReader;
         }
 
-        public Task<IEnumerable<Threat>> ReadThreatsAsync(IEnumerable<string> filePaths)
-            => _threatReader.GetThreatsFromFilesAsync(filePaths);
+        // -------- multi-file --------
 
-        public Task<IEnumerable<Component>> ReadComponentsAsync(IEnumerable<string> filePaths)
-            => _componentReader.GetComponentsFromFilesAsync(filePaths);
+        public async Task<IEnumerable<Threat>> ReadThreatsAsync(IEnumerable<string> filePaths)
+            => await _threatReader.GetThreatsFromFilesAsync(filePaths);
 
-        public Task<IEnumerable<SecurityRequirement>> ReadSecurityRequirementsAsync(IEnumerable<string> filePaths)
-            => _securityRequirementReader.GetSecurityRequirementsFromFilesAsync(filePaths);// add reader if/when available
+        public async Task<IEnumerable<Component>> ReadComponentsAsync(IEnumerable<string> filePaths)
+            => await _componentReader.GetComponentsFromFilesAsync(filePaths);
 
-        public Task<IEnumerable<TestCase>> ReadTestCasesAsync(IEnumerable<string> filePaths)
-            => _testcaseReader.GetTestCasesFromFilesAsync(filePaths);
+        public async Task<IEnumerable<SecurityRequirement>> ReadSecurityRequirementsAsync(IEnumerable<string> filePaths)
+            => await _securityRequirementReader.GetSecurityRequirementsFromFilesAsync(filePaths);
 
-        public Task<IEnumerable<Property>> ReadPropertiesAsync(IEnumerable<string> filePaths)
-            => _propertyReader.GetPropertiesFromFilesAsync(filePaths);
+        public async Task<IEnumerable<TestCase>> ReadTestCasesAsync(IEnumerable<string> filePaths)
+            => await _testcaseReader.GetTestCasesFromFilesAsync(filePaths);
 
-        public Task<IEnumerable<PropertyOption>> ReadPropertyOptionsAsync(IEnumerable<string> filePaths)
-            => _propertyOptionReader.GetPropertyOption(filePaths);
+        public async Task<IEnumerable<Property>> ReadPropertiesAsync(IEnumerable<string> filePaths)
+            => await _propertyReader.GetPropertiesFromFilesAsync(filePaths);
 
-        public Task<IEnumerable<Library>> ReadLibrariesAsync(IEnumerable<string> filePaths)
-            => _libraryReader.GetLibrariesFromFilesAsync(filePaths);
+        public async Task<IEnumerable<PropertyOption>> ReadPropertyOptionsAsync(IEnumerable<string> filePaths)
+            => await _propertyOptionReader.GetPropertyOption(filePaths);
+
+        public async Task<IEnumerable<Library>> ReadLibrariesAsync(IEnumerable<string> filePaths)
+            => await _libraryReader.GetLibrariesFromFilesAsync(filePaths);
+
+        public async Task<IEnumerable<PropertyType>> ReadPropertyTypesAsync(IEnumerable<string> filePaths)
+            => await _yamlPropertyTypeReader.GetPropertyTypesFromFilesAsync(filePaths);
+
+        public async Task<IEnumerable<ComponentType>> ReadComponentTypeAsync(IEnumerable<string> filePaths)
+            => await _yamlComponentTypeReader.GetComponentTypesFromFilesAsync(filePaths);
+
+        // -------- single-file --------
+
+        public async Task<Threat> ReadThreatAsync(string filePath)
+            => await _threatReader.GetThreatFromFileAsync(filePath);
+
+        public async Task<Component> ReadComponentAsync(string filePath)
+        {
+            // Component reader doesn’t expose single-file API, so we wrap multi-file
+            var components = await _componentReader
+                .GetComponentsFromFilesAsync(new[] { filePath })
+                .ConfigureAwait(false);
+
+            return components.FirstOrDefault();
+        }
+
+        public async Task<SecurityRequirement> ReadSecurityRequirementAsync(string filePath)
+            => await _securityRequirementReader.GetSecurityRequirementFromFileAsync(filePath);
+
+        public async Task<TestCase> ReadTestCaseAsync(string filePath)
+            => await _testcaseReader.GetTestCaseFromFileAsync(filePath);
+
+        public async Task<Property> ReadPropertyAsync(string filePath)
+            => await _propertyReader.GetPropertyFromFileAsync(filePath);
+
+        public async Task<PropertyOption> ReadPropertyOptionAsync(string filePath)
+            => await _propertyOptionReader.GetPropertyOptionFromFileAsync(filePath);
+
+        public async Task<Library> ReadLibraryAsync(string filePath)
+        {
+            // Library reader only supports multi-file → wrap it
+            var libs = await _libraryReader
+                .GetLibrariesFromFilesAsync(new[] { filePath })
+                .ConfigureAwait(false);
+
+            return libs.FirstOrDefault();
+        }
+
+        public async Task<PropertyType> ReadPropertyTypeAsync(string filePath)
+            => await _yamlPropertyTypeReader.GetPropertyTypeFromFileAsync(filePath);
+
+        public async Task<ComponentType> ReadComponentTypeAsync(string filePath)
+            => await _yamlComponentTypeReader.GetComponentTypeFromFileAsync(filePath);
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ThreatModeler.TF.Infra.Contract.YamlRepository;
@@ -313,6 +314,38 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
             return results;
         }
+
+        protected string SanitizeInvalidYamlEscapes(string yaml)
+        {
+            var sb = new StringBuilder();
+            bool insideQuotes = false;
+
+            for (int i = 0; i < yaml.Length; i++)
+            {
+                char c = yaml[i];
+
+                if (c == '"' && (i == 0 || yaml[i - 1] != '\\'))
+                {
+                    insideQuotes = !insideQuotes;
+                    sb.Append(c);
+                    continue;
+                }
+
+                if (insideQuotes && c == '\\')
+                {
+                    // Escape only if NOT already escaped
+                    if (i + 1 < yaml.Length && yaml[i + 1] != '\\')
+                    {
+                        sb.Append('\\'); // add extra backslash
+                    }
+                }
+
+                sb.Append(c);
+            }
+
+            return sb.ToString();
+        }
+
 
         #endregion
     }

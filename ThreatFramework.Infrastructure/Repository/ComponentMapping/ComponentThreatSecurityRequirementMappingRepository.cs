@@ -66,7 +66,7 @@ namespace ThreatFramework.Infrastructure.Repository
 
         private static string BuildMappingSelectQuery()
         {
-            return @"SELECT ctsrm.Id, ctsrm.isHidden, ctsrm.IsOverridden, t.Guid as ThreatGuid, c.Guid as ComponentGuid, sr.Guid as SecurityRequirementGuid
+            return @"SELECT ctsrm.IsHidden, ctsrm.IsOverridden, t.Guid as ThreatGuid, c.Guid as ComponentGuid, sr.Guid as SecurityRequirementGuid
                         FROM ComponentThreatSecurityRequirementMapping ctsrm
                         INNER JOIN ComponentThreatMapping ctm ON ctsrm.ComponentThreatId = ctm.Id
                         INNER JOIN Threats t ON ctm.ThreatId = t.Id
@@ -86,7 +86,7 @@ namespace ThreatFramework.Infrastructure.Repository
                     ThreatGuid = (Guid)reader["ThreatGuid"],
                     ComponentGuid = (Guid)reader["ComponentGuid"],
                     SecurityRequirementGuid = (Guid)reader["SecurityRequirementGuid"],
-                    IsHidden = (bool)reader["isHidden"],
+                    IsHidden = (bool)reader["IsHidden"],
                     IsOverridden = (bool)reader["IsOverridden"]
                 });
             }

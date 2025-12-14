@@ -85,6 +85,7 @@ namespace ThreatFramework.Core
         "Labels",
         "Description",
         "ChineseDescription" };
+
         public List<string> PropertyOptionDefaultFields { get; init; } = new List<string> {
             "PropertyId",
             "IsDefault",
@@ -94,6 +95,22 @@ namespace ThreatFramework.Core
             "OptionText",
             "ChineseOptionText"
         };
+
+        public List<string> PropertyTypeDefaultFields { get; init; } = new List<string> {
+            "Guid",
+            "Name"
+        };
+
+        public List<string> ComponentTypeDefaultFields { get; init; } = new List<string> {
+            "Guid",
+            "Name",
+            "Description",
+            "ChineseName",
+            "ChineseDescription",
+            "IsHidden",
+            "IsSecurityControl"
+        };
+
     }
 
 }

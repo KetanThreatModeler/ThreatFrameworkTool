@@ -96,6 +96,8 @@ builder.Services.AddScoped<IYamlComponentPropertyReader, YamlComponentPropertyRe
 builder.Services.AddScoped<IYamlComponentPropertyOptionReader, YamlComponentPropertyOptionReader>();
 builder.Services.AddScoped<IYamlComponentPropertyOptionThreatReader, YamlCpoThreatReader>();
 builder.Services.AddScoped<IYamlCpoThreatSrReader, YamlCpoThreatSrReader>();
+builder.Services.AddScoped<IYamlPropertyTypeReader, YamlPropertyTypeReader>();
+builder.Services.AddScoped<IYamlComponentTypeReader, YamlComponentTypeReader>();
 
 builder.Services.AddTransient<IGitService, GitService>();
 builder.Services.AddScoped<IDiffSummaryService, RemoteVsFolderDiffService>();
@@ -121,7 +123,6 @@ builder.Services.AddScoped<IGuidIndexService, GuidIndexService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddAppServices(builder.Configuration);
 builder.Services.AddSingleton<IFolderDiffService, FolderDiffService>();
-builder.Services.AddScoped<ILibraryDriftAggregator, LibraryDriftAggregator>();
 builder.Services.AddScoped<IComponentPropertyMappingDriftService, ComponentPropertyMappingDriftService>();
 builder.Services.AddScoped<IComponentMappingDriftAggregator, ComponentMappingDriftAggregator>();
 builder.Services.AddScoped<IComponentThreatSRDriftService, ComponentThreatSRDriftService>();
@@ -142,6 +143,8 @@ builder.Services.AddScoped<IPathClassifier, DefaultPathClassifier>();
 builder.Services.AddScoped<IRepositoryDiffEntityPathService, RepositoryDiffEntityPathService>();
 builder.Services.AddScoped<ILibraryScopedDiffService, LibraryScopedDiffService>();
 builder.Services.AddScoped<IFinalDriftService, FinalDriftService>();
+builder.Services.AddScoped<ITMFrameworkDriftConverter, TMFrameworkDriftConverter>();
+builder.Services.AddScoped<IYamlRouter, YamlRouter>();
 
 var app = builder.Build();
 

@@ -7,6 +7,8 @@
         Task RefreshAsync(string? path = null);
         int GetInt(Guid guid);
 
+        Task<(int, int)> GetIntIdOfEntityAndLibIdByGuidAsync(Guid guid);
+
         Guid GetGuid(int id);
         IReadOnlyCollection<int> GetIdsByLibraryAndType(Guid libraryId, EntityType entityType);
 

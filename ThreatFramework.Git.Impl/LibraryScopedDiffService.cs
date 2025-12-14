@@ -59,6 +59,7 @@ namespace ThreatModeler.TF.Git.Implementation
                     var componentIds = new HashSet<int>();
                     var threatIds = new HashSet<int>();
                     var securityRequirementIds = new HashSet<int>();
+                    foldersToCheck.Add("global");
 
                     foreach (var libraryGuid in libraryGuidList)
                     {
