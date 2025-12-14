@@ -2,7 +2,7 @@
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.Model;
 
-namespace ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal
+namespace ThreatModeler.TF.Drift.Contract.Model
 {
     public class LibraryDrift1
     {

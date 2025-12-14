@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ThreatFramework.Core;
-using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
-using ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal;
+using ThreatModeler.TF.Drift.Contract.Dto;
+using ThreatModeler.TF.Drift.Contract.Model;
 using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor;
 using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Global;
 using ThreatModeler.TF.Git.Contract;

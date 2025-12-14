@@ -1,10 +1,10 @@
 ﻿using System.Text;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
+using ThreatFramework.Drift.Contract.Model;
 using ThreatModeler.TF.Core.Global;
-using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
 
-namespace ThreatFramework.Drift.Contract.Model
+namespace ThreatModeler.TF.Drift.Contract.Dto
 {
     public class TMFrameworkDriftDto
     {

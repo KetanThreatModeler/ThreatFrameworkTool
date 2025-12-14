@@ -2,13 +2,11 @@ using ThreatFramework.API.ServiceRegister;
 using ThreatFramework.Git.Contract;
 using ThreatFramework.Git.Impl;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infra.Contract.DataInsertion;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infra.Contract.YamlRepository;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatFramework.Infrastructure;
-using ThreatFramework.Infrastructure.DataInsertion;
 using ThreatFramework.Infrastructure.Index;
 using ThreatFramework.Infrastructure.Repository;
 using ThreatFramework.Infrastructure.Services;
@@ -111,9 +109,6 @@ builder.Services.AddSingleton<IGuidIndexRepository, GuidIndexRepository>(); // <
 builder.Services.AddScoped<IGuidIndexService, GuidIndexService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddAppServices(builder.Configuration);
-builder.Services.AddScoped<IGuidLookupRepository, SqlServerGuidLookupRepository>();
-builder.Services.AddScoped<IGuidIntegrityService, GuidIntegrityService>();
-builder.Services.AddScoped<IDriftApplier, DriftApplier>();
 
 
 builder.Services.AddScoped<IGitFolderDiffService, GitFolderDiffService>();

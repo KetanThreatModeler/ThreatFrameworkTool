@@ -1,8 +1,7 @@
 ﻿using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.Model;
 using ThreatModeler.TF.Drift.Contract;
-using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
-using ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal;
+using ThreatModeler.TF.Drift.Contract.Dto;
+using ThreatModeler.TF.Drift.Contract.Model;
 
 namespace ThreatModeler.TF.Drift.Implemenetation
 {

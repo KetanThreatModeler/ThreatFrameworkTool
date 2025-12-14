@@ -1,5 +1,5 @@
-﻿using ThreatFramework.Drift.Contract.Model;
-using ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal;
+﻿using ThreatModeler.TF.Drift.Contract.Dto;
+using ThreatModeler.TF.Drift.Contract.Model;
 
 namespace ThreatModeler.TF.Drift.Contract
 {

@@ -8,6 +8,7 @@ using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatModeler.TF.Drift.Contract;
+using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatModeler.TF.Core.Global;
 
-namespace ThreatModeler.TF.Drift.Contract.Model.UpdatedFinal
+namespace ThreatModeler.TF.Drift.Contract.Model
 {
     public class TMFrameworkDrift1
     {

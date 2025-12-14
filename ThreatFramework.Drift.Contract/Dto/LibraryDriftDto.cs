@@ -1,8 +1,8 @@
 ﻿using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
-using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
+using ThreatFramework.Drift.Contract.Model;
 
-namespace ThreatFramework.Drift.Contract.Model
+namespace ThreatModeler.TF.Drift.Contract.Dto
 {
     public class LibraryDriftDto
     {

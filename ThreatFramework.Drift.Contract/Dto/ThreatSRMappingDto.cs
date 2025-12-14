@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto
+namespace ThreatModeler.TF.Drift.Contract.Dto
 {
     public class ThreatSRMappingDto
     {
