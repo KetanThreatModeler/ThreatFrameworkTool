@@ -9,8 +9,7 @@ namespace ThreatFramework.Drift.Contract.Model
 {
     public class ModifiedEntity<T>
     {
-        public string EntityKey { get; init; } = default!; // Guid string (or any key)
-        public string EntityName { get; init; } = string.Empty;
+        public T Entity { get; init; } = default!;
         public List<FieldChange> ModifiedFields { get; init; } = new();
     }
 }

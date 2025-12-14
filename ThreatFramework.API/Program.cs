@@ -2,13 +2,6 @@ using ThreatFramework.API.ServiceRegister;
 using ThreatFramework.Drift.Contract;
 using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.FolderDiff;
-using ThreatFramework.Drift.Contract.MappingDriftService;
-using ThreatFramework.Drift.Contract.MappingDriftService.Builder;
-using ThreatFramework.Drift.Impl;
-using ThreatFramework.Drift.Impl.CoreEntityDriftService;
-using ThreatFramework.Drift.Impl.FolderDiff;
-using ThreatFramework.Drift.Impl.MappingDriftService;
-using ThreatFramework.Drift.Impl.MappingDriftService.Builder;
 using ThreatFramework.Git.Contract;
 using ThreatFramework.Git.Impl;
 using ThreatFramework.Infra.Contract;
@@ -115,22 +108,12 @@ builder.Services.AddSingleton(typeof(IEntityRepository<>), typeof(FileSystemEnti
 builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();
 
 builder.Services.AddScoped<IYamlReaderRouter, YamlReaderRouter>();
-builder.Services.AddScoped<ICoreEntityDrift, CoreEntityDrift>();
 
 builder.Services.AddScoped<IGuidSource, GuidSource>();
 builder.Services.AddSingleton<IGuidIndexRepository, GuidIndexRepository>(); // <-- interface
 builder.Services.AddScoped<IGuidIndexService, GuidIndexService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddAppServices(builder.Configuration);
-builder.Services.AddSingleton<IFolderDiffService, FolderDiffService>();
-builder.Services.AddScoped<IComponentPropertyMappingDriftService, ComponentPropertyMappingDriftService>();
-builder.Services.AddScoped<IComponentMappingDriftAggregator, ComponentMappingDriftAggregator>();
-builder.Services.AddScoped<IComponentThreatSRDriftService, ComponentThreatSRDriftService>();
-builder.Services.AddScoped<IComponentSRDriftService, ComponentSRDriftService>();
-builder.Services.AddScoped<IComponentMappingDriftService, ComponentMappingDriftService>();
-builder.Services.AddScoped<IComponentPropertyGraphBuilder, ComponentPropertyGraphBuilder>();
-builder.Services.AddScoped<IComponentSRGraphBuilder, ComponentSRGraphBuilder>();
-builder.Services.AddScoped<IComponentThreatSRGraphBuilder, ComponentThreatSRGraphBuilder>();
 builder.Services.AddScoped<IGuidLookupRepository, SqlServerGuidLookupRepository>();
 builder.Services.AddScoped<IGuidIntegrityService, GuidIntegrityService>();
 builder.Services.AddScoped<IDriftApplier, DriftApplier>();

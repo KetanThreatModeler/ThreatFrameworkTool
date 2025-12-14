@@ -206,8 +206,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Global
 
                 var modifiedEntity = new ModifiedEntity<PropertyType>
                 {
-                    EntityKey = targetPropertyType.Guid.ToString(),
-                    EntityName = targetPropertyType.Name,
+                    Entity = basePropertyType,
                     ModifiedFields = changedFields,
                 };
 

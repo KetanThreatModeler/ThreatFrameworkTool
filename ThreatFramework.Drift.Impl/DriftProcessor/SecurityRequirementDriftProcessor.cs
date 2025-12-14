@@ -226,8 +226,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
                 var modifiedEntity = new ModifiedEntity<SecurityRequirement>
                 {
-                    EntityKey = targetSR.Guid.ToString(),
-                    EntityName = targetSR.Name,
+                    Entity = baseSR,
                     ModifiedFields = changedFields,
                 };
 
