@@ -6,30 +6,30 @@ using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
 
 namespace ThreatFramework.Drift.Contract.Model
 {
-    public class TMFrameworkDrift
+    public class TMFrameworkDriftDto
     {
-        public List<LibraryDrift> ModifiedLibraries { get; init; } = new();
-        public List<AddedLibrary> AddedLibraries { get; init; } = new();
-        public List<DeletedLibrary> DeletedLibraries { get; init; } = new();
+        public List<LibraryDriftDto> ModifiedLibraries { get; init; } = new();
+        public List<AddedLibraryDto> AddedLibraries { get; init; } = new();
+        public List<DeletedLibraryDto> DeletedLibraries { get; init; } = new();
         public GlobalDrift Global { get; set; }
     }
 
-    public class AddedLibrary
+    public class AddedLibraryDto
     {
         public Library Library { get; init; }
-        public List<AddedComponent> Components { get; init; } = new();
-        public List<AddedThreat> Threats { get; init; } = new();
+        public List<AddedComponentDto> Components { get; init; } = new();
+        public List<AddedThreatDto> Threats { get; init; } = new();
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
     }
 
-    public class DeletedLibrary
+    public class DeletedLibraryDto
     {
         public Guid LibraryGuid { get; init; }
         public string LibraryName { get; init; } = string.Empty;
-        public List<DeletedComponent> Components { get; init; } = new();
-        public List<RemovedThreat> Threats { get; init; } = new();
+        public List<DeletedComponentDto> Components { get; init; } = new();
+        public List<RemovedThreatDto> Threats { get; init; } = new();
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
@@ -43,36 +43,36 @@ namespace ThreatFramework.Drift.Contract.Model
     }
 
 
-    public class ThreatDrift
+    public class ThreatDriftDto
     {
-        public List<AddedThreat> Added { get; init; } = new();
-        public List<RemovedThreat> Removed { get; init; } = new();
-        public List<ModifiedThreat> Modified { get; init; } = new();
+        public List<AddedThreatDto> Added { get; init; } = new();
+        public List<RemovedThreatDto> Removed { get; init; } = new();
+        public List<ModifiedThreatDto> Modified { get; init; } = new();
     }
 
-    public class AddedThreat
+    public class AddedThreatDto
     {
         public Threat Threat { get; init; }
-        public ThreatMappingCollection Mappings { get; init; }
+        public ThreatMappingCollectionDto Mappings { get; init; }
     }
 
-    public class ModifiedThreat
+    public class ModifiedThreatDto
     {
         public Threat Threat { get; init; }
         public List<FieldChange> ChangedFields { get; set; } = new();
 
         // Granular mapping changes for this modified component
-        public ThreatMappingCollection MappingsAdded { get; set; } = new();
-        public ThreatMappingCollection MappingsRemoved { get; set; } = new();
+        public ThreatMappingCollectionDto MappingsAdded { get; set; } = new();
+        public ThreatMappingCollectionDto MappingsRemoved { get; set; } = new();
     }
 
-    public class RemovedThreat
+    public class RemovedThreatDto
     {
         public Threat Threat { get; init; }
-        public ThreatMappingCollection Mappings { get; set; }
+        public ThreatMappingCollectionDto Mappings { get; set; }
     }
 
-    public class ThreatMappingCollection
+    public class ThreatMappingCollectionDto
     {
         public List<SRMappingDto> SecurityRequirements { get; set; } = new();
     }

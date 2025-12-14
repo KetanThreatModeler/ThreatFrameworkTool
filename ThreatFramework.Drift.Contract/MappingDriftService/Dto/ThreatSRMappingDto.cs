@@ -4,18 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatFramework.Drift.Contract.MappingDriftService.Model
+namespace ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto
 {
-    public class ThreatSRMapping
+    public class ThreatSRMappingDto
     {
-        public ThreatSRMapping(Guid threaId, Guid? srId)
+        public ThreatSRMappingDto(Guid threaId, Guid? srId)
         {
             ThreatId = threaId;
             SRId = srId;
         }
 
 
-        public ThreatSRMapping(Guid threaId)
+        public ThreatSRMappingDto(Guid threaId)
         {
             ThreatId = threaId;
             SRId = null;

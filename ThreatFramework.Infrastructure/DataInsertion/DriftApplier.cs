@@ -32,7 +32,7 @@ namespace ThreatFramework.Infrastructure.DataInsertion
             _connectionFactory = connectionFactory;
         }
 
-        public async Task ApplyAsync(TMFrameworkDrift drift)
+        public async Task ApplyAsync(TMFrameworkDriftDto drift)
         {
             if (drift is null)
             {

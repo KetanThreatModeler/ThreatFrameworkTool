@@ -1,5 +1,4 @@
 ﻿using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.MappingDriftService.Model;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
@@ -16,20 +15,20 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             _yamlRouter = yamlRouter ?? throw new ArgumentNullException(nameof(yamlRouter));
         }
 
-        public async Task<TMFrameworkDrift1> ConvertAsync(TMFrameworkDrift source)
+        public async Task<TMFrameworkDrift1> ConvertAsync(TMFrameworkDriftDto source)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
 
             // Modified libraries require YAML lookups → async
-            var modifiedLibsTasks = (source.ModifiedLibraries ?? new List<LibraryDrift>())
+            var modifiedLibsTasks = (source.ModifiedLibraries ?? new List<LibraryDriftDto>())
                 .Select(ConvertLibraryDriftAsync);
             var modifiedLibs = await Task.WhenAll(modifiedLibsTasks).ConfigureAwait(false);
 
-            var addedLibsTasks = (source.AddedLibraries ?? new List<AddedLibrary>())
+            var addedLibsTasks = (source.AddedLibraries ?? new List<AddedLibraryDto>())
                 .Select(ConvertAddedLibraryAsync);
             var addedLibs = await Task.WhenAll(addedLibsTasks).ConfigureAwait(false);
 
-            var deletedLibsTasks = (source.DeletedLibraries ?? new List<DeletedLibrary>())
+            var deletedLibsTasks = (source.DeletedLibraries ?? new List<DeletedLibraryDto>())
                 .Select(ConvertDeletedLibraryAsync);
             var deletedLibs = await Task.WhenAll(deletedLibsTasks).ConfigureAwait(false);
 
@@ -60,7 +59,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 
         #region Libraries
 
-        private async Task<LibraryDrift1> ConvertLibraryDriftAsync(LibraryDrift source)
+        private async Task<LibraryDrift1> ConvertLibraryDriftAsync(LibraryDriftDto source)
         {
             if (source == null) return null;
 
@@ -83,7 +82,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             };
         }
 
-        private async Task<AddedLibrary1> ConvertAddedLibraryAsync(AddedLibrary source)
+        private async Task<AddedLibrary1> ConvertAddedLibraryAsync(AddedLibraryDto source)
         {
             if (source == null) return null;
 
@@ -100,7 +99,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             };
         }
 
-        private async Task<DeletedLibrary1> ConvertDeletedLibraryAsync(DeletedLibrary source)
+        private async Task<DeletedLibrary1> ConvertDeletedLibraryAsync(DeletedLibraryDto source)
         {
             if (source == null) return null;
 
@@ -120,7 +119,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 
         #region Components & mappings
 
-        private async Task<ComponentDrift1> ConvertComponentDriftAsync(ComponentDrift source)
+        private async Task<ComponentDrift1> ConvertComponentDriftAsync(ComponentDriftDto source)
         {
             if (source == null) return new ComponentDrift1();
 
@@ -160,7 +159,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             };
         }
 
-        private async Task<List<AddedComponent1>> ConvertAddedComponentsAsync(IEnumerable<AddedComponent> sources)
+        private async Task<List<AddedComponent1>> ConvertAddedComponentsAsync(IEnumerable<AddedComponentDto> sources)
         {
             if (sources == null) return new List<AddedComponent1>();
 
@@ -168,7 +167,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return (await Task.WhenAll(tasks).ConfigureAwait(false)).ToList();
         }
 
-        private async Task<AddedComponent1> ConvertAddedComponentAsync(AddedComponent source)
+        private async Task<AddedComponent1> ConvertAddedComponentAsync(AddedComponentDto source)
         {
             if (source == null) return null;
 
@@ -181,13 +180,13 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             };
         }
 
-        private async Task<List<DeletedComponent1>> ConvertDeletedComponentsAsync(IEnumerable<DeletedComponent> sources)
+        private async Task<List<DeletedComponent1>> ConvertDeletedComponentsAsync(IEnumerable<DeletedComponentDto> sources)
         {
             if (sources == null) return new List<DeletedComponent1>();
             var tasks = sources.Select(ConvertDeletedComponentAsync);
             return (await Task.WhenAll(tasks).ConfigureAwait(false)).ToList();
         }
-        private async Task<DeletedComponent1> ConvertDeletedComponentAsync(DeletedComponent source)
+        private async Task<DeletedComponent1> ConvertDeletedComponentAsync(DeletedComponentDto source)
         {
             if (source == null) return null;
 
@@ -200,7 +199,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             };
         }
 
-        private async Task<ModifiedComponent1> ConvertModifiedComponentAsync(ModifiedComponent source)
+        private async Task<ModifiedComponent1> ConvertModifiedComponentAsync(ModifiedComponentDto source)
         {
             if (source == null) return null;
             var componentFromYaml = await _yamlRouter
@@ -222,7 +221,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         }
 
         private async Task<ComponentMappingCollection1> ConvertMappingsAsync(
-            ComponentMappingCollection source,
+            ComponentMappingCollectionDto source,
             DriftSource dataSource)
         {
             if (source == null) return new ComponentMappingCollection1();
@@ -268,7 +267,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         }
 
         private async Task<List<ThreatSRMappingDto1>> ConvertThreatSrMappingsAsync(
-            List<ThreatSRMapping> source,
+            List<ThreatSRMappingDto> source,
             DriftSource dataSource)
         {
             if (source == null) return new();
@@ -306,7 +305,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         }
 
         private async Task<List<PropertyThreatSRMappingDto1>> ConvertPropertyThreatSrMappingsAsync(
-            List<PropertyThreatSRMapping> source,
+            List<PropertyThreatSRMappingDto> source,
             DriftSource dataSource)
         {
             if (source == null || source.Count == 0)
@@ -393,7 +392,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 
 
         #region ThreatRegion
-        private Task<ThreatMappingCollection1> ToThreatMappingCollection1Async(ThreatMappingCollection source, DriftSource dataSource)
+        private Task<ThreatMappingCollection1> ToThreatMappingCollection1Async(ThreatMappingCollectionDto source, DriftSource dataSource)
         {
             if (source == null) return Task.FromResult(new ThreatMappingCollection1());
             ThreatMappingCollection1 threatMappingCollection1 = new ThreatMappingCollection1();
@@ -405,7 +404,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return Task.FromResult(threatMappingCollection1);
         }
 
-        private async Task<List<AddedThreat1>> ToAddedThreat1ListAsync(List<AddedThreat> addedThreats)
+        private async Task<List<AddedThreat1>> ToAddedThreat1ListAsync(List<AddedThreatDto> addedThreats)
         {
             var addedThreat1List = new List<AddedThreat1>();
             if (addedThreats == null) return addedThreat1List;
@@ -417,7 +416,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return addedThreat1List;
         }
 
-        private async Task<List<DeletedThreat1>> ToDeletedThreat1ListAsync(List<RemovedThreat> removedThreats)
+        private async Task<List<DeletedThreat1>> ToDeletedThreat1ListAsync(List<RemovedThreatDto> removedThreats)
         {
             var deletedThreat1List = new List<DeletedThreat1>();
             if (removedThreats == null) return deletedThreat1List;
@@ -429,7 +428,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return deletedThreat1List;
         }
 
-        private async Task<List<ModifiedThreat1>> ToModifiedThreat1ListAsync(List<ModifiedThreat> modifiedThreats)
+        private async Task<List<ModifiedThreat1>> ToModifiedThreat1ListAsync(List<ModifiedThreatDto> modifiedThreats)
         {
             var modifiedThreat1List = new List<ModifiedThreat1>();
             if (modifiedThreats == null) return modifiedThreat1List;
@@ -441,7 +440,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return modifiedThreat1List;
         }
 
-        private async Task<AddedThreat1> ToAddedThreat1(AddedThreat addedThreat)
+        private async Task<AddedThreat1> ToAddedThreat1(AddedThreatDto addedThreat)
         {
             if (addedThreat == null) return await Task.FromResult<AddedThreat1>(null);
 
@@ -455,7 +454,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return addedThreat1;
         }
 
-        private async Task<DeletedThreat1> ToDeletedThreat1(RemovedThreat removedThreat)
+        private async Task<DeletedThreat1> ToDeletedThreat1(RemovedThreatDto removedThreat)
         {
             if (removedThreat == null) return await Task.FromResult<DeletedThreat1>(null);
 
@@ -469,7 +468,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return deletedThreat1;
         }
 
-        private async Task<ModifiedThreat1> ToModifiedThreat1(ModifiedThreat modifiedThreat)
+        private async Task<ModifiedThreat1> ToModifiedThreat1(ModifiedThreatDto modifiedThreat)
         {
             if (modifiedThreat == null) return await Task.FromResult<ModifiedThreat1>(null);
 
@@ -486,7 +485,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return modifiedThreat1;
         }
         
-        private async Task<ThreatDrift1> ConvertThreatDriftAsync(ThreatDrift source)
+        private async Task<ThreatDrift1> ConvertThreatDriftAsync(ThreatDriftDto source)
         {
             if (source == null) return new ThreatDrift1();
             var added = await ToAddedThreat1ListAsync(source.Added).ConfigureAwait(false);

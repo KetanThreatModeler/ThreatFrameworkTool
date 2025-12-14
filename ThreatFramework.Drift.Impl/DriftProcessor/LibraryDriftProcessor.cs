@@ -6,8 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.Model;
+using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
@@ -15,7 +15,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
     public static class LibraryDriftProcessor
     {
         public static async Task ProcessAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             EntityFileChangeSet libraryChanges,
             IYamlReaderRouter yamlReader,
             EntityDriftAggregationOptions driftOptions,
@@ -35,7 +35,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ADDED
         // ------------------------------------------------------------
         private static async Task ProcessAddedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IReadOnlyCollection<string> addedPaths,
             IYamlReaderRouter yamlReader,
             ILogger logger)
@@ -55,7 +55,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     continue;
                 }
 
-                drift.AddedLibraries.Add(new AddedLibrary
+                drift.AddedLibraries.Add(new AddedLibraryDto
                 {
                     Library = lib
                 });
@@ -68,7 +68,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // DELETED
         // ------------------------------------------------------------
         private static async Task ProcessDeletedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IReadOnlyCollection<string> deletedPaths,
             IYamlReaderRouter yamlReader,
             ILogger logger)
@@ -88,7 +88,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     continue;
                 }
 
-                drift.DeletedLibraries.Add(new DeletedLibrary
+                drift.DeletedLibraries.Add(new DeletedLibraryDto
                 {
                     LibraryGuid = lib.Guid,
                     LibraryName = lib.Name
@@ -102,7 +102,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // MODIFIED
         // ------------------------------------------------------------
         private static async Task ProcessModifiedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IReadOnlyCollection<ModifiedFilePathInfo> modifiedPaths,
             IYamlReaderRouter yamlReader,
             EntityDriftAggregationOptions driftOptions,
@@ -139,7 +139,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     continue;
                 }
 
-                drift.ModifiedLibraries.Add(new LibraryDrift
+                drift.ModifiedLibraries.Add(new LibraryDriftDto
                 {
                     LibraryGuid = baseLib.Guid,
                     LibraryChanges = changedFields

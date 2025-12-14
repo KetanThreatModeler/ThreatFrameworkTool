@@ -1,12 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.MappingDriftService.Model;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
@@ -40,12 +34,12 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
             public int ThreatId { get; }
 
-            public ThreatMappingCollection Added { get; } = new();
-            public ThreatMappingCollection Removed { get; } = new();
+            public ThreatMappingCollectionDto Added { get; } = new();
+            public ThreatMappingCollectionDto Removed { get; } = new();
         }
 
         public static Task ProcessAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IRepositoryDiffEntityPathContext pathContext,
             IGuidIndexService guidIndexService,
             IEnumerable<Guid> libraryIds,
@@ -223,7 +217,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         /// Adds a Threat ↔ SR mapping into the given ThreatMappingCollection.
         /// </summary>
         private static void AddThreatSRMappingToCollection(
-            ThreatMappingCollection target,
+            ThreatMappingCollectionDto target,
             int threatId,
             int srId,
             IGuidIndexService guidIndexService)
@@ -248,7 +242,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static void AttachAddedMappingsForThreat(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             ThreatMappingChangeBucket bucket,
             IGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
@@ -285,7 +279,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
             EnsureThreatDrift(libDrift);
 
-            var newModifiedThreat = new ModifiedThreat
+            var newModifiedThreat = new ModifiedThreatDto
             {
                 Threat = new Threat
                 {
@@ -293,8 +287,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     LibraryGuid = libraryGuid
                 },
                 ChangedFields = new List<FieldChange>(),
-                MappingsAdded = new ThreatMappingCollection(),
-                MappingsRemoved = new ThreatMappingCollection()
+                MappingsAdded = new ThreatMappingCollectionDto(),
+                MappingsRemoved = new ThreatMappingCollectionDto()
             };
 
             MergeThreatMappings(newModifiedThreat.MappingsAdded, bucket.Added);
@@ -308,7 +302,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         }
 
         private static void AttachRemovedMappingsForThreat(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             ThreatMappingChangeBucket bucket,
             IGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
@@ -345,7 +339,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
             EnsureThreatDrift(libDrift);
 
-            var newModifiedThreat = new ModifiedThreat
+            var newModifiedThreat = new ModifiedThreatDto
             {
                 Threat = new Threat
                 {
@@ -353,8 +347,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                     LibraryGuid = libraryGuid
                 },
                 ChangedFields = new List<FieldChange>(),
-                MappingsAdded = new ThreatMappingCollection(),
-                MappingsRemoved = new ThreatMappingCollection()
+                MappingsAdded = new ThreatMappingCollectionDto(),
+                MappingsRemoved = new ThreatMappingCollectionDto()
             };
 
             MergeThreatMappings(newModifiedThreat.MappingsRemoved, bucket.Removed);
@@ -372,9 +366,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static bool TryAttachToAddedLibraries(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             Guid threatGuid,
-            ThreatMappingCollection mappings,
+            ThreatMappingCollectionDto mappings,
             ILogger logger)
         {
             foreach (var addedLib in drift.AddedLibraries)
@@ -400,9 +394,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         }
 
         private static bool TryAttachToDeletedLibraries(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             Guid threatGuid,
-            ThreatMappingCollection mappings,
+            ThreatMappingCollectionDto mappings,
             ILogger logger)
         {
             foreach (var deletedLib in drift.DeletedLibraries)
@@ -428,9 +422,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         }
 
         private static bool TryAttachToModifiedLibrariesAddedThreats(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             Guid threatGuid,
-            ThreatMappingCollection mappings,
+            ThreatMappingCollectionDto mappings,
             ILogger logger)
         {
             foreach (var libDrift in drift.ModifiedLibraries)
@@ -458,9 +452,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         }
 
         private static bool TryAttachToModifiedLibrariesRemovedThreats(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             Guid threatGuid,
-            ThreatMappingCollection mappings,
+            ThreatMappingCollectionDto mappings,
             ILogger logger)
         {
             foreach (var libDrift in drift.ModifiedLibraries)
@@ -488,9 +482,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         }
 
         private static bool TryAttachToModifiedLibrariesModifiedThreats(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             Guid threatGuid,
-            ThreatMappingCollection mappings,
+            ThreatMappingCollectionDto mappings,
             bool isAdded,
             ILogger logger)
         {
@@ -526,7 +520,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
             return false;
         }
 
-        private static void MergeThreatMappings(ThreatMappingCollection target, ThreatMappingCollection source)
+        private static void MergeThreatMappings(ThreatMappingCollectionDto target, ThreatMappingCollectionDto source)
         {
             if (target == null || source == null)
             {
@@ -536,7 +530,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
             target.SecurityRequirements.AddRange(source.SecurityRequirements);
         }
 
-        private static bool HasAnyThreatMappings(ThreatMappingCollection mapping)
+        private static bool HasAnyThreatMappings(ThreatMappingCollectionDto mapping)
         {
             if (mapping == null)
             {
@@ -574,8 +568,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         /// Finds an existing LibraryDrift for a given libraryGuid, or creates one and
         /// adds it to TMFrameworkDrift.ModifiedLibraries.
         /// </summary>
-        private static LibraryDrift GetOrCreateLibraryDrift(
-            TMFrameworkDrift drift,
+        private static LibraryDriftDto GetOrCreateLibraryDrift(
+            TMFrameworkDriftDto drift,
             Guid libraryGuid,
             ILogger logger)
         {
@@ -587,7 +581,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 return existing;
             }
 
-            var newDrift = new LibraryDrift
+            var newDrift = new LibraryDriftDto
             {
                 LibraryGuid = libraryGuid
             };
@@ -601,11 +595,11 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
             return newDrift;
         }
 
-        private static void EnsureThreatDrift(LibraryDrift libDrift)
+        private static void EnsureThreatDrift(LibraryDriftDto libDrift)
         {
             if (libDrift.Threats == null)
             {
-                libDrift.Threats = new ThreatDrift();
+                libDrift.Threats = new ThreatDriftDto();
             }
         }
     }

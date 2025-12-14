@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.Model;
+using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
@@ -10,7 +10,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
     public static class ThreatDriftProcessor
     {
         public static async Task ProcessAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             EntityFileChangeSet threatChanges,
             IYamlReaderRouter yamlReader,
             EntityDriftAggregationOptions driftOptions,
@@ -32,7 +32,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static async Task ProcessAddedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IEnumerable<string> addedPaths,
             IYamlReaderRouter yamlReader,
             ILogger logger)
@@ -62,7 +62,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
                 if (addedLib != null)
                 {
-                    addedLib.Threats.Add(new AddedThreat
+                    addedLib.Threats.Add(new AddedThreatDto
                     {
                         Threat = threat
                     });
@@ -78,7 +78,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 // 2) Otherwise under LibraryDrift.Threats.Added
                 var libDrift = GetOrCreateLibraryDrift(drift, threat.LibraryGuid, logger);
 
-                libDrift.Threats.Added.Add(new AddedThreat
+                libDrift.Threats.Added.Add(new AddedThreatDto
                 {
                     Threat = threat
                 });
@@ -95,7 +95,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static async Task ProcessDeletedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IEnumerable<string> deletedPaths,
             IYamlReaderRouter yamlReader,
             ILogger logger)
@@ -125,7 +125,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
                 if (deletedLib != null)
                 {
-                    deletedLib.Threats.Add(new RemovedThreat
+                    deletedLib.Threats.Add(new RemovedThreatDto
                     {
                         Threat = threat
                     });
@@ -141,7 +141,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 // 2) Otherwise under LibraryDrift.Threats.Removed
                 var libDrift = GetOrCreateLibraryDrift(drift, threat.LibraryGuid, logger);
 
-                libDrift.Threats.Removed.Add(new RemovedThreat
+                libDrift.Threats.Removed.Add(new RemovedThreatDto
                 {
                     Threat = threat
                 });
@@ -158,7 +158,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static async Task ProcessModifiedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IEnumerable<ModifiedFilePathInfo> modifiedPaths,
             IYamlReaderRouter yamlReader,
             EntityDriftAggregationOptions driftOptions,
@@ -231,7 +231,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 // Always belong to a modified library (create if needed)
                 var libDrift = GetOrCreateLibraryDrift(drift, targetThreat.LibraryGuid, logger);
 
-                libDrift.Threats.Modified.Add(new ModifiedThreat
+                libDrift.Threats.Modified.Add(new ModifiedThreatDto
                 {
                     Threat = targetThreat,
                     ChangedFields = changedFields
@@ -310,8 +310,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         /// Finds an existing LibraryDrift for a given libraryGuid, or creates one and
         /// adds it to TMFrameworkDrift.ModifiedLibraries.
         /// </summary>
-        private static LibraryDrift GetOrCreateLibraryDrift(
-            TMFrameworkDrift drift,
+        private static LibraryDriftDto GetOrCreateLibraryDrift(
+            TMFrameworkDriftDto drift,
             Guid libraryGuid,
             ILogger logger)
         {
@@ -323,7 +323,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 return existing;
             }
 
-            var newDrift = new LibraryDrift
+            var newDrift = new LibraryDriftDto
             {
                 LibraryGuid = libraryGuid
             };

@@ -9,6 +9,6 @@ namespace ThreatFramework.Infra.Contract.DataInsertion
 {
     public interface IDriftApplier
     {
-       Task ApplyAsync(TMFrameworkDrift drift);
+       Task ApplyAsync(TMFrameworkDriftDto drift);
     }
 }

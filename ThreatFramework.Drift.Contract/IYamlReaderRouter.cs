@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatModeler.TF.Core.Global;
 
-namespace ThreatFramework.Drift.Contract.CoreEntityDriftService
+namespace ThreatModeler.TF.Drift.Contract
 {
     public interface IYamlReaderRouter
     {

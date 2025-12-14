@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ThreatFramework.Core;
-using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
@@ -47,7 +46,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<TMFrameworkDrift> DriftAsync(IEnumerable<Guid> libraryIds, CancellationToken cancellationToken = default)
+        public async Task<TMFrameworkDriftDto> DriftAsync(IEnumerable<Guid> libraryIds, CancellationToken cancellationToken = default)
         {
             //1 sync the repo   
             _logger.LogInformation("Starting git sync...");
@@ -80,7 +79,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             var mappingDiff5 = ctx.GetComponentThreatSecurityRequirementsMappingFileChanges();
             var mappingDiff6 = ctx.GetComponentSecurityRequirementsMappingFileChanges();
 
-            TMFrameworkDrift drift = new();
+            TMFrameworkDriftDto drift = new();
             await LibraryDriftProcessor.ProcessAsync(
                                         drift,
                                         ctx.GetLibraryFileChanges(),

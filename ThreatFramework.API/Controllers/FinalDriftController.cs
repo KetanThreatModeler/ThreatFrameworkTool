@@ -35,7 +35,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
         }
 
         [HttpPost("readonly")]
-        [ProducesResponseType(typeof(TMFrameworkDrift), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(TMFrameworkDriftDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> CalculateReadonlyDriftAsync(
             CancellationToken cancellationToken)
         {
@@ -56,7 +56,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
             if (readOnlyLibraryGuids == null || readOnlyLibraryGuids.Count == 0)
             {
                 _logger.LogInformation("No readonly libraries found. Returning empty drift result.");
-                return Ok(new TMFrameworkDrift());
+                return Ok(new TMFrameworkDriftDto());
             }
 
 

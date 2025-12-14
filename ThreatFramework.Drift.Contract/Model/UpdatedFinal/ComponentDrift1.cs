@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.MappingDriftService.Model;
 using ThreatFramework.Drift.Contract.Model;
 using ThreatModeler.TF.Core.Global;
 using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;

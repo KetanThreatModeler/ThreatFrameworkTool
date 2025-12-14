@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Core.Global;

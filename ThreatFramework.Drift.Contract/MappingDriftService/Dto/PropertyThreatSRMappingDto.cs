@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatFramework.Drift.Contract.MappingDriftService.Model
+namespace ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto
 {
-    public class PropertyThreatSRMapping
+    public class PropertyThreatSRMappingDto
     {
-        public PropertyThreatSRMapping(Guid PropertId, Guid PropertyOptionId, Guid ThreatId, Guid SRId)
+        public PropertyThreatSRMappingDto(Guid PropertId, Guid PropertyOptionId, Guid ThreatId, Guid SRId)
         {
-            this.PropertyId = PropertId;
+            PropertyId = PropertId;
             this.PropertyOptionId = PropertyOptionId;
             this.ThreatId = ThreatId;
             this.SRId = SRId;

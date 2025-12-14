@@ -6,8 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.CoreEntityDriftService;
 using ThreatFramework.Drift.Contract.Model;
+using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
@@ -15,7 +15,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
     public static class PropertyDriftProcessor
     {
         public static async Task ProcessAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             EntityFileChangeSet propertyChanges,
             IYamlReaderRouter yamlReader,
             EntityDriftAggregationOptions driftOptions,
@@ -37,7 +37,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static async Task ProcessAddedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IEnumerable<string> addedPaths,
             IYamlReaderRouter yamlReader,
             ILogger logger)
@@ -94,7 +94,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static async Task ProcessDeletedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IEnumerable<string> deletedPaths,
             IYamlReaderRouter yamlReader,
             ILogger logger)
@@ -151,7 +151,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         // ─────────────────────────────────────────────────────────────
 
         private static async Task ProcessModifiedAsync(
-            TMFrameworkDrift drift,
+            TMFrameworkDriftDto drift,
             IEnumerable<ModifiedFilePathInfo> modifiedPaths,
             IYamlReaderRouter yamlReader,
             EntityDriftAggregationOptions driftOptions,
@@ -305,8 +305,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         /// Finds an existing LibraryDrift for a given libraryGuid, or creates one and
         /// adds it to TMFrameworkDrift.ModifiedLibraries.
         /// </summary>
-        private static LibraryDrift GetOrCreateLibraryDrift(
-            TMFrameworkDrift drift,
+        private static LibraryDriftDto GetOrCreateLibraryDrift(
+            TMFrameworkDriftDto drift,
             Guid libraryGuid,
             ILogger logger)
         {
@@ -318,7 +318,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 return existing;
             }
 
-            var newDrift = new LibraryDrift
+            var newDrift = new LibraryDriftDto
             {
                 LibraryGuid = libraryGuid
             };

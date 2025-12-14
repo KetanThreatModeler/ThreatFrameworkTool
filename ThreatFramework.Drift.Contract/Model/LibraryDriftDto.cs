@@ -1,53 +1,52 @@
 ﻿using ThreatFramework.Core;
 using ThreatFramework.Core.CoreEntities;
-using ThreatFramework.Drift.Contract.MappingDriftService.Model;
 using ThreatModeler.TF.Drift.Contract.MappingDriftService.Dto;
 
 namespace ThreatFramework.Drift.Contract.Model
 {
-    public class LibraryDrift
+    public class LibraryDriftDto
     {
         public Guid LibraryGuid { get; init; }
         public List<FieldChange> LibraryChanges { get; init; } = new();
-        public ComponentDrift Components { get; init; } = new();
-        public ThreatDrift Threats { get; set; } = new();
+        public ComponentDriftDto Components { get; init; } = new();
+        public ThreatDriftDto Threats { get; set; } = new();
         public EntityDiff<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public EntityDiff<TestCase> TestCases { get; init; } = new();
         public EntityDiff<Property> Properties { get; init; } = new();
     }
 
-    public class ComponentDrift
+    public class ComponentDriftDto
     {
-        public List<AddedComponent> Added { get; init; } = new();
-        public List<DeletedComponent> Deleted { get; init; } = new();
-        public List<ModifiedComponent> Modified { get; init; } = new();
+        public List<AddedComponentDto> Added { get; init; } = new();
+        public List<DeletedComponentDto> Deleted { get; init; } = new();
+        public List<ModifiedComponentDto> Modified { get; init; } = new();
     }
 
     // Reusable mapping collection for composition
-    public class ComponentMappingCollection
+    public class ComponentMappingCollectionDto
     {
         public List<SRMappingDto> SecurityRequirements { get; set; } = new();
-        public List<ThreatSRMapping> ThreatSRMappings { get; set; } = new();
-        public List<PropertyThreatSRMapping> PropertyThreatSRMappings { get; set; } = new();
+        public List<ThreatSRMappingDto> ThreatSRMappings { get; set; } = new();
+        public List<PropertyThreatSRMappingDto> PropertyThreatSRMappings { get; set; } = new();
     }
 
-    public class AddedComponent
+    public class AddedComponentDto
     {
         public Component Component { get; set; } = null!;
 
         // All mappings for this added component (implicitly "added" mappings)
-        public ComponentMappingCollection Mappings { get; set; } = new();
+        public ComponentMappingCollectionDto Mappings { get; set; } = new();
     }
 
-    public class DeletedComponent
+    public class DeletedComponentDto
     {
         public Component Component { get; set; } = null!;
 
         // All mappings for this deleted component (implicitly "deleted" mappings)
-        public ComponentMappingCollection Mappings { get; set; } = new();
+        public ComponentMappingCollectionDto Mappings { get; set; } = new();
     }
 
-    public class ModifiedComponent
+    public class ModifiedComponentDto
     {
         public Component Component { get; set; } = null!;
 
@@ -55,7 +54,7 @@ namespace ThreatFramework.Drift.Contract.Model
         public List<FieldChange> ChangedFields { get; set; } = new();
 
         // Granular mapping changes for this modified component
-        public ComponentMappingCollection MappingsAdded { get; set; } = new();
-        public ComponentMappingCollection MappingsRemoved { get; set; } = new();
+        public ComponentMappingCollectionDto MappingsAdded { get; set; } = new();
+        public ComponentMappingCollectionDto MappingsRemoved { get; set; } = new();
     }
 }
