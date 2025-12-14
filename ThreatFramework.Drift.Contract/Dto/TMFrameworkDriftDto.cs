@@ -11,7 +11,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<LibraryDriftDto> ModifiedLibraries { get; init; } = new();
         public List<AddedLibraryDto> AddedLibraries { get; init; } = new();
         public List<DeletedLibraryDto> DeletedLibraries { get; init; } = new();
-        public GlobalDrift Global { get; set; }
+        public GlobalDriftDto Global { get; set; }
     }
 
     public class AddedLibraryDto
@@ -35,7 +35,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<Property> Properties { get; init; } = new();
     }
 
-    public class GlobalDrift
+    public class GlobalDriftDto
     {
         public EntityDiff<PropertyOption> PropertyOptions { get; init; } = new();
         public EntityDiff<PropertyType> PropertyTypes { get; init; } = new();

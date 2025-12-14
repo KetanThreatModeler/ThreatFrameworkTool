@@ -161,7 +161,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return drift;
         }
 
-        public async Task<TMFrameworkDrift1> DriftAsync1(IEnumerable<Guid> libraryIds, CancellationToken cancellationToken = default)
+        public async Task<TMFrameworkDrift> DriftAsync1(IEnumerable<Guid> libraryIds, CancellationToken cancellationToken = default)
         {
             var temp = await DriftAsync(libraryIds, cancellationToken);
             return await _tMFrameworkDriftConverter.ConvertAsync(temp);

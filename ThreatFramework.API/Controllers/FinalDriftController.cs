@@ -71,7 +71,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
            
             // New v2 endpoint
             [HttpPost("readonly/v2")]
-            [ProducesResponseType(typeof(TMFrameworkDrift1), StatusCodes.Status200OK)]
+            [ProducesResponseType(typeof(TMFrameworkDrift), StatusCodes.Status200OK)]
             public async Task<IActionResult> CalculateReadonlyDriftV2Async(CancellationToken cancellationToken)
             {
                 _logger.LogInformation("Starting readonly drift V2 calculation: refreshing GUID index...");
@@ -82,7 +82,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
 
                 var readOnlyLibraryGuids = await _libraryCacheService.GetReadonlyLibraryGuidsAsync();
                 if (readOnlyLibraryGuids == null || readOnlyLibraryGuids.Count == 0)
-                    return Ok(new TMFrameworkDrift1());
+                    return Ok(new TMFrameworkDrift());
 
                 var drift = await _finalDriftService.DriftAsync1(readOnlyLibraryGuids, cancellationToken);
                 return Ok(drift);

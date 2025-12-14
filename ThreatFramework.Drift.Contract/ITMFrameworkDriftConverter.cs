@@ -5,6 +5,6 @@ namespace ThreatModeler.TF.Drift.Contract
 {
     public interface ITMFrameworkDriftConverter
     {
-        Task<TMFrameworkDrift1> ConvertAsync(TMFrameworkDriftDto source);
+        Task<TMFrameworkDrift> ConvertAsync(TMFrameworkDriftDto source);
     }
 }
