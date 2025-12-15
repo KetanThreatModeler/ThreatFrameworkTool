@@ -9,7 +9,7 @@ using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Helper;
 
-namespace ThreatModeler.TF.Infra.Implmentation.Repository
+namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 {
     public class ThreatRepository : IThreatRepository
     {

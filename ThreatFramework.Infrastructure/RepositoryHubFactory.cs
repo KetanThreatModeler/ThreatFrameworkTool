@@ -10,7 +10,9 @@ using ThreatFramework.Infrastructure.Repository;
 using ThreatFramework.Infrastructure.Services;
 using ThreatModeler.TF.Infra.Contract.Repository;
 using ThreatModeler.TF.Infra.Implmentation.Repository;
+using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
+using ThreatModeler.TF.Infra.Implmentation.Repository.ThreatMapping;
 
 namespace ThreatFramework.Infrastructure
 {

@@ -3,7 +3,7 @@ using ThreatFramework.Core.Cache;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 
-namespace ThreatFramework.Infrastructure.Repository
+namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 {
     public class LibraryRepository : ILibraryRepository
     {

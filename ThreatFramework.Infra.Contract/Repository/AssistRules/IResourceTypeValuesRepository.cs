@@ -13,6 +13,11 @@ namespace ThreatModeler.TF.Infra.Contract.Repository.AssistRules
 
         Task<IEnumerable<ResourceTypeValues>> GetByLibraryIdAsync(Guid libraryId);
 
+        Task<IEnumerable<ResourceTypeValues>> GetByLibraryIdsAsync(List<Guid> libraryIds);
+
         Task<ResourceTypeValues> GetByResourceTypeValueAsync(string resourceTypeValue);
+
+        Task<IEnumerable<string>> GetResourceTypeValueAsync();
+        Task<IEnumerable<string>> GetResourceTypeValueByLibraryIdAsync(List<Guid> libGuids);
     }
 }

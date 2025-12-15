@@ -3,7 +3,7 @@ using ThreatFramework.Infra.Contract;
 using ThreatModeler.TF.Core.Model.ThreatMapping;
 using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
 
-namespace ThreatFramework.Infrastructure.Repository
+namespace ThreatModeler.TF.Infra.Implmentation.Repository.ThreatMapping
 {
     public class ThreatSecurityRequirementMappingRepository : IThreatSecurityRequirementMappingRepository
     {

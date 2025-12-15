@@ -21,12 +21,15 @@ using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Git.Implementation.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
-using ThreatModeler.TF.Infra.Implmentation.Repository;
+using ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule;
+using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
+using ThreatModeler.TF.Infra.Implmentation.Repository.ThreatMapping;
 using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Global;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +72,11 @@ builder.Services.AddScoped<IThreatSecurityRequirementMappingRepository, ThreatSe
 builder.Services.AddScoped<IComponentThreatMappingRepository, ComponentThreatMappingRepository>();
 builder.Services.AddScoped<IComponentThreatSecurityRequirementMappingRepository, ComponentThreatSecurityRequirementMappingRepository>();
 builder.Services.AddScoped<IComponentSecurityRequirementMappingRepository, ComponentSecurityRequirementMappingRepository>();
+
+//assist rule repositories
+builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
+builder.Services.AddScoped<IResourceTypeValuesRepository, ResourceTypeValuesRepository>();
+builder.Services.AddScoped<IResourceTypeValueRelationshipRepository, ResourceTypeValueRelationshipRepository>();
 
 builder.Services.AddScoped<IYamlComponentReader, YamlComponentReader>();
 builder.Services.AddScoped<IYamlLibraryReader, YamlLibraryReader>();

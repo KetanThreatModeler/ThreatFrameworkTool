@@ -3,30 +3,30 @@ using ThreatFramework.Infra.Contract;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 
-namespace ThreatFramework.Infrastructure.Repository
+namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 {
-    public class TestcaseRepository : ITestcaseRepository
+    public class PropertyRepository : IPropertyRepository
     {
         private readonly ILibraryCacheService _libraryCacheService;
         private readonly ISqlConnectionFactory _connectionFactory;
 
-        public TestcaseRepository(ILibraryCacheService libraryCacheService, ISqlConnectionFactory sqlConnectionFactory)
+        public PropertyRepository(ILibraryCacheService libraryCacheService, ISqlConnectionFactory sqlConnectionFactory)
         {
             _libraryCacheService = libraryCacheService;
             _connectionFactory = sqlConnectionFactory;
         }
 
-        public async Task<IEnumerable<TestCase>> GetReadOnlyTestcasesAsync()
+        public async Task<IEnumerable<Property>> GetReadOnlyPropertiesAsync()
         {
             var readonlyLibraryIds = await _libraryCacheService.GetReadOnlyLibraryIdAsync();
 
             if (!readonlyLibraryIds.Any())
-                return Enumerable.Empty<TestCase>();
+                return Enumerable.Empty<Property>();
 
             var libraryIdList = readonlyLibraryIds.ToList();
             var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
-            var sql = $@"{BuildTestCaseSelectQuery()} 
+            var sql = $@"{BuildPropertySelectQuery()} 
                         WHERE LibraryId IN ({libraryParameters})";
 
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
@@ -37,21 +37,21 @@ namespace ThreatFramework.Infrastructure.Repository
                 command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
             }
 
-            return await ExecuteTestCaseReaderAsync(command);
+            return await ExecutePropertyReaderAsync(command);
         }
 
-        public async Task<IEnumerable<TestCase>> GetTestcasesByLibraryIdAsync(IEnumerable<Guid> libraryIds)
+        public async Task<IEnumerable<Property>> GetPropertiesByLibraryIdAsync(IEnumerable<Guid> libraryIds)
         {
             var ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
 
             if (!ids.Any())
-                return Enumerable.Empty<TestCase>();
+                return Enumerable.Empty<Property>();
 
             var libraryIdList = ids.ToList();
             var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
-            var sql = $@"{BuildTestCaseSelectQuery()} 
-                WHERE LibraryId IN ({libraryParameters})";
+            var sql = $@"{BuildPropertySelectQuery()} 
+                        WHERE LibraryId IN ({libraryParameters})";
 
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             using var command = new SqlCommand(sql, connection);
@@ -61,31 +61,38 @@ namespace ThreatFramework.Infrastructure.Repository
                 command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
             }
 
-            return await ExecuteTestCaseReaderAsync(command);
+            return await ExecutePropertyReaderAsync(command);
         }
 
-        private static string BuildTestCaseSelectQuery()
+        private static string BuildPropertySelectQuery()
         {
-            return @"SELECT tc.Id, tc.LibraryId, tc.isHidden, tc.IsOverridden, 
-                            tc.CreatedDate, tc.LastUpdated, tc.Guid, tc.Name, tc.ChineseName, tc.Labels, 
-                            tc.Description, tc.ChineseDescription 
-                    FROM TestCases tc";
+            return @"SELECT p.Id, p.LibraryId, p.PropertyTypeId, p.isSelected, p.IsOptional, p.IsGlobal, 
+                            p.isHidden, p.IsOverridden, p.CreatedDate, p.LastUpdated, p.Guid, p.Name, 
+                            p.ChineseName, p.Labels, p.Description, p.ChineseDescription,
+                            pt.Guid AS PropertyTypeGuid, pt.Name AS PropertyTypeName
+                    FROM Properties p
+                    INNER JOIN PropertyTypes pt ON p.PropertyTypeId = pt.Id";
         }
 
-        private async Task<IEnumerable<TestCase>> ExecuteTestCaseReaderAsync(SqlCommand command)
+        private async Task<IEnumerable<Property>> ExecutePropertyReaderAsync(SqlCommand command)
         {
-            var testCases = new List<TestCase>();
+            var properties = new List<Property>();
             using var reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
-                testCases.Add(new TestCase
+                properties.Add(new Property
                 {
-                    LibraryId = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
+                    LibraryGuid = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
+                    PropertyTypeGuid = (Guid)reader["PropertyTypeGuid"],
+                    PropertyTypeName = reader["PropertyTypeName"] as string,
+                    IsSelected = (bool)reader["isSelected"],
+                    IsOptional = (bool)reader["IsOptional"],
+                    IsGlobal = (bool)reader["IsGlobal"],
                     IsHidden = (bool)reader["isHidden"],
                     IsOverridden = (bool)reader["IsOverridden"],
                     Guid = (Guid)reader["Guid"],
-                    Name = (string)reader["Name"],
+                    Name = reader["Name"] as string,
                     ChineseName = reader["ChineseName"] as string,
                     Labels = reader["Labels"] as string,
                     Description = reader["Description"] as string,
@@ -93,33 +100,32 @@ namespace ThreatFramework.Infrastructure.Repository
                 });
             }
 
-            return testCases;
+            return properties;
         }
 
         public async Task<IEnumerable<Guid>> GetGuidsAsync()
         {
-            var sql = "SELECT Guid FROM TestCases";
-            
+            var sql = "SELECT Guid FROM Properties";
+
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             using var command = new SqlCommand(sql, connection);
-            
-            var guids = new List<Guid>();
             using var reader = await command.ExecuteReaderAsync();
-            
+
+            var guids = new List<Guid>();
             while (await reader.ReadAsync())
             {
                 guids.Add((Guid)reader["Guid"]);
             }
-            
+
             return guids;
         }
 
-        public async Task<IEnumerable<(Guid TestCaseGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync()
+        public async Task<IEnumerable<(Guid PropertyGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync()
         {
             const string sql = @"
-        SELECT tc.Guid AS TestCaseGuid, l.Guid AS LibraryGuid
-        FROM TestCases tc
-        INNER JOIN Libraries l ON tc.LibraryId = l.Id";
+        SELECT p.Guid AS PropertyGuid, l.Guid AS LibraryGuid
+        FROM Properties p
+        INNER JOIN Libraries l ON p.LibraryId = l.Id";
 
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             using var command = new SqlCommand(sql, connection);
@@ -129,10 +135,10 @@ namespace ThreatFramework.Infrastructure.Repository
 
             while (await reader.ReadAsync())
             {
-                var testCaseGuid = reader.GetGuid(reader.GetOrdinal("TestCaseGuid"));
+                var propertyGuid = reader.GetGuid(reader.GetOrdinal("PropertyGuid"));
                 var libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
 
-                results.Add((testCaseGuid, libraryGuid));
+                results.Add((propertyGuid, libraryGuid));
             }
 
             return results;
@@ -143,7 +149,7 @@ namespace ThreatFramework.Infrastructure.Repository
             if (libraryIds == null || !libraryIds.Any())
                 return Enumerable.Empty<Guid>();
 
-            // Convert library GUIDs to integer IDs used in the DB
+            // Convert library GUIDs to integer IDs used in DB
             var ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
 
             if (!ids.Any())
@@ -152,8 +158,8 @@ namespace ThreatFramework.Infrastructure.Repository
             var libraryIdList = ids.ToList();
             var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
-            var sql = $@"SELECT Guid
-                 FROM TestCases
+            var sql = $@"SELECT Guid 
+                 FROM Properties
                  WHERE LibraryId IN ({libraryParameters})";
 
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
@@ -175,25 +181,25 @@ namespace ThreatFramework.Infrastructure.Repository
             return guids;
         }
 
-        public async Task<IEnumerable<(Guid TestCaseGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(IEnumerable<Guid> libraryIds)
+        public async Task<IEnumerable<(Guid PropertyGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync(IEnumerable<Guid> libraryIds)
         {
             if (libraryIds == null || !libraryIds.Any())
-                return Enumerable.Empty<(Guid TestCaseGuid, Guid LibraryGuid)>();
+                return Enumerable.Empty<(Guid PropertyGuid, Guid LibraryGuid)>();
 
-            // Convert library GUIDs to integer IDs used in the DB
+            // Convert library GUIDs to integer IDs used in DB
             var ids = await _libraryCacheService.GetIdsFromGuid(libraryIds);
 
             if (!ids.Any())
-                return Enumerable.Empty<(Guid TestCaseGuid, Guid LibraryGuid)>();
+                return Enumerable.Empty<(Guid PropertyGuid, Guid LibraryGuid)>();
 
             var libraryIdList = ids.ToList();
             var libraryParameters = string.Join(",", libraryIdList.Select((_, i) => $"@lib{i}"));
 
             var sql = $@"
-        SELECT tc.Guid AS TestCaseGuid, l.Guid AS LibraryGuid
-        FROM TestCases tc
-        INNER JOIN Libraries l ON tc.LibraryId = l.Id
-        WHERE tc.LibraryId IN ({libraryParameters})";
+        SELECT p.Guid AS PropertyGuid, l.Guid AS LibraryGuid
+        FROM Properties p
+        INNER JOIN Libraries l ON p.LibraryId = l.Id
+        WHERE p.LibraryId IN ({libraryParameters})";
 
             using var connection = await _connectionFactory.CreateOpenConnectionAsync();
             using var command = new SqlCommand(sql, connection);
@@ -203,15 +209,15 @@ namespace ThreatFramework.Infrastructure.Repository
                 command.Parameters.AddWithValue($"@lib{i}", libraryIdList[i]);
             }
 
-            var results = new List<(Guid TestCaseGuid, Guid LibraryGuid)>();
+            var results = new List<(Guid PropertyGuid, Guid LibraryGuid)>();
             using var reader = await command.ExecuteReaderAsync();
 
             while (await reader.ReadAsync())
             {
-                var testCaseGuid = reader.GetGuid(reader.GetOrdinal("TestCaseGuid"));
+                var propertyGuid = reader.GetGuid(reader.GetOrdinal("PropertyGuid"));
                 var libraryGuid = reader.GetGuid(reader.GetOrdinal("LibraryGuid"));
 
-                results.Add((testCaseGuid, libraryGuid));
+                results.Add((propertyGuid, libraryGuid));
             }
 
             return results;
