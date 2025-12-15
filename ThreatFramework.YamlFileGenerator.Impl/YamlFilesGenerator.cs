@@ -11,7 +11,9 @@ using ThreatFramework.YamlFileGenerator.Impl.Templates;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping;
 using ThreatModeler.TF.Git.Contract.Common;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
 using ThreatModeler.TF.YamlFileGenerator.Implementation.Templates;
 using ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.Global;
 

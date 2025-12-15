@@ -1,6 +1,8 @@
 ﻿using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
 
 namespace ThreatModeler.TF.Infra.Contract.Repository
 {

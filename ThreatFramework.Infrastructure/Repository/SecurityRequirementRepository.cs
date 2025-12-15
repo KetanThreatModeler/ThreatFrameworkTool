@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infra.Contract.Repository;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Helper;
 
 namespace ThreatFramework.Infrastructure.Repository

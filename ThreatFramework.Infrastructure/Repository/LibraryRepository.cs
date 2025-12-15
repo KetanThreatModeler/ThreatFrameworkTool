@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using ThreatFramework.Core.Cache;
-using ThreatFramework.Infra.Contract.Repository;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 
 namespace ThreatFramework.Infrastructure.Repository
 {

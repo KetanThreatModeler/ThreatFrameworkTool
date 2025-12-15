@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 
 namespace ThreatFramework.Infrastructure.Services
 {

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatModeler.TF.Core.Model.ThreatMapping;
 
-namespace ThreatFramework.Infra.Contract.Repository
+namespace ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping
 {
     public interface IThreatSecurityRequirementMappingRepository
     {
