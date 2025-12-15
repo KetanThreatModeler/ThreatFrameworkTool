@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Infra.Implmentation.Helper;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
@@ -218,8 +219,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
             // labels: sequence -> comma-separated
             string? labels = null;
             if (root.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
-                && labelsNode is YamlSequenceNode seq
-                && seq.Children.Count > 0)
+                && labelsNode is YamlSequenceNode seq && seq.Children.Count > 0)
             {
                 var labelValues = seq.Children
                     .OfType<YamlScalarNode>()
@@ -270,7 +270,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                 IsOverridden = isOverridden,
                 Name = name,
                 ChineseName = chineseName,
-                Labels = labels,
+                Labels = labels.ToLabelList(),
                 Description = description,
                 ChineseDescription = chineseDescription
             };

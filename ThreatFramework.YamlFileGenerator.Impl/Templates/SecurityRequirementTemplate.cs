@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
+using ThreatModeler.TF.Core.Helper;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates
@@ -17,7 +18,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl.Templates
                 .AddQuoted("guid", securityRequirement.Guid.ToString())
                 .AddQuoted("name", securityRequirement.Name)
                 .AddQuoted("libraryGuid", securityRequirement.LibraryId.ToString())
-                .AddLabels("labels", securityRequirement.Labels)
+                .AddLabels("labels", securityRequirement.Labels.ToDelimitedString())
                 .AddQuoted("riskName", securityRequirement.RiskName.ToString())
                 .AddQuoted("description", securityRequirement.Description ?? string.Empty)
                 .AddQuoted("ChineseName", securityRequirement.ChineseName ?? string.Empty)

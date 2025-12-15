@@ -210,15 +210,15 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 }
 
                 // Compare only configured fields
-                var changedFields = baseSR.CompareFields(
-                    targetSR,
+                var changedFields = targetSR.CompareFields(
+                    baseSR,
                     driftOptions.SecurityRequirementDefaultFields);
 
                 if (changedFields == null || changedFields.Count == 0)
                 {
                     logger.LogInformation(
                         "No changes detected in configured SecurityRequirement fields for {SRGuid}. Skipping modification.",
-                        baseSR.Guid);
+                        targetSR.Guid);
                     continue;
                 }
 
@@ -227,7 +227,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
                 var modifiedEntity = new ModifiedEntity<SecurityRequirement>
                 {
-                    Entity = baseSR,
+                    Entity = targetSR,
                     ModifiedFields = changedFields,
                 };
 

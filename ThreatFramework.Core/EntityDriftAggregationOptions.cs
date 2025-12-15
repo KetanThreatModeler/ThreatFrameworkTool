@@ -40,6 +40,7 @@ namespace ThreatFramework.Core
             "LibraryGuid",
             "ComponentTypeGuid",
             "IsHidden",
+            "IsOverridden",
             "Name",
             "ImagePath",
             "Labels",
@@ -87,11 +88,9 @@ namespace ThreatFramework.Core
         "ChineseDescription" };
 
         public List<string> PropertyOptionDefaultFields { get; init; } = new List<string> {
-            "PropertyId",
             "IsDefault",
             "IsHidden",
             "IsOverridden",
-            "Guid",
             "OptionText",
             "ChineseOptionText"
         };

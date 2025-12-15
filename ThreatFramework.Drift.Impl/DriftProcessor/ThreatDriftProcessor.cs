@@ -216,8 +216,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 }
 
                 // Compare only configured fields
-                var changedFields = baseThreat.CompareFields(
-                    targetThreat,
+                var changedFields = targetThreat.CompareFields(
+                    baseThreat,
                     driftOptions.ThreatDefaultFields);
 
                 if (changedFields == null || changedFields.Count == 0)

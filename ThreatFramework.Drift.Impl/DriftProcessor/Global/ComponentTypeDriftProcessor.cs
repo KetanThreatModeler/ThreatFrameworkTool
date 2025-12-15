@@ -192,8 +192,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Global
                 }
 
                 // Compare only configured fields (e.g. driftOptions.ComponentTypeDefaultFields)
-                var changedFields = baseComponentType.CompareFields(
-                    targetComponentType,
+                var changedFields = targetComponentType.CompareFields(
+                    baseComponentType,
                     driftOptions.ComponentTypeDefaultFields);
 
                 if (changedFields == null || changedFields.Count == 0)
@@ -206,7 +206,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Global
 
                 var modifiedEntity = new ModifiedEntity<ComponentType>
                 {
-                    Entity = baseComponentType,
+                    Entity = targetComponentType,
                     ModifiedFields = changedFields,
                 };
 

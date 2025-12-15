@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Drift.Contract.Model;
 
 namespace ThreatModeler.TF.Drift.Contract
 {

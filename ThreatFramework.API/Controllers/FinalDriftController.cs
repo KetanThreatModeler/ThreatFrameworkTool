@@ -14,14 +14,14 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
     [Route("api/[controller]")]
     public class DriftController : ControllerBase
     {
-        private readonly IFinalDriftService _finalDriftService;
+        private readonly IDriftService _finalDriftService;
         private readonly IGuidIndexService _guidIndexService;
         private readonly ILibraryCacheService _libraryCacheService;
         private readonly PathOptions _pathOptions;
         private readonly ILogger<DriftController> _logger;
 
         public DriftController(
-            IFinalDriftService finalDriftService,
+            IDriftService finalDriftService,
             IGuidIndexService guidIndexService,
             ILibraryCacheService libraryCacheService,
             IOptions<PathOptions> pathOptions,

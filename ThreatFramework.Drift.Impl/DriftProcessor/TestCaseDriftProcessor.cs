@@ -210,8 +210,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 }
 
                 // Compare only configured fields
-                var changedFields = baseTestCase.CompareFields(
-                    targetTestCase,
+                var changedFields = targetTestCase.CompareFields(
+                    baseTestCase,
                     driftOptions.TestCaseDefaultFields);
 
                 if (changedFields == null || changedFields.Count == 0)
@@ -227,7 +227,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 
                 var modifiedEntity = new ModifiedEntity<TestCase>
                 {
-                    Entity = baseTestCase,
+                    Entity = targetTestCase,
                     ModifiedFields = changedFields,
                 };
 

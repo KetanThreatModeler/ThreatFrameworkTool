@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatModeler.TF.Core.Global;
 
-namespace ThreatModeler.TF.Drift.Contract
+namespace ThreatModeler.TF.Drift.Contract.Model
 {
     public enum DriftSource
     {

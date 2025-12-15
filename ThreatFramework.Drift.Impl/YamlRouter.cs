@@ -8,6 +8,7 @@ using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Core.CoreEntities;
 using ThreatModeler.TF.Core.Global;
 using ThreatModeler.TF.Drift.Contract;
+using ThreatModeler.TF.Drift.Contract.Model;
 using ThreatModeler.TF.Git.Contract.Common;
 
 namespace ThreatModeler.TF.Drift.Implemenetation

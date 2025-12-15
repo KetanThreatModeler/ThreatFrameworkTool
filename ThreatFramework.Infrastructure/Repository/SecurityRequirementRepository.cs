@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Implmentation.Helper;
 
 namespace ThreatFramework.Infrastructure.Repository
 {
@@ -306,7 +307,7 @@ namespace ThreatFramework.Infrastructure.Repository
                         Guid = reader.GetGuid(guidOrdinal),
                         Name = reader.IsDBNull(nameOrdinal) ? string.Empty : reader.GetString(nameOrdinal),
                         ChineseName = reader.IsDBNull(chineseNameOrdinal) ? null : reader.GetString(chineseNameOrdinal),
-                        Labels = reader.IsDBNull(labelsOrdinal) ? null : reader.GetString(labelsOrdinal),
+                        Labels = reader.GetValue(labelsOrdinal).ToLabelList(),
                         Description = reader.IsDBNull(descriptionOrdinal) ? null : reader.GetString(descriptionOrdinal),
                         ChineseDescription = reader.IsDBNull(chineseDescriptionOrdinal) ? null : reader.GetString(chineseDescriptionOrdinal)
                     };

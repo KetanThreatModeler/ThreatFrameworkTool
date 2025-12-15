@@ -18,7 +18,7 @@ namespace ThreatFramework.Core.CoreEntities
 
         public string Name { get; set; }
         public string? ChineseName { get; set; }
-        public string? Labels { get; set; }
+        public List<string> Labels { get; set; } = new List<string>();
         public string? Description { get; set; }
         public string? ChineseDescription { get; set; }
 
@@ -49,12 +49,15 @@ namespace ThreatFramework.Core.CoreEntities
 
                     // --- GROUP 3: Standard Strings (Case-Sensitive) ---
                     case nameof(ChineseName):
-                    case nameof(Labels):
                     case nameof(Description):
                     case nameof(ChineseDescription):
                         string? s1 = GetStringValue(field);
                         string? s2 = other.GetStringValue(field);
                         ComparisonHelper.CompareString(changes, field, s1, s2, ignoreCase: false);
+                        break;
+
+                    case nameof(Labels):
+                        ComparisonHelper.CompareList(changes, field, this.Labels, other.Labels);
                         break;
 
                     // --- ERROR HANDLING ---
@@ -87,7 +90,6 @@ namespace ThreatFramework.Core.CoreEntities
         private string? GetStringValue(string fieldName) => fieldName switch
         {
             nameof(ChineseName) => ChineseName,
-            nameof(Labels) => Labels,
             nameof(Description) => Description,
             nameof(ChineseDescription) => ChineseDescription,
             _ => null

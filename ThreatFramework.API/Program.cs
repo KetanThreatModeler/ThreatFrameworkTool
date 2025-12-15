@@ -117,7 +117,7 @@ builder.Services.AddScoped<IGitFolderDiffService, GitFolderDiffService>();
 builder.Services.AddScoped<IPathClassifier, DefaultPathClassifier>();
 builder.Services.AddScoped<IRepositoryDiffEntityPathService, RepositoryDiffEntityPathService>();
 builder.Services.AddScoped<ILibraryScopedDiffService, LibraryScopedDiffService>();
-builder.Services.AddScoped<IFinalDriftService, FinalDriftService>();
+builder.Services.AddScoped<IDriftService, DriftService>();
 builder.Services.AddScoped<ITMFrameworkDriftConverter, TMFrameworkDriftConverter>();
 builder.Services.AddScoped<IYamlRouter, YamlRouter>();
 

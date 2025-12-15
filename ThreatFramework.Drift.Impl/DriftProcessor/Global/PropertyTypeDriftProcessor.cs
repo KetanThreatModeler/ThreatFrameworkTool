@@ -193,8 +193,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Global
                 }
 
                 // Compare only configured fields (e.g. driftOptions.PropertyTypeDefaultFields)
-                var changedFields = basePropertyType.CompareFields(
-                    targetPropertyType,
+                var changedFields = targetPropertyType.CompareFields(
+                    basePropertyType,
                     driftOptions.PropertyTypeDefaultFields);
 
                 if (changedFields == null || changedFields.Count == 0)

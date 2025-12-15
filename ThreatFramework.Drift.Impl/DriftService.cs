@@ -15,9 +15,9 @@ using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Drift.Implemenetation
 {
-    public class FinalDriftService : IFinalDriftService
+    public class DriftService : IDriftService
     {
-        private readonly ILogger<FinalDriftService> _logger;
+        private readonly ILogger<DriftService> _logger;
         private readonly PathOptions _pathOptions;
         private readonly ILibraryScopedDiffService _libraryScopedDiffService;
         private readonly IRepositoryDiffEntityPathService _repositoryDiffEntityPathService;
@@ -26,7 +26,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         private readonly IGuidIndexService _guidIndexService;
         private readonly ITMFrameworkDriftConverter _tMFrameworkDriftConverter;
 
-        public FinalDriftService(
+        public DriftService(
             IYamlFileGeneratorForClient yamlFileGeneratorForClient,
             IOptions<PathOptions> pathOptions,
             ILibraryScopedDiffService libraryScopedDiffService,
@@ -34,7 +34,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             IRepositoryDiffEntityPathService repositoryDiffEntityPathService,
             IGuidIndexService guidIndexService,
             ITMFrameworkDriftConverter tMFrameworkDriftConverter,
-            ILogger<FinalDriftService> logger)
+            ILogger<DriftService> logger)
         {
             _pathOptions = pathOptions?.Value ?? throw new ArgumentNullException(nameof(pathOptions));
             _libraryScopedDiffService = libraryScopedDiffService ?? throw new ArgumentNullException(nameof(libraryScopedDiffService));

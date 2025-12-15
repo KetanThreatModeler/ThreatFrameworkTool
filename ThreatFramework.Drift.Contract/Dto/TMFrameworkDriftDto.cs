@@ -11,7 +11,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<LibraryDriftDto> ModifiedLibraries { get; init; } = new();
         public List<AddedLibraryDto> AddedLibraries { get; init; } = new();
         public List<DeletedLibraryDto> DeletedLibraries { get; init; } = new();
-        public GlobalDriftDto Global { get; set; }
+        public GlobalDriftDto Global { get; set; } = new ();
     }
 
     public class AddedLibraryDto
