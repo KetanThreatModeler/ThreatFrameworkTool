@@ -7,23 +7,8 @@ using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
 {
-    /// <summary>
-    /// Aggregates Threat ↔ Security Requirement mapping drift into TMFrameworkDrift.
-    ///
-    /// Only one mapping bag per Threat (ThreatMappingCollection) is used, which
-    /// only contains Security Requirement mappings (SRMappingDto).
-    ///
-    /// Semantics:
-    /// - AddedThreat.Mappings.SecurityRequirements           (for new threats)
-    /// - RemovedThreat.Mappings.SecurityRequirements         (for deleted threats)
-    /// - ModifiedThreat.MappingsAdded.SecurityRequirements   (SR mappings added)
-    /// - ModifiedThreat.MappingsRemoved.SecurityRequirements (SR mappings removed)
-    /// </summary>
     public static class ThreatMappingDriftProcessor
     {
-        /// <summary>
-        /// Bucket of mapping changes for a single Threat (by numeric Id from path).
-        /// </summary>
         private sealed class ThreatMappingChangeBucket
         {
             public ThreatMappingChangeBucket(int threatId)
@@ -50,7 +35,6 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
             if (libraryIds == null) throw new ArgumentNullException(nameof(libraryIds));
             if (logger == null) throw new ArgumentNullException(nameof(logger));
 
-            // 1) Group mappings per Threat (added / removed)
             var buckets = BuildThreatMappingBuckets(pathContext, guidIndexService, logger);
 
             if (buckets.Count == 0)
@@ -82,9 +66,6 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
         {
             var buckets = new Dictionary<int, ThreatMappingChangeBucket>();
 
-            // NOTE:
-            // Replace "GetThreatSecurityRequirementsMappingFileChanges" with the actual
-            // method on your IRepositoryDiffEntityPathContext that returns threat-SR mapping changes.
             var changeSet = pathContext.GetThreatSecurityRequirementsMappingFileChanges();
 
             AccumulateThreatMappingChangeSet(
@@ -92,6 +73,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 changeSet,
                 guidIndexService,
                 logger);
+
+
+            logger.LogInformation("Created {Count} threat mapping buckets.", buckets.Count);
 
             return buckets;
         }
@@ -556,7 +540,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
                 }
             }
 
-            logger.LogWarning(
+            logger.LogError(
                 "Unable to resolve library GUID for threat ID {ThreatId}. Returning Guid.Empty.",
                 threatId);
 
