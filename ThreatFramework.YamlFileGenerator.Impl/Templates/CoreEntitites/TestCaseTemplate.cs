@@ -1,6 +1,6 @@
 ﻿using ThreatModeler.TF.Core.Model.CoreEntities;
 
-namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates
+namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.CoreEntitites
 {
     public static class TestCaseTemplate
     {

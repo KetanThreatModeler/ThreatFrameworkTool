@@ -1,7 +1,7 @@
 ﻿using ThreatModeler.TF.Core.Helper;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 
-namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates
+namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.CoreEntitites
 {
     internal static class ThreatTemplate
     {

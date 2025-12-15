@@ -1,7 +1,7 @@
 ﻿using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
-namespace ThreatFramework.YamlFileGenerator.Impl.Templates
+namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.CoreEntitites
 {
     public static class LibraryTemplate
     {
