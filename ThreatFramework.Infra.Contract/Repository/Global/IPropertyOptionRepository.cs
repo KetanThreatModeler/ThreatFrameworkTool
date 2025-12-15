@@ -1,4 +1,4 @@
-﻿using ThreatModeler.TF.Core.Global;
+﻿using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatModeler.TF.Infra.Contract.Repository.Global
 {

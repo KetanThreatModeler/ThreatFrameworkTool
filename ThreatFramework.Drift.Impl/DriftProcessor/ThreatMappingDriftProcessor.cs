@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using ThreatFramework.Core;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.Index;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 

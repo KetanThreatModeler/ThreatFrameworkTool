@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Index;
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Drift.Contract.Model;

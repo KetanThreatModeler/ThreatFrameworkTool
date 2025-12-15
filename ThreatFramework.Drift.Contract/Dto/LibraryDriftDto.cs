@@ -1,6 +1,6 @@
 ﻿using ThreatFramework.Core;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.Model;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 
 namespace ThreatModeler.TF.Drift.Contract.Dto
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Core.PropertyMapping;
+using ThreatModeler.TF.Core.Model.PropertyMapping;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping

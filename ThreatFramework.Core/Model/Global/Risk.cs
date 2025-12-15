@@ -1,8 +1,8 @@
-﻿using ThreatFramework.Core; 
+﻿using ThreatFramework.Core;
 using ThreatModeler.TF.Core.CustomException;
 using ThreatModeler.TF.Core.Helper;
 
-namespace ThreatModeler.TF.Core.Global
+namespace ThreatModeler.TF.Core.Model.Global
 {
     public sealed class Risk : IFieldComparable<Risk>
     {
@@ -24,7 +24,7 @@ namespace ThreatModeler.TF.Core.Global
                 {
                     // --- GROUP 1: Value Types ---
                     case nameof(Score):
-                        ComparisonHelper.Compare(changes, field, this.Score, other.Score);
+                        ComparisonHelper.Compare(changes, field, Score, other.Score);
                         break;
 
                     // --- GROUP 2: Case-Insensitive Strings (Name-like) ---
@@ -32,7 +32,7 @@ namespace ThreatModeler.TF.Core.Global
                         ComparisonHelper.CompareString(
                             changes,
                             field,
-                            this.Name,
+                            Name,
                             other.Name,
                             ignoreCase: true);
                         break;
@@ -41,7 +41,7 @@ namespace ThreatModeler.TF.Core.Global
                         ComparisonHelper.CompareString(
                             changes,
                             field,
-                            this.SuggestedName,
+                            SuggestedName,
                             other.SuggestedName,
                             ignoreCase: true);
                         break;

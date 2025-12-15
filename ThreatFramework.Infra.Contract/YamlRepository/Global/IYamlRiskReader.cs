@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Core.CoreEntities;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatModeler.TF.Infra.Contract.YamlRepository.Global
 {

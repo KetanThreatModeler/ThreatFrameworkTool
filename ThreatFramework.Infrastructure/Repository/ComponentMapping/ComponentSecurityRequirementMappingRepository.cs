@@ -1,8 +1,8 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using ThreatFramework.Core.ComponentMapping;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Core.Model.ComponentMapping;
 
 namespace ThreatFramework.Infrastructure.Repository
 {

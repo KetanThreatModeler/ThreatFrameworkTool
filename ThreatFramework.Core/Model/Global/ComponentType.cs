@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using ThreatFramework.Core; // Assuming IFieldComparable is here
 using ThreatModeler.TF.Core.CustomException;
-using ThreatModeler.TF.Core.Helper; // Using your specific helper namespace
+using ThreatModeler.TF.Core.Helper;
 
-namespace ThreatModeler.TF.Core.Global
+namespace ThreatModeler.TF.Core.Model.Global
 {
     public class ComponentType : IFieldComparable<ComponentType>
     {
@@ -40,7 +40,7 @@ namespace ThreatModeler.TF.Core.Global
 
                     // --- GROUP 2: Case-Insensitive Strings ---
                     case nameof(Name):
-                        ComparisonHelper.CompareString(changes, field, this.Name, other.Name, ignoreCase: true);
+                        ComparisonHelper.CompareString(changes, field, Name, other.Name, ignoreCase: true);
                         break;
 
                     // --- GROUP 3: Standard Strings (Case-Sensitive) ---
@@ -67,12 +67,12 @@ namespace ThreatModeler.TF.Core.Global
             switch (field)
             {
                 // Guids
-                case nameof(Guid): ComparisonHelper.Compare(changes, field, this.Guid, other.Guid); break;
-                case nameof(LibraryGuid): ComparisonHelper.Compare(changes, field, this.LibraryGuid, other.LibraryGuid); break;
+                case nameof(Guid): ComparisonHelper.Compare(changes, field, Guid, other.Guid); break;
+                case nameof(LibraryGuid): ComparisonHelper.Compare(changes, field, LibraryGuid, other.LibraryGuid); break;
 
                 // Booleans
-                case nameof(IsHidden): ComparisonHelper.Compare(changes, field, this.IsHidden, other.IsHidden); break;
-                case nameof(IsSecurityControl): ComparisonHelper.Compare(changes, field, this.IsSecurityControl, other.IsSecurityControl); break;
+                case nameof(IsHidden): ComparisonHelper.Compare(changes, field, IsHidden, other.IsHidden); break;
+                case nameof(IsSecurityControl): ComparisonHelper.Compare(changes, field, IsSecurityControl, other.IsSecurityControl); break;
             }
         }
 

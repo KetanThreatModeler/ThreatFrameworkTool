@@ -1,9 +1,9 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System.Data;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Helper;
 
 namespace ThreatModeler.TF.Infra.Implmentation.Repository

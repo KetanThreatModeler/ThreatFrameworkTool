@@ -1,5 +1,5 @@
 ﻿using ThreatFramework.Drift.Contract.Model;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatModeler.TF.Drift.Contract.Model
 {

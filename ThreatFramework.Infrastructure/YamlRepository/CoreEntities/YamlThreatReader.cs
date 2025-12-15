@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Helper;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities

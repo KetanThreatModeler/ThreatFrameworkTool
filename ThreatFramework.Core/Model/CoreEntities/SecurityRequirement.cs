@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ThreatFramework.Core;
 using ThreatModeler.TF.Core.CustomException;
-using ThreatModeler.TF.Core.Helper; // Using your specific helper namespace
+using ThreatModeler.TF.Core.Helper;
 
-namespace ThreatFramework.Core.CoreEntities
+namespace ThreatModeler.TF.Core.Model.CoreEntities
 {
     public class SecurityRequirement : IFieldComparable<SecurityRequirement>
     {
@@ -44,7 +45,7 @@ namespace ThreatFramework.Core.CoreEntities
 
                     // --- GROUP 2: Case-Insensitive Strings ---
                     case nameof(Name):
-                        ComparisonHelper.CompareString(changes, field, this.Name, other.Name, ignoreCase: true);
+                        ComparisonHelper.CompareString(changes, field, Name, other.Name, ignoreCase: true);
                         break;
 
                     // --- GROUP 3: Standard Strings (Case-Sensitive) ---
@@ -57,7 +58,7 @@ namespace ThreatFramework.Core.CoreEntities
                         break;
 
                     case nameof(Labels):
-                        ComparisonHelper.CompareList(changes, field, this.Labels, other.Labels);
+                        ComparisonHelper.CompareList(changes, field, Labels, other.Labels);
                         break;
 
                     // --- ERROR HANDLING ---
@@ -75,14 +76,14 @@ namespace ThreatFramework.Core.CoreEntities
             switch (field)
             {
                 // Identifiers
-                case nameof(RiskName): ComparisonHelper.Compare(changes, field, this.RiskName, other.RiskName); break;
-                case nameof(LibraryId): ComparisonHelper.Compare(changes, field, this.LibraryId, other.LibraryId); break;
-                case nameof(Guid): ComparisonHelper.Compare(changes, field, this.Guid, other.Guid); break;
+                case nameof(RiskName): ComparisonHelper.Compare(changes, field, RiskName, other.RiskName); break;
+                case nameof(LibraryId): ComparisonHelper.Compare(changes, field, LibraryId, other.LibraryId); break;
+                case nameof(Guid): ComparisonHelper.Compare(changes, field, Guid, other.Guid); break;
 
                 // Booleans
-                case nameof(IsCompensatingControl): ComparisonHelper.Compare(changes, field, this.IsCompensatingControl, other.IsCompensatingControl); break;
-                case nameof(IsHidden): ComparisonHelper.Compare(changes, field, this.IsHidden, other.IsHidden); break;
-                case nameof(IsOverridden): ComparisonHelper.Compare(changes, field, this.IsOverridden, other.IsOverridden); break;
+                case nameof(IsCompensatingControl): ComparisonHelper.Compare(changes, field, IsCompensatingControl, other.IsCompensatingControl); break;
+                case nameof(IsHidden): ComparisonHelper.Compare(changes, field, IsHidden, other.IsHidden); break;
+                case nameof(IsOverridden): ComparisonHelper.Compare(changes, field, IsOverridden, other.IsOverridden); break;
             }
         }
 

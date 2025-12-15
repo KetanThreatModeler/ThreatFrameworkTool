@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ThreatFramework.Core;
 using ThreatModeler.TF.Core.CustomException;
-using ThreatModeler.TF.Core.Helper; // Using your specific helper namespace
+using ThreatModeler.TF.Core.Helper;
 
-namespace ThreatFramework.Core.CoreEntities
+namespace ThreatModeler.TF.Core.Model.CoreEntities
 {
     public class Property : IFieldComparable<Property>
     {
@@ -51,7 +52,7 @@ namespace ThreatFramework.Core.CoreEntities
 
                     // --- GROUP 2: Case-Insensitive Strings ---
                     case nameof(Name):
-                        ComparisonHelper.CompareString(changes, field, this.Name, other.Name, ignoreCase: true);
+                        ComparisonHelper.CompareString(changes, field, Name, other.Name, ignoreCase: true);
                         break;
 
                     // --- GROUP 3: Standard Strings (Case-Sensitive) ---
@@ -79,16 +80,16 @@ namespace ThreatFramework.Core.CoreEntities
             switch (field)
             {
                 // Guids
-                case nameof(Guid): ComparisonHelper.Compare(changes, field, this.Guid, other.Guid); break;
-                case nameof(LibraryGuid): ComparisonHelper.Compare(changes, field, this.LibraryGuid, other.LibraryGuid); break;
-                case nameof(PropertyTypeGuid): ComparisonHelper.Compare(changes, field, this.PropertyTypeGuid, other.PropertyTypeGuid); break;
+                case nameof(Guid): ComparisonHelper.Compare(changes, field, Guid, other.Guid); break;
+                case nameof(LibraryGuid): ComparisonHelper.Compare(changes, field, LibraryGuid, other.LibraryGuid); break;
+                case nameof(PropertyTypeGuid): ComparisonHelper.Compare(changes, field, PropertyTypeGuid, other.PropertyTypeGuid); break;
 
                 // Booleans
-                case nameof(IsSelected): ComparisonHelper.Compare(changes, field, this.IsSelected, other.IsSelected); break;
-                case nameof(IsOptional): ComparisonHelper.Compare(changes, field, this.IsOptional, other.IsOptional); break;
-                case nameof(IsGlobal): ComparisonHelper.Compare(changes, field, this.IsGlobal, other.IsGlobal); break;
-                case nameof(IsHidden): ComparisonHelper.Compare(changes, field, this.IsHidden, other.IsHidden); break;
-                case nameof(IsOverridden): ComparisonHelper.Compare(changes, field, this.IsOverridden, other.IsOverridden); break;
+                case nameof(IsSelected): ComparisonHelper.Compare(changes, field, IsSelected, other.IsSelected); break;
+                case nameof(IsOptional): ComparisonHelper.Compare(changes, field, IsOptional, other.IsOptional); break;
+                case nameof(IsGlobal): ComparisonHelper.Compare(changes, field, IsGlobal, other.IsGlobal); break;
+                case nameof(IsHidden): ComparisonHelper.Compare(changes, field, IsHidden, other.IsHidden); break;
+                case nameof(IsOverridden): ComparisonHelper.Compare(changes, field, IsOverridden, other.IsOverridden); break;
             }
         }
 

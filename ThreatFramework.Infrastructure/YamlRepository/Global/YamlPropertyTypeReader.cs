@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ThreatFramework.Infrastructure.YamlRepository;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
 using YamlDotNet.RepresentationModel;
 

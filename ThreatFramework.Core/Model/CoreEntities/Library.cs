@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ThreatFramework.Core;
 using ThreatModeler.TF.Core.CustomException;
-using ThreatModeler.TF.Core.Helper; // Using your specific helper namespace
+using ThreatModeler.TF.Core.Helper;
 
-namespace ThreatFramework.Core.CoreEntities
+namespace ThreatModeler.TF.Core.Model.CoreEntities
 {
     public class Library : IFieldComparable<Library>
     {
@@ -40,7 +41,7 @@ namespace ThreatFramework.Core.CoreEntities
 
                     // --- GROUP 2: Case-Insensitive Strings ---
                     case nameof(Name):
-                        ComparisonHelper.CompareString(changes, field, this.Name, other.Name, ignoreCase: true);
+                        ComparisonHelper.CompareString(changes, field, Name, other.Name, ignoreCase: true);
                         break;
 
                     // --- GROUP 3: Standard Strings (Case-Sensitive) ---
@@ -69,10 +70,10 @@ namespace ThreatFramework.Core.CoreEntities
         {
             switch (field)
             {
-                case nameof(Guid): ComparisonHelper.Compare(changes, field, this.Guid, other.Guid); break;
-                case nameof(DepartmentId): ComparisonHelper.Compare(changes, field, this.DepartmentId, other.DepartmentId); break;
-                case nameof(Readonly): ComparisonHelper.Compare(changes, field, this.Readonly, other.Readonly); break;
-                case nameof(IsDefault): ComparisonHelper.Compare(changes, field, this.IsDefault, other.IsDefault); break;
+                case nameof(Guid): ComparisonHelper.Compare(changes, field, Guid, other.Guid); break;
+                case nameof(DepartmentId): ComparisonHelper.Compare(changes, field, DepartmentId, other.DepartmentId); break;
+                case nameof(Readonly): ComparisonHelper.Compare(changes, field, Readonly, other.Readonly); break;
+                case nameof(IsDefault): ComparisonHelper.Compare(changes, field, IsDefault, other.IsDefault); break;
             }
         }
 

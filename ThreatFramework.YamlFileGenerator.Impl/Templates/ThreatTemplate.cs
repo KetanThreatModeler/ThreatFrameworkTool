@@ -1,5 +1,5 @@
-﻿using ThreatFramework.Core.CoreEntities;
-using ThreatModeler.TF.Core.Helper;
+﻿using ThreatModeler.TF.Core.Helper;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 
 namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates
 {

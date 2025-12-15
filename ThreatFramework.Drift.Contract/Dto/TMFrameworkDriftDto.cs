@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using ThreatFramework.Core;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.Model;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatModeler.TF.Drift.Contract.Dto
 {

@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ThreatFramework.Core.ComponentMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Core.Model.ComponentMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository;
 using YamlDotNet.RepresentationModel;
 

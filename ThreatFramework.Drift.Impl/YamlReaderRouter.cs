@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.YamlRepository;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
 

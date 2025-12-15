@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using ThreatFramework.Core;
 using ThreatModeler.TF.Core.CustomException;
 using ThreatModeler.TF.Core.Helper;
 
-namespace ThreatFramework.Core.CoreEntities
+namespace ThreatModeler.TF.Core.Model.CoreEntities
 {
     public class Threat : IFieldComparable<Threat>
     {
@@ -52,7 +53,7 @@ namespace ThreatFramework.Core.CoreEntities
                         ComparisonHelper.CompareString(
                             changes,
                             field,
-                            this.RiskName,
+                            RiskName,
                             other.RiskName,
                             ignoreCase: true);
                         break;
@@ -62,7 +63,7 @@ namespace ThreatFramework.Core.CoreEntities
                         ComparisonHelper.CompareString(
                             changes,
                             field,
-                            this.Name,
+                            Name,
                             other.Name,
                             ignoreCase: true);
                         break;
@@ -85,7 +86,7 @@ namespace ThreatFramework.Core.CoreEntities
 
                     // Lists
                     case nameof(Labels):
-                        ComparisonHelper.CompareList(changes, field, this.Labels, other.Labels);
+                        ComparisonHelper.CompareList(changes, field, Labels, other.Labels);
                         break;
 
                     default:
@@ -101,23 +102,23 @@ namespace ThreatFramework.Core.CoreEntities
             switch (field)
             {
                 case nameof(Guid):
-                    ComparisonHelper.Compare(changes, field, this.Guid, other.Guid);
+                    ComparisonHelper.Compare(changes, field, Guid, other.Guid);
                     break;
 
                 case nameof(LibraryGuid):
-                    ComparisonHelper.Compare(changes, field, this.LibraryGuid, other.LibraryGuid);
+                    ComparisonHelper.Compare(changes, field, LibraryGuid, other.LibraryGuid);
                     break;
 
                 case nameof(Automated):
-                    ComparisonHelper.Compare(changes, field, this.Automated, other.Automated);
+                    ComparisonHelper.Compare(changes, field, Automated, other.Automated);
                     break;
 
                 case nameof(IsHidden):
-                    ComparisonHelper.Compare(changes, field, this.IsHidden, other.IsHidden);
+                    ComparisonHelper.Compare(changes, field, IsHidden, other.IsHidden);
                     break;
 
                 case nameof(IsOverridden):
-                    ComparisonHelper.Compare(changes, field, this.IsOverridden, other.IsOverridden);
+                    ComparisonHelper.Compare(changes, field, IsOverridden, other.IsOverridden);
                     break;
             }
         }

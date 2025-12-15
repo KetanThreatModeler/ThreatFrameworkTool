@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using ThreatFramework.Infra.Contract.Index;
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 
 namespace ThreatFramework.API.Controllers
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Core.ComponentMapping;
+using ThreatModeler.TF.Core.Model.ComponentMapping;
 
 namespace ThreatFramework.Infra.Contract.Repository
 {

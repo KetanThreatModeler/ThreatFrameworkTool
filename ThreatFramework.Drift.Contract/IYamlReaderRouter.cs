@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using ThreatFramework.Core.CoreEntities;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatModeler.TF.Drift.Contract
 {

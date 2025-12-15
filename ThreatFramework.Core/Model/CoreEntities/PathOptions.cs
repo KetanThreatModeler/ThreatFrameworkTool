@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatModeler.TF.Core.CoreEntities
+namespace ThreatModeler.TF.Core.Model.CoreEntities
 {
     public sealed class PathOptions
     {
@@ -12,5 +12,6 @@ namespace ThreatModeler.TF.Core.CoreEntities
         public string IndexYaml { get; set; } = string.Empty;
         public string TrcOutput { get; set; } = string.Empty;
         public string ClientOutput { get; set; } = string.Empty;
+        public string AssistRuleIndexYaml { get; init; } = string.Empty;
     }
 }

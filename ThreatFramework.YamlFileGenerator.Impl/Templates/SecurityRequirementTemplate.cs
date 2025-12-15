@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Core.CoreEntities;
 using ThreatModeler.TF.Core.Helper;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates

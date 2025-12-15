@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities

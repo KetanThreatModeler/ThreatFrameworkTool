@@ -14,7 +14,7 @@ using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Implemenetation;
 using ThreatModeler.TF.Git.Contract;

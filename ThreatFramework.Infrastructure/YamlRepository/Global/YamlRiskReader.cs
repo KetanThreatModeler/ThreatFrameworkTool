@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Infrastructure.YamlRepository;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
 
 namespace ThreatModeler.TF.Infra.Implmentation.YamlRepository.Global

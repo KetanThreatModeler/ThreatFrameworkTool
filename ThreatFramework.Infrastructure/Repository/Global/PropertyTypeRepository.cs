@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 
 namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract; // Ensure this contains the updated IYamlFilesGeneratorForTRC interface
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Infra.Contract.Repository;

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
 namespace ThreatFramework.YamlFileGenerator.Impl

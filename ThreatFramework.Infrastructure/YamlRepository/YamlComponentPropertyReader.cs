@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using ThreatFramework.Core.PropertyMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Core.Model.PropertyMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository;
 using YamlDotNet.RepresentationModel;
 
