@@ -30,5 +30,10 @@ namespace ThreatModeler.TF.Git.Contract.Common
         public const string ComponentThreatSecurityRequirement = "component-threat-security-requirement";
         public const string ComponentSecurityRequirement = "component-security-requirement";
         public const string ThreatSecurityRequirement = "threat-security-requirement";
+        
+        public const string Relationships = "relationships";
+        public const string ResourceTypeValues = "resourceTypeValues";
+        public const string ResourceValueTypeRelationship = "resourceValueTypeRelationship";
+
     }
 }

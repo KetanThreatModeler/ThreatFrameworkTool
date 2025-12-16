@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
@@ -80,7 +79,9 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForPropertyTypes(outputFolderPath);
             await gen.GenerateYamlFilesForSpecificTestCases(outputFolderPath, libraryIds);
             await gen.GenerateYamlFilesForPropertyOptions(outputFolderPath);
-
+            await gen.GenerateYamlFilesForRelationships(outputFolderPath);
+            await gen.GenerateYamlFilesForResourceTypeValues(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForResourceTypeValueRelationships(outputFolderPath, libraryIds);
             _logger.LogInformation("Client export completed to {Root}.", outputFolderPath);
         }
     }

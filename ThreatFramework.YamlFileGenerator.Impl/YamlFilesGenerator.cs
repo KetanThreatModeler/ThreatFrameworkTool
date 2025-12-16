@@ -5,12 +5,14 @@ using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping;
+using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Git.Contract.Common;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
+using ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.AssistRule;
 using ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.CoreEntitites;
 using ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.Global;
 
@@ -481,6 +483,158 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 propertyTypes,
                 propertyType => $"{_indexService.GetInt(propertyType.Guid)}.yaml",
                 propertyType => PropertyTypeTemplate.Generate(propertyType));
+        }
+
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForRelationships(string path)
+        {
+            _logger.LogInformation("Generating YAML files for Relationships");
+
+            ValidatePath(path);
+
+            var globalFolderPath = Path.Combine(path, "global", FolderNames.Relationships);
+            EnsureDirectoryExists(globalFolderPath);
+
+            var relationships = await _relationshipRepository.GetAllRelationshipsAsync();
+            var list = relationships?.ToList() ?? new List<Relationship>();
+
+            if (!list.Any())
+            {
+                _logger.LogWarning("No Relationships found. No YAML files generated.");
+                return (globalFolderPath, 0);
+            }
+
+            var totalFileCount = 0;
+
+            foreach (var rel in list)
+            {
+                if (!_assistRuleIndexQuery.TryGetIdByRelationshipGuid(rel.Guid, out var id) || string.IsNullOrWhiteSpace(id))
+                {
+                    _logger.LogError("AssistRuleIndex ID not found for RelationshipGuid={Guid}", rel.Guid);
+                    throw new InvalidOperationException($"AssistRuleIndex ID not found for RelationshipGuid: {rel.Guid}");
+                }
+
+                var fileName = $"{id}.yaml";
+                var filePath = Path.Combine(globalFolderPath, fileName);
+
+                var yaml = RelationshipTemplate.Generate(rel);
+                await File.WriteAllTextAsync(filePath, yaml);
+
+                totalFileCount++;
+            }
+
+            _logger.LogInformation("Generated {FileCount} Relationship YAML files in path: {Path}", totalFileCount, globalFolderPath);
+            return (globalFolderPath, totalFileCount);
+        }
+
+
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForResourceTypeValues(string path, List<Guid> libraryIds)
+        {
+            _logger.LogInformation("Generating YAML files for ResourceTypeValues for {LibraryCount} libraries", libraryIds?.Count ?? 0);
+
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            if (libraryIds == null || libraryIds.Count == 0)
+                return (path, 0);
+
+            var values = await _resourceTypeValuesRepository.GetByLibraryIdsAsync(libraryIds);
+            var list = values?.ToList() ?? new List<ResourceTypeValues>();
+
+            if (!list.Any())
+            {
+                _logger.LogWarning("No ResourceTypeValues found for provided libraries. No YAML files generated.");
+                return (path, 0);
+            }
+
+            var totalFileCount = 0;
+
+            foreach (var v in list)
+            {
+                if (!_assistRuleIndexQuery.TryGetIdByResourceTypeValue(v.ResourceTypeValue, out var assistId) ||
+                    string.IsNullOrWhiteSpace(assistId))
+                {
+                    _logger.LogError("AssistRuleIndex ID not found for ResourceTypeValue={Value}", v.ResourceTypeValue);
+                    throw new InvalidOperationException($"AssistRuleIndex ID not found for ResourceTypeValue: {v.ResourceTypeValue}");
+                }
+
+                var libraryFolder = Path.Combine(path, _indexService.GetInt(v.LibraryId).ToString());
+                var rtvFolder = Path.Combine(libraryFolder, FolderNames.ResourceTypeValues);
+                EnsureDirectoryExists(rtvFolder);
+
+                var componentIntId = _indexService.GetInt(v.ComponentGuid);
+                var fileName = $"{assistId}{FileNameSeperator}{componentIntId}.yaml";
+                var filePath = Path.Combine(rtvFolder, fileName);
+
+                var yaml = ResourceTypeValuesTemplate.Generate(v);
+                await File.WriteAllTextAsync(filePath, yaml);
+
+                totalFileCount++;
+            }
+
+            _logger.LogInformation("Generated {FileCount} ResourceTypeValues YAML files under root path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
+        }
+
+
+        public async Task<(string path, int fileCount)> GenerateYamlFilesForResourceTypeValueRelationships(string path, List<Guid> libraryIds)
+        {
+            _logger.LogInformation("Generating YAML files for ResourceTypeValueRelationships for {LibraryCount} libraries", libraryIds?.Count ?? 0);
+
+            ValidatePath(path);
+            EnsureDirectoryExists(path);
+
+            if (libraryIds == null || libraryIds.Count == 0)
+                return (path, 0);
+
+            var totalFileCount = 0;
+
+            foreach (var libraryGuid in libraryIds)
+            {
+                var items = await _resourceTypeValueRelationshipRepository.GetByLibraryGuidsAsync(new List<Guid> { libraryGuid });
+                var list = items?.ToList() ?? new List<ResourceTypeValueRelationship>();
+
+                if (!list.Any())
+                    continue;
+
+                var libraryFolder = Path.Combine(path, _indexService.GetInt(libraryGuid).ToString());
+                var relFolder = Path.Combine(libraryFolder, FolderNames.ResourceValueTypeRelationship);
+                EnsureDirectoryExists(relFolder);
+
+                foreach (var item in list)
+                {
+                    if (!_assistRuleIndexQuery.TryGetIdByResourceTypeValue(item.SourceResourceTypeValue, out var sourceId) ||
+                        string.IsNullOrWhiteSpace(sourceId))
+                    {
+                        _logger.LogError("AssistRuleIndex ID not found for SourceResourceTypeValue={Value}", item.SourceResourceTypeValue);
+                        throw new InvalidOperationException($"AssistRuleIndex ID not found for SourceResourceTypeValue: {item.SourceResourceTypeValue}");
+                    }
+
+                    if (!_assistRuleIndexQuery.TryGetIdByRelationshipGuid(item.RelationshipGuid, out var relId) ||
+                        string.IsNullOrWhiteSpace(relId))
+                    {
+                        _logger.LogError("AssistRuleIndex ID not found for RelationshipGuid={Guid}", item.RelationshipGuid);
+                        throw new InvalidOperationException($"AssistRuleIndex ID not found for RelationshipGuid: {item.RelationshipGuid}");
+                    }
+
+                    if (!_assistRuleIndexQuery.TryGetIdByResourceTypeValue(item.TargetResourceTypeValue, out var targetId) ||
+                        string.IsNullOrWhiteSpace(targetId))
+                    {
+                        _logger.LogError("AssistRuleIndex ID not found for TargetResourceTypeValue={Value}", item.TargetResourceTypeValue);
+                        throw new InvalidOperationException($"AssistRuleIndex ID not found for TargetResourceTypeValue: {item.TargetResourceTypeValue}");
+                    }
+
+                    var fileName = $"{sourceId}{FileNameSeperator}{relId}{FileNameSeperator}{targetId}.yaml";
+                    var filePath = Path.Combine(relFolder, fileName);
+
+                    var yaml = ResourceTypeValueRelationshipTemplate.Generate(item);
+                    await File.WriteAllTextAsync(filePath, yaml);
+
+                    totalFileCount++;
+                }
+            }
+
+            _logger.LogInformation("Generated {FileCount} ResourceTypeValueRelationships YAML files under root path: {Path}", totalFileCount, path);
+            return (path, totalFileCount);
         }
     }
 }

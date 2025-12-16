@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Runtime.CompilerServices;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract; // Ensure this contains the updated IYamlFilesGeneratorForTRC interface
@@ -19,6 +20,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly IRepositoryHub _hub;
         private readonly IGuidIndexService _indexService;
         private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
+        private readonly IAssistRuleIndexManager _assistRuleIndexManager;
         private readonly IGitService _gitService;
         private readonly GitSettings _gitSettings;
         private readonly PathOptions _options;
@@ -31,7 +33,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IOptions<GitSettings> gitOptions,
             IGitService gitService,
             IGuidIndexService indexService,
-            IAssistRuleIndexQuery assistRuleIndexQuery)
+            IAssistRuleIndexQuery assistRuleIndexQuery,
+            IAssistRuleIndexManager assistRuleIndexManager)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _yamlLogger = yamlLogger ?? throw new ArgumentNullException(nameof(yamlLogger));
@@ -40,7 +43,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _assistRuleIndexQuery = assistRuleIndexQuery ?? throw new ArgumentNullException(nameof(assistRuleIndexQuery));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             _gitSettings = gitOptions?.Value ?? throw new ArgumentNullException(nameof(gitOptions));
-
+            _assistRuleIndexManager = assistRuleIndexManager ?? throw new ArgumentNullException(nameof(assistRuleIndexManager));
             // Create the TRC-scoped hub
             _hub = hubFactory?.Create(DataPlane.Trc) ?? throw new ArgumentNullException(nameof(hubFactory));
         }
@@ -134,6 +137,10 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
             // Call the service we created previously
             await _indexService.GenerateForLibraryAsync(libraryIds, indexFilePath);
+
+            _logger.LogInformation("Index file generated successfully.");
+
+            await _assistRuleIndexManager.BuildAndWriteAsync(libraryIds);
         }
 
         // --------------------------------------------------------------------------------
@@ -205,6 +212,9 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForPropertyTypes(root);
             await gen.GenerateYamlFilesForSpecificTestCases(root, libraryIds);
             await gen.GenerateYamlFilesForPropertyOptions(root);
+            await gen.GenerateYamlFilesForRelationships(root);
+            await gen.GenerateYamlFilesForResourceTypeValues(root, libraryIds);
+            await gen.GenerateYamlFilesForResourceTypeValueRelationships(root, libraryIds);
         }
 
         private async Task GenerateMappingsAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)
