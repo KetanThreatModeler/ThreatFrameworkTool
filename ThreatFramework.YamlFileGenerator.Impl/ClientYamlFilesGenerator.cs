@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
 namespace ThreatFramework.YamlFileGenerator.Impl
@@ -14,6 +16,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
         private readonly IGuidIndexService _indexService;
+        private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
         private readonly PathOptions _options;
 
         public ClientYamlFilesGenerator(
@@ -21,12 +24,14 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             ILogger<YamlFilesGenerator> yamlLogger,
             IRepositoryHubFactory hubFactory,
             IOptions<PathOptions> options,
-            IGuidIndexService indexService)
+            IGuidIndexService indexService,
+            IAssistRuleIndexQuery assistRuleIndexQuery)
         {
             _logger = logger;
             _yamlLogger = yamlLogger;
             _hub = hubFactory.Create(DataPlane.Client);
             _indexService = indexService;
+            _assistRuleIndexQuery = assistRuleIndexQuery;
             _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
@@ -59,7 +64,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 componentPropertyOptionMappingRepository: _hub.ComponentPropertyOptionMappings,
                 componentPropertyOptionThreatMappingRepository: _hub.ComponentPropertyOptionThreatMappings,
                 componentPropertyOptionThreatSecurityRequirementMappingRepository: _hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
-                indexService: _indexService
+                indexService: _indexService,
+                assistRuleIndexQuery: _assistRuleIndexQuery,
+                relationshipRepository: _hub.Relationships,
+                resourceTypeValuesRepository: _hub.ResourceTypeValues,
+                resourceTypeValueRelationshipRepository: _hub.ResourceTypeValueRelationships
             );
 
             await gen.GenerateYamlFilesForSpecificLibraries(outputFolderPath, libraryIds);

@@ -6,6 +6,7 @@ using ThreatFramework.YamlFileGenerator.Contract; // Ensure this contains the up
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
 
@@ -17,6 +18,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
         private readonly IGuidIndexService _indexService;
+        private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
         private readonly IGitService _gitService;
         private readonly GitSettings _gitSettings;
         private readonly PathOptions _options;
@@ -28,13 +30,14 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IOptions<PathOptions> options,
             IOptions<GitSettings> gitOptions,
             IGitService gitService,
-            IGuidIndexService indexService)
+            IGuidIndexService indexService,
+            IAssistRuleIndexQuery assistRuleIndexQuery)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _yamlLogger = yamlLogger ?? throw new ArgumentNullException(nameof(yamlLogger));
             _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
-
+            _assistRuleIndexQuery = assistRuleIndexQuery ?? throw new ArgumentNullException(nameof(assistRuleIndexQuery));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             _gitSettings = gitOptions?.Value ?? throw new ArgumentNullException(nameof(gitOptions));
 
@@ -240,7 +243,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 componentPropertyOptionMappingRepository: _hub.ComponentPropertyOptionMappings,
                 componentPropertyOptionThreatMappingRepository: _hub.ComponentPropertyOptionThreatMappings,
                 componentPropertyOptionThreatSecurityRequirementMappingRepository: _hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
-                indexService: _indexService
+                indexService: _indexService,
+                assistRuleIndexQuery: _assistRuleIndexQuery,
+                relationshipRepository: _hub.Relationships,
+                resourceTypeValuesRepository: _hub.ResourceTypeValues,
+                resourceTypeValueRelationshipRepository: _hub.ResourceTypeValueRelationships
             );
         }
     }

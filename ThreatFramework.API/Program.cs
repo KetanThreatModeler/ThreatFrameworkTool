@@ -21,11 +21,15 @@ using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Git.Implementation.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Builder;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service;
 using ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule;
 using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
@@ -130,6 +134,18 @@ builder.Services.AddScoped<ILibraryScopedDiffService, LibraryScopedDiffService>(
 builder.Services.AddScoped<IDriftService, DriftService>();
 builder.Services.AddScoped<ITMFrameworkDriftConverter, TMFrameworkDriftConverter>();
 builder.Services.AddScoped<IYamlRouter, YamlRouter>();
+
+//assist rule index services
+builder.Services.AddSingleton<AssistRuleIndexCache>();
+builder.Services.AddSingleton<IAssistRuleIndexQuery>(sp => sp.GetRequiredService<AssistRuleIndexCache>());
+
+// Manager orchestrates build/write/reload (scoped is typical)
+builder.Services.AddScoped<IAssistRuleIndexManager, AssistRuleIndexManager>();
+
+// Supporting components
+builder.Services.AddSingleton<IAssistRuleIndexIdGenerator, AssistRuleIndexIdGenerator>();
+builder.Services.AddSingleton<IAssistRuleIndexSerializer, AssistRuleIndexYamlSerializer>();
+builder.Services.AddSingleton<ITextFileStore, FileSystemTextFileStore>();
 
 var app = builder.Build();
 

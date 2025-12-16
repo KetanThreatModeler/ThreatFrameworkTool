@@ -1,15 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping;
 using ThreatModeler.TF.Git.Contract.Common;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
@@ -40,6 +38,10 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly IComponentPropertyOptionThreatMappingRepository _componentPropertyOptionThreatMappingRepository;
         private readonly IComponentPropertyOptionThreatSecurityRequirementMappingRepository _componentPropertyOptionThreatSecurityRequirementMappingRepository;
         private readonly IGuidIndexService _indexService;
+        private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
+        private readonly IRelationshipRepository _relationshipRepository;
+        private readonly IResourceTypeValuesRepository _resourceTypeValuesRepository;
+        private readonly IResourceTypeValueRelationshipRepository _resourceTypeValueRelationshipRepository;
 
         public YamlFilesGenerator(
             ILogger<YamlFilesGenerator> logger,
@@ -60,7 +62,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IComponentPropertyOptionMappingRepository componentPropertyOptionMappingRepository,
             IComponentPropertyOptionThreatMappingRepository componentPropertyOptionThreatMappingRepository,
             IComponentPropertyOptionThreatSecurityRequirementMappingRepository componentPropertyOptionThreatSecurityRequirementMappingRepository,
-            IGuidIndexService indexService
+            IGuidIndexService indexService,
+            IAssistRuleIndexQuery assistRuleIndexQuery,
+            IRelationshipRepository relationshipRepository,
+            IResourceTypeValuesRepository resourceTypeValuesRepository,
+            IResourceTypeValueRelationshipRepository resourceTypeValueRelationshipRepository
         )
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -82,6 +88,10 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _componentPropertyOptionThreatMappingRepository = componentPropertyOptionThreatMappingRepository ?? throw new ArgumentNullException(nameof(componentPropertyOptionThreatMappingRepository));
             _componentPropertyOptionThreatSecurityRequirementMappingRepository = componentPropertyOptionThreatSecurityRequirementMappingRepository ?? throw new ArgumentNullException(nameof(componentPropertyOptionThreatSecurityRequirementMappingRepository));
             _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
+            _assistRuleIndexQuery = assistRuleIndexQuery ?? throw new ArgumentNullException(nameof(assistRuleIndexQuery));
+            _relationshipRepository = relationshipRepository ?? throw new ArgumentNullException(nameof(relationshipRepository));
+            _resourceTypeValuesRepository = resourceTypeValuesRepository ?? throw new ArgumentNullException(nameof(resourceTypeValuesRepository));
+            _resourceTypeValueRelationshipRepository = resourceTypeValueRelationshipRepository ?? throw new ArgumentNullException(nameof(resourceTypeValueRelationshipRepository));
             _logger.LogInformation("YamlFilesGenerator initialized successfully");
         }
 
