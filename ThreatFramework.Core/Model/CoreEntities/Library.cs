@@ -13,80 +13,88 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
         public bool Readonly { get; set; }
         public bool IsDefault { get; set; }
 
-        public string Name { get; set; }
-        public string SharingType { get; set; }
-        public string Description { get; set; }
-        public string Labels { get; set; }
-        public string Version { get; set; }
-        public string ReleaseNotes { get; set; }
-        public string ImageURL { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string SharingType { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Labels { get; set; } = string.Empty;
+        public string Version { get; set; } = string.Empty;
+        public string ReleaseNotes { get; set; } = string.Empty;
+        public string ImageURL { get; set; } = string.Empty;
 
         public List<FieldChange> CompareFields(Library other, IEnumerable<string> fields)
         {
-            if (other == null) throw new ArgumentNullException(nameof(other));
+            if (other is null) throw new ArgumentNullException(nameof(other));
+            if (fields is null) throw new ArgumentNullException(nameof(fields));
 
             var changes = new List<FieldChange>();
 
-            foreach (var field in fields)
+            foreach (var rawField in fields)
             {
-                switch (field)
+                if (string.IsNullOrWhiteSpace(rawField))
+                    continue;
+
+                var key = rawField.Trim().ToLowerInvariant();
+
+                switch (key)
                 {
                     // --- GROUP 1: Value Types (Guid, Int, Bool) ---
-                    case nameof(Guid):
-                    case nameof(DepartmentId):
-                    case nameof(Readonly):
-                    case nameof(IsDefault):
-                        CompareValueTypes(changes, field, other);
+                    case "guid":
+                        ComparisonHelper.Compare(changes, nameof(Guid), Guid, other.Guid);
+                        break;
+
+                    case "departmentid":
+                        ComparisonHelper.Compare(changes, nameof(DepartmentId), DepartmentId, other.DepartmentId);
+                        break;
+
+                    case "readonly":
+                        ComparisonHelper.Compare(changes, nameof(Readonly), Readonly, other.Readonly);
+                        break;
+
+                    case "isdefault":
+                        ComparisonHelper.Compare(changes, nameof(IsDefault), IsDefault, other.IsDefault);
                         break;
 
                     // --- GROUP 2: Case-Insensitive Strings ---
-                    case nameof(Name):
-                        ComparisonHelper.CompareString(changes, field, Name, other.Name, ignoreCase: true);
+                    case "name":
+                        ComparisonHelper.CompareString(changes, nameof(Name), Name, other.Name, ignoreCase: true);
                         break;
 
-                    // --- GROUP 3: Standard Strings (Case-Sensitive) ---
-                    case nameof(SharingType):
-                    case nameof(Description):
-                    case nameof(Labels):
-                    case nameof(Version):
-                    case nameof(ReleaseNotes):
-                    case nameof(ImageURL):
-                        string? s1 = GetStringValue(field);
-                        string? s2 = other.GetStringValue(field);
-                        ComparisonHelper.CompareString(changes, field, s1, s2, ignoreCase: false);
+                    // --- GROUP 3: Case-Sensitive Strings ---
+                    case "sharingtype":
+                        ComparisonHelper.CompareString(changes, nameof(SharingType), SharingType, other.SharingType, ignoreCase: false);
                         break;
 
-                    // --- ERROR HANDLING ---
+                    case "description":
+                        ComparisonHelper.CompareString(changes, nameof(Description), Description, other.Description, ignoreCase: false);
+                        break;
+
+                    case "labels":
+                        ComparisonHelper.CompareString(changes, nameof(Labels), Labels, other.Labels, ignoreCase: false);
+                        break;
+
+                    case "version":
+                        ComparisonHelper.CompareString(changes, nameof(Version), Version, other.Version, ignoreCase: false);
+                        break;
+
+                    case "releasenotes":
+                    case "releasenote": // allow singular key from YAML
+                        ComparisonHelper.CompareString(changes, nameof(ReleaseNotes), ReleaseNotes, other.ReleaseNotes, ignoreCase: false);
+                        break;
+
+                    case "imageurl":
+                    case "imageurl ":
+                    case "image_url":
+                    case "image":
+                        ComparisonHelper.CompareString(changes, nameof(ImageURL), ImageURL, other.ImageURL, ignoreCase: false);
+                        break;
+
                     default:
-                        throw new FieldComparisonNotImplementedException(nameof(Library), field);
+                        // Keep original raw field in message for easier debugging
+                        throw new FieldComparisonNotImplementedException(nameof(Library), rawField);
                 }
             }
 
             return changes;
         }
-
-        // --- Private Helper: Value Types ---
-        private void CompareValueTypes(List<FieldChange> changes, string field, Library other)
-        {
-            switch (field)
-            {
-                case nameof(Guid): ComparisonHelper.Compare(changes, field, Guid, other.Guid); break;
-                case nameof(DepartmentId): ComparisonHelper.Compare(changes, field, DepartmentId, other.DepartmentId); break;
-                case nameof(Readonly): ComparisonHelper.Compare(changes, field, Readonly, other.Readonly); break;
-                case nameof(IsDefault): ComparisonHelper.Compare(changes, field, IsDefault, other.IsDefault); break;
-            }
-        }
-
-        // --- Private Helper: Strings ---
-        private string? GetStringValue(string fieldName) => fieldName switch
-        {
-            nameof(SharingType) => SharingType,
-            nameof(Description) => Description,
-            nameof(Labels) => Labels,
-            nameof(Version) => Version,
-            nameof(ReleaseNotes) => ReleaseNotes,
-            nameof(ImageURL) => ImageURL,
-            _ => null
-        };
     }
 }

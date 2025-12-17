@@ -18,6 +18,8 @@ namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.CoreEntiti
                 .AddBool("readonly", library.Readonly)
                 .AddBool("isDefault", library.IsDefault)
                 .AddQuoted("imageUrl", library.ImageURL ?? string.Empty)
+                .AddQuoted("releaseNote", library.ReleaseNotes ?? string.Empty)
+                .AddQuoted("sharingType", library.SharingType ?? string.Empty)
                 .Build();
 
             return yaml;

@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ThreatFramework.Core
+﻿namespace ThreatFramework.Core
 {
     public sealed class EntityDriftAggregationOptions
     {
         public List<string> LibraryDefaultFields { get; init; } = new List<string>
         {
             "IsDefault",
-            "sharingtype",
-            "version",
+            "Sharingtype",
             "ReleaseNotes",
             "ImageUrl",
             "Name",
             "Version",
-            "Description"
+            "Description",
+            "Readonly"
         };
 
         public List<string> ThreatDefaultFields { get; init; } = new List<string>

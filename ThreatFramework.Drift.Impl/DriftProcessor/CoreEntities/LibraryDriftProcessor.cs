@@ -132,7 +132,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.CoreEntities
                 }
 
                 // Compare ONLY fields defined in config
-                var changedFields = baseLib.CompareFields(targetLib, driftOptions.LibraryDefaultFields);
+                var changedFields = targetLib.CompareFields(baseLib, driftOptions.LibraryDefaultFields);
 
                 if (changedFields == null || changedFields.Count == 0)
                 {
@@ -142,7 +142,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.CoreEntities
 
                 drift.ModifiedLibraries.Add(new LibraryDriftDto
                 {
-                    LibraryGuid = baseLib.Guid,
+                    LibraryGuid = targetLib.Guid,
                     LibraryChanges = changedFields
                 });
 

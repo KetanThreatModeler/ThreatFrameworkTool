@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using ThreatFramework.API.ServiceRegister;
 using ThreatFramework.Git.Contract;
 using ThreatFramework.Git.Impl;
@@ -14,6 +15,7 @@ using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
+using ThreatModeler.TF.API.ServiceRegister;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Implemenetation;
@@ -54,6 +56,8 @@ builder.Services
     .Bind(builder.Configuration.GetSection(PathOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+builder.Services.AddSingleton<IPostConfigureOptions<PathOptions>, PathOptionsPostConfigure>();
 
 // Core services
 builder.Services.AddScoped<ILibraryCacheService, LibraryCacheService>();
@@ -154,6 +158,8 @@ builder.Services.AddSingleton<ITextFileStore, FileSystemTextFileStore>();
 builder.Services.AddScoped<IYamlRelationshipReader, YamlRelationshipReader>();
 builder.Services.AddScoped<IYamlResourceTypesValueReader, YamlResourceTypeValueReader>();
 builder.Services.AddScoped<IYamlResourceTypesValueRelationshipReader, YamlResourceTypeValueRelationshipReader>();
+builder.Services.AddSingleton<ILibraryChangeSummaryMapper, LibraryChangeSummaryMapper>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

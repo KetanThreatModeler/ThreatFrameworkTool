@@ -28,8 +28,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model
 
     public class DeletedLibrary
     {
-        public Guid LibraryGuid { get; init; }
-        public string LibraryName { get; init; } = string.Empty;
+        public Library Library { get; init; } = new Library();
         public List<DeletedComponent> Components { get; init; } = new();
         public List<DeletedThreat> Threats { get; init; } = new();
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();

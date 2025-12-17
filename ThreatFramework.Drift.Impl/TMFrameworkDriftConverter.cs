@@ -102,10 +102,13 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         {
             if (source == null) return null;
 
+            var library = await _yamlRouter
+                .GetLibraryByGuidAsync(source.LibraryGuid, DriftSource.GoldenDb)
+                .ConfigureAwait(false);
+
             return new DeletedLibrary
             {
-                LibraryGuid = source.LibraryGuid,
-                LibraryName = source.LibraryName,
+                Library = library,
                 Components = await ConvertDeletedComponentsAsync(source.Components),
                 Threats = await ToDeletedThreat1ListAsync(source.Threats),
                 SecurityRequirements = source.SecurityRequirements ?? new(),
