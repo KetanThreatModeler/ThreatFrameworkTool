@@ -11,7 +11,6 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public string LibraryName { get; init; } = string.Empty;
         public Guid LibraryGuid { get; init; }
 
-        // Added | Removed | Modified
         public string Operation { get; init; } = string.Empty;
 
         public string? ExistingVersion { get; init; }

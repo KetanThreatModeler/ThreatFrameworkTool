@@ -207,8 +207,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules
                 }
 
                 // Compare only configured fields
-                var changedFields = baseValue.CompareFields(
-                    targetValue,
+                var changedFields = targetValue.CompareFields(
+                    baseValue,
                     driftOptions.ResourceTypeValuesDefaultFields);
 
                 if (changedFields == null || changedFields.Count == 0)
@@ -223,7 +223,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules
 
                 var modifiedEntity = new ModifiedEntity<ResourceTypeValues>
                 {
-                    Entity = baseValue,
+                    Entity = targetValue,
                     ModifiedFields = changedFields
                 };
 

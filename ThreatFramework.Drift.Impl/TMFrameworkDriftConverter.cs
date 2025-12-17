@@ -77,7 +77,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 Threats = threats,
                 SecurityRequirements = source.SecurityRequirements,
                 TestCases = source.TestCases,
-                Properties = source.Properties
+                Properties = source.Properties,
+                ResourceTypeValues = source.ResourceTypeValues,
+                ResourceTypeValueRelationships = source.ResourceTypeValueRelationships
             };
         }
 
@@ -94,7 +96,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 Threats = await ToAddedThreat1ListAsync(source.Threats),
                 SecurityRequirements = source.SecurityRequirements ?? new(),
                 TestCases = source.TestCases ?? new(),
-                Properties = source.Properties ?? new()
+                Properties = source.Properties ?? new(),
+                ResourceTypeValues = source.ResourceTypeValues ?? new(),
+                ResourceTypeValueRelationships = source.ResourceTypeValueRelationships ?? new()
             };
         }
 
@@ -113,7 +117,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 Threats = await ToDeletedThreat1ListAsync(source.Threats),
                 SecurityRequirements = source.SecurityRequirements ?? new(),
                 TestCases = source.TestCases ?? new(),
-                Properties = source.Properties ?? new()
+                Properties = source.Properties ?? new(),
+                ResourceTypeValues = source.ResourceTypeValues ?? new(),
+                ResourceTypeValueRelationships = source.ResourceTypeValueRelationships ?? new()
             };
         }
 

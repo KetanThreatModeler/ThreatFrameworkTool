@@ -1,5 +1,6 @@
 ﻿using ThreatFramework.Core;
 using ThreatFramework.Drift.Contract.Model;
+using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 
 namespace ThreatModeler.TF.Drift.Contract.Model
@@ -14,6 +15,8 @@ namespace ThreatModeler.TF.Drift.Contract.Model
         public EntityDiff<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public EntityDiff<TestCase> TestCases { get; init; } = new();
         public EntityDiff<Property> Properties { get; init; } = new();
+        public EntityDiff<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
+        public EntityDiff<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
     }
 
     public class AddedLibrary
@@ -24,6 +27,8 @@ namespace ThreatModeler.TF.Drift.Contract.Model
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
+        public List<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
+        public List<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
     }
 
     public class DeletedLibrary
@@ -34,6 +39,8 @@ namespace ThreatModeler.TF.Drift.Contract.Model
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
+        public List<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
+        public List<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
 
     }
 
