@@ -15,8 +15,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model
         public EntityDiff<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public EntityDiff<TestCase> TestCases { get; init; } = new();
         public EntityDiff<Property> Properties { get; init; } = new();
-        public EntityDiff<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
-        public EntityDiff<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
+        public ResourceTypeValueDrift ResourceTypeValues { get; init; } = new();
     }
 
     public class AddedLibrary
@@ -27,8 +26,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
-        public List<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
-        public List<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
+        public List<AddedResourceTypeValue> ResourceTypeValues { get; init; } = new();
     }
 
     public class DeletedLibrary
@@ -39,9 +37,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
-        public List<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
-        public List<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
-
+        public List<DeletedResourceTypeValue> ResourceTypeValues { get; init; } = new();
     }
 
     public class ThreatDrift
@@ -54,7 +50,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model
     public class AddedThreat
     {
         public Threat Threat { get; init; }
-        public ThreatMappingCollection Added{ get; init; } = new();
+        public ThreatMappingCollection Added { get; init; } = new();
     }
 
     public class DeletedThreat
@@ -74,5 +70,40 @@ namespace ThreatModeler.TF.Drift.Contract.Model
     public class ThreatMappingCollection
     {
         public List<SecurityRequirement> SecurityRequirement { get; init; } = new();
+    }
+
+    public class AddedResourceTypeValue
+    {
+        public ResourceTypeValues ResourceTypeValue { get; init; } = new();
+        public List<ResourceTypeValueRelationship> Relationships { get; init; } = new();
+    }
+
+    public class DeletedResourceTypeValue
+    {
+        public ResourceTypeValues ResourceTypeValue { get; init; }
+        public List<ResourceTypeValueRelationship> Relationships { get; init; } = new();
+    }
+
+
+    public class ResourceTypeValueDrift
+    {
+        public List<AddedResourceTypeValue> Added { get; init; } = new();
+        public List<DeletedResourceTypeValue> Removed { get; init; } = new();
+        public List<ModifiedResourceTypeValue> Modified { get; init; } = new();
+    }
+
+    public class ModifiedResourceTypeValue
+    {
+        public ResourceTypeValues ResourceTypeValue { get; init; }
+        public List<FieldChange> ChangedFields { get; set; } = new();
+        public List<ResourceTypeValueRelationship> AddedRelationships { get; init; } = new();
+        public List<ResourceTypeValueRelationship> RemovedRelationships { get; init; } = new();
+        public List<ModifiedResourceTypeValueRelationship> ModifiedRelationships { get; init; } = new();
+    }
+
+    public class ModifiedResourceTypeValueRelationship
+    {
+        public ResourceTypeValueRelationship Relationship { get; init; }
+        public List<FieldChange> ChangedFields { get; set; } = new();
     }
 }

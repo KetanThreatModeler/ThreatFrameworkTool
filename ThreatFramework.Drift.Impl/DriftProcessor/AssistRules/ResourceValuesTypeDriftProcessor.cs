@@ -67,7 +67,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules
 
                 if (addedLib != null)
                 {
-                    addedLib.ResourceTypeValues.Add(v);
+                    addedLib.ResourceTypeValues.Add(new AddedResourceTypeValueDto { ResourceTypeValue = v});
 
                     logger.LogInformation(
                         "Added ResourceTypeValues ({ResourceTypeValue}) attached to AddedLibrary {LibraryGuid}.",
@@ -79,7 +79,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules
 
                 // 2) Otherwise attach under ModifiedLibraries[n].ResourceTypeValues.Added
                 var libDrift = GetOrCreateLibraryDrift(drift, v.LibraryId, logger);
-                libDrift.ResourceTypeValues.Added.Add(v);
+                libDrift.ResourceTypeValues.Added.Add(new AddedResourceTypeValueDto { ResourceTypeValue = v});
 
                 logger.LogInformation(
                     "Added ResourceTypeValues ({ResourceTypeValue}) attached to LibraryDrift.ResourceTypeValues.Added for Library {LibraryGuid}.",
@@ -123,7 +123,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules
 
                 if (deletedLib != null)
                 {
-                    deletedLib.ResourceTypeValues.Add(v);
+                    deletedLib.ResourceTypeValues.Add(new RemovedResourceTypeValueDto { ResourceTypeValue = v });
 
                     logger.LogInformation(
                         "Deleted ResourceTypeValues ({ResourceTypeValue}) attached to DeletedLibrary {LibraryGuid}.",
@@ -135,7 +135,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules
 
                 // 2) Otherwise attach under ModifiedLibraries[n].ResourceTypeValues.Removed
                 var libDrift = GetOrCreateLibraryDrift(drift, v.LibraryId, logger);
-                libDrift.ResourceTypeValues.Removed.Add(v);
+                libDrift.ResourceTypeValues.Removed.Add(new RemovedResourceTypeValueDto { ResourceTypeValue = v});
 
                 logger.LogInformation(
                     "Deleted ResourceTypeValues ({ResourceTypeValue}) attached to LibraryDrift.ResourceTypeValues.Removed for Library {LibraryGuid}.",
@@ -221,13 +221,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules
 
                 var libDrift = GetOrCreateLibraryDrift(drift, targetValue.LibraryId, logger);
 
-                var modifiedEntity = new ModifiedEntity<ResourceTypeValues>
-                {
-                    Entity = targetValue,
-                    ModifiedFields = changedFields
-                };
-
-                libDrift.ResourceTypeValues.Modified.Add(modifiedEntity);
+                libDrift.ResourceTypeValues.Modified.Add(new ModifiedResourceTypeValueDto { ResourceTypeValue = targetValue, ChangedFields = changedFields});
 
                 logger.LogInformation(
                     "Modified ResourceTypeValues ({ResourceTypeValue}) attached to LibraryDrift.ResourceTypeValues.Modified for Library {LibraryGuid}.",

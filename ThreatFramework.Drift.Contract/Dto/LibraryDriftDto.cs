@@ -14,8 +14,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public EntityDiff<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public EntityDiff<TestCase> TestCases { get; init; } = new();
         public EntityDiff<Property> Properties { get; init; } = new();
-        public EntityDiff<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
-        public EntityDiff<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
+        public ResourceTypeValueDriftDto ResourceTypeValues { get; init; } = new();
     }
 
 
