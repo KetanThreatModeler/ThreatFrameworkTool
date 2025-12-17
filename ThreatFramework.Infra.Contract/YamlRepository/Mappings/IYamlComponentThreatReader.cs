@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatModeler.TF.Core.Model.ComponentMapping;
 
-namespace ThreatFramework.Infra.Contract.YamlRepository
+namespace ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings
 {
     public interface IYamlComponentThreatReader
     {

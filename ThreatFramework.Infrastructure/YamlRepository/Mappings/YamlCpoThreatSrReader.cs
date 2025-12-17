@@ -1,43 +1,51 @@
 ﻿using Microsoft.Extensions.Logging;
-using ThreatFramework.Infra.Contract.YamlRepository;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatModeler.TF.Core.Model.PropertyMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
 using YamlDotNet.RepresentationModel;
 
-namespace ThreatFramework.Infrastructure.YamlRepository
+namespace ThreatModeler.TF.Infra.Implmentation.YamlRepository.Mappings
 {
-    public class YamlComponentPropertyReader : YamlReaderBase, IYamlComponentPropertyReader
+    public sealed class YamlCpoThreatSrReader : YamlReaderBase, IYamlCpoThreatSrReader
     {
-        private readonly ILogger<YamlComponentPropertyReader> _logger;
+        private readonly ILogger<YamlCpoThreatSrReader> _logger;
 
-        private const string EntityDisplayName = "ComponentProperty";
-        private const string EntitySubFolder = YamlFolderConstants.ComponentPropertyFolder;
+        private const string EntityDisplayName = "ComponentPropertyOptionThreatSecurityRequirement";
+        private const string EntitySubFolder = YamlFolderConstants.ComponentPropertyOptionThreatSecurityRequirementFolder;
 
-        public YamlComponentPropertyReader(ILogger<YamlComponentPropertyReader> logger)
+        public YamlCpoThreatSrReader(ILogger<YamlCpoThreatSrReader> logger)
             => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public Task<List<ComponentPropertyMapping>> GetAllAsync(
+        public Task<List<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(
             string rootFolderPath,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
             => LoadYamlEntitiesFromFolderAsync(
                 rootFolderPath,
                 EntitySubFolder,
                 _logger,
-                ParseComponentProperty,
+                ParseCpoThreatSecurityRequirement,
                 EntityDisplayName,
-                cancellationToken);
+                ct);
 
-        public Task<ComponentPropertyMapping> GetFromFileAsync(string yamlFilePath)
+        public Task<ComponentPropertyOptionThreatSecurityRequirementMapping> GetFromFileAsync(
+            string yamlFilePath)
             => LoadYamlEntityAsync(
                 yamlFilePath,
                 _logger,
-                ParseComponentProperty,
+                ParseCpoThreatSecurityRequirement,
                 EntityDisplayName,
                 CancellationToken.None);
 
         #region Parsing
 
-        private ComponentPropertyMapping? ParseComponentProperty(string yaml, string filePath)
+        private ComponentPropertyOptionThreatSecurityRequirementMapping? ParseCpoThreatSecurityRequirement(
+            string yaml,
+            string filePath)
         {
             try
             {
@@ -54,17 +62,21 @@ namespace ThreatFramework.Infrastructure.YamlRepository
 
                 var componentGuidStr = RequiredScalar(root, "componentGuid", filePath);
                 var propertyGuidStr = RequiredScalar(root, "propertyGuid", filePath);
+                var propertyOptionGuidStr = RequiredScalar(root, "propertyOptionGuid", filePath);
+                var threatGuidStr = RequiredScalar(root, "threatGuid", filePath);
+                var securityRequirementGuidStr = RequiredScalar(root, "securityRequirementGuid", filePath);
 
-                var isOptional = GetFlag(root, "isOptional", defaultValue: false);
                 var isHidden = GetFlag(root, "isHidden", defaultValue: false);
                 var isOverridden = GetFlag(root, "isOverridden", defaultValue: false);
 
-                return new ComponentPropertyMapping
+                return new ComponentPropertyOptionThreatSecurityRequirementMapping
                 {
                     Id = 0,
                     ComponentGuid = G(componentGuidStr, "componentGuid", filePath),
                     PropertyGuid = G(propertyGuidStr, "propertyGuid", filePath),
-                    IsOptional = isOptional,
+                    PropertyOptionGuid = G(propertyOptionGuidStr, "propertyOptionGuid", filePath),
+                    ThreatGuid = G(threatGuidStr, "threatGuid", filePath),
+                    SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", filePath),
                     IsHidden = isHidden,
                     IsOverridden = isOverridden
                 };
@@ -96,7 +108,6 @@ namespace ThreatFramework.Infrastructure.YamlRepository
                 return GetBool(flagsMap, flagName, defaultValue);
             }
 
-            // If flags block is missing (malformed file), just use the default.
             return defaultValue;
         }
 

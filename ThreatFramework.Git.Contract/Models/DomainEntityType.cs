@@ -31,6 +31,11 @@ namespace ThreatModeler.TF.Git.Contract.Models
         ComponentThreat,
         ComponentThreatSecurityRequirements,
         ComponentSecurityRequirements,
-        ThreatSecurityRequirements
+        ThreatSecurityRequirements,
+
+        Relationships,
+        ResourceTypeValues,
+        ResourceTypeValueRelationships,
+
     }
 }

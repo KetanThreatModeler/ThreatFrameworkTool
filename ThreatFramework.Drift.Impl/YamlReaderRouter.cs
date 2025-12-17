@@ -4,10 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract.YamlRepository;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Drift.Contract;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
 
 namespace ThreatModeler.TF.Drift.Implemenetation
 {
@@ -30,6 +33,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         private readonly IYamlPropertyTypeReader _yamlPropertyTypeReader;
         private readonly IYamlComponentTypeReader _yamlComponentTypeReader;
         private readonly IYamlPropertyOptionReader _propertyOptionReader;
+        private readonly IYamlRelationshipReader _yamlRelationshipReader;
+        private readonly IYamlResourceTypesValueReader _yamlResourceTypesValueReader;
+        private readonly IYamlResourceTypesValueRelationshipReader _yamlResourceTypesValueRelationReader;
 
         public YamlReaderRouter(
             IYamlThreatReader threatReader,
@@ -47,7 +53,10 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             IYamlComponentSRReader yamlComponentSRReader,
             IYamlThreatSrReader yamlThreatSrReader,
             IYamlPropertyTypeReader yamlPropertyTypeReader,
-            IYamlComponentTypeReader yamlComponentTypeReader)
+            IYamlComponentTypeReader yamlComponentTypeReader,
+            IYamlRelationshipReader yamlRelationshipReader,
+            IYamlResourceTypesValueReader yamlResourceTypesValueReader,
+            IYamlResourceTypesValueRelationshipReader yamlResourceTypesValueRelationReader)
         {
             _threatReader = threatReader;
             _componentReader = componentReader;
@@ -65,6 +74,9 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             _yamlThreatSrReader = yamlThreatSrReader;
             _yamlPropertyTypeReader = yamlPropertyTypeReader;
             _yamlComponentTypeReader = yamlComponentTypeReader;
+            _yamlRelationshipReader = yamlRelationshipReader;
+            _yamlResourceTypesValueReader = yamlResourceTypesValueReader;
+            _yamlResourceTypesValueRelationReader = yamlResourceTypesValueRelationReader;
         }
 
         // -------- multi-file --------
@@ -138,5 +150,29 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 
         public async Task<ComponentType> ReadComponentTypeAsync(string filePath)
             => await _yamlComponentTypeReader.GetComponentTypeFromFileAsync(filePath);
+
+        // -------- AssistRules : single-file --------
+
+        public async Task<Relationship> ReadRelationshipAsync(string filePath)
+            => await _yamlRelationshipReader.ReadRelationshipAsync(filePath);
+
+        public async Task<ResourceTypeValues> ReadResourceTypeValuesAsync(string filePath)
+            => await _yamlResourceTypesValueReader.GetResourceTypeValue(filePath);
+
+        public async Task<ResourceTypeValueRelationship> ReadResourceTypeValueRelationshipAsync(string filePath)
+            => await _yamlResourceTypesValueRelationReader.GetResourceTypeValueRelationship(filePath);
+
+
+        // -------- AssistRules : multi-file --------
+
+        public async Task<IEnumerable<Relationship>> ReadRelationshipsAsync(IEnumerable<string> filePaths)
+            => await _yamlRelationshipReader.ReadRelationshipsAsync(filePaths);
+
+        public async Task<IEnumerable<ResourceTypeValues>> ReadResourceTypeValuesAsync(IEnumerable<string> filePaths)
+            => await _yamlResourceTypesValueReader.GetResourceTypeValues(filePaths);
+
+        public async Task<IEnumerable<ResourceTypeValueRelationship>> ReadResourceTypeValueRelationsAsync(IEnumerable<string> filePaths)
+            => await _yamlResourceTypesValueRelationReader.GetResourceTypeValueRelationships(filePaths);
+
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Core.Model.Global;
 
@@ -28,9 +27,18 @@ namespace ThreatModeler.TF.Drift.Contract
         // Global types – already single-file
         Task<PropertyType> ReadPropertyTypeAsync(string filePath);
         Task<ComponentType> ReadComponentTypeAsync(string filePath);
+        Task<Relationship> ReadRelationshipAsync(string filePath);
+
+        Task<IEnumerable<ResourceTypeValues>> ReadResourceTypeValuesAsync(IEnumerable<string> filePaths);
+        Task<ResourceTypeValues> ReadResourceTypeValuesAsync(string filePath);
+
+        Task<IEnumerable<ResourceTypeValueRelationship>> ReadResourceTypeValueRelationsAsync(IEnumerable<string> filePaths);
+        
+        Task<ResourceTypeValueRelationship> ReadResourceTypeValueRelationshipAsync(string filePath);
 
         // Global types – multi-file
         Task<IEnumerable<PropertyType>> ReadPropertyTypesAsync(IEnumerable<string> filePaths);
         Task<IEnumerable<ComponentType>> ReadComponentTypeAsync(IEnumerable<string> filePaths);
+        Task<IEnumerable<Relationship>> ReadRelationshipsAsync(IEnumerable<string> filePaths);
     }
 }

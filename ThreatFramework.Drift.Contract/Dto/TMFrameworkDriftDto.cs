@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using ThreatFramework.Core;
 using ThreatFramework.Drift.Contract.Model;
+using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Core.Model.Global;
 
@@ -22,6 +23,8 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
+        public List<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
+        public List<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
     }
 
     public class DeletedLibraryDto
@@ -33,6 +36,8 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
+        public List<ResourceTypeValues> ResourceTypeValues { get; init; } = new();
+        public List<ResourceTypeValueRelationship> ResourceTypeValueRelationships { get; init; } = new();
     }
 
     public class GlobalDriftDto
@@ -40,6 +45,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public EntityDiff<PropertyOption> PropertyOptions { get; init; } = new();
         public EntityDiff<PropertyType> PropertyTypes { get; init; } = new();
         public EntityDiff<ComponentType> ComponentTypes { get; init; } = new();
+        public EntityDiff<Relationship> Relatioships { get; init; } = new();
     }
 
 
@@ -60,8 +66,6 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
     {
         public Threat Threat { get; init; }
         public List<FieldChange> ChangedFields { get; set; } = new();
-
-        // Granular mapping changes for this modified component
         public ThreatMappingCollectionDto MappingsAdded { get; set; } = new();
         public ThreatMappingCollectionDto MappingsRemoved { get; set; } = new();
     }

@@ -101,7 +101,6 @@ namespace ThreatFramework.Core
         };
 
         public List<string> ComponentTypeDefaultFields { get; init; } = new List<string> {
-            "Guid",
             "Name",
             "Description",
             "ChineseName",
@@ -109,7 +108,27 @@ namespace ThreatFramework.Core
             "IsHidden",
             "IsSecurityControl"
         };
+        public List<string> RelationshipDefaultFields { get; init; } = new List<string>
+        {
+            "RelationshipName",
+            "Description",
+            "ChineseRelationship"
+        };
 
+        public List<string> ResourceTypeValuesDefaultFields { get; init; } = new List<string>
+        {
+            "ResourceName",
+            "ResourceTypeValue",
+            "ComponentGuid"
+        };
+
+        public List<string> ResourceTypeValueRelationshipDefaultFields { get; init; } = new List<string>
+        {
+            "SourceResourceTypeValue",
+            "RelationshipGuid",
+            "TargetResourceTypeValue",
+            "IsRequired",
+            "IsDeleted"
+        };
     }
-
 }

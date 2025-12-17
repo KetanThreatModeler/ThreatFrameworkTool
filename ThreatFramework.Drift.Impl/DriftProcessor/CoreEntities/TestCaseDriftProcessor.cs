@@ -11,7 +11,7 @@ using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
-namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
+namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.CoreEntities
 {
     public static class TestCaseDriftProcessor
     {

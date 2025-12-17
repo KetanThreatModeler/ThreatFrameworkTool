@@ -4,11 +4,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatModeler.TF.Core.Model.ComponentMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository;
 using YamlDotNet.RepresentationModel;
 
-namespace ThreatFramework.Infrastructure.YamlRepository
+namespace ThreatModeler.TF.Infra.Implmentation.YamlRepository.Mappings
 {
     public class YamlComponentThreatSRsReader : YamlReaderBase, IYamlComponentThreatSRReader
     {

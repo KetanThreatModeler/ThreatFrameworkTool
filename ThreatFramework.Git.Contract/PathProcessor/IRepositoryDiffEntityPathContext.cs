@@ -40,5 +40,8 @@ namespace ThreatModeler.TF.Git.Contract.PathProcessor
         EntityFileChangeSet GetComponentThreatSecurityRequirementsMappingFileChanges();
         EntityFileChangeSet GetComponentSecurityRequirementsMappingFileChanges();
         EntityFileChangeSet GetThreatSecurityRequirementsMappingFileChanges();
+        EntityFileChangeSet GetRelationshipFileChanges();
+        EntityFileChangeSet GetResourceTypeValuesFileChanges();
+        EntityFileChangeSet GetResourceTypeValueRelationshipsFileChanges();
     }
 }

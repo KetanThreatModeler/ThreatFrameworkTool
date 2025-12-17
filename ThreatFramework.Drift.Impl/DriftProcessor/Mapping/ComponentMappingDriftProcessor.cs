@@ -5,7 +5,7 @@ using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
-namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor
+namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
 {
     public static class ComponentMappingDriftProcessor
     {

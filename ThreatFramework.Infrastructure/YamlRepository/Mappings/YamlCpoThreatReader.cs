@@ -3,46 +3,46 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatModeler.TF.Core.Model.PropertyMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
 using YamlDotNet.RepresentationModel;
 
-namespace ThreatFramework.Infrastructure.YamlRepository
+namespace ThreatModeler.TF.Infra.Implmentation.YamlRepository.Mappings
 {
-    public sealed class YamlCpoThreatSrReader : YamlReaderBase, IYamlCpoThreatSrReader
+    public sealed class YamlCpoThreatReader : YamlReaderBase, IYamlComponentPropertyOptionThreatReader
     {
-        private readonly ILogger<YamlCpoThreatSrReader> _logger;
+        private readonly ILogger<YamlCpoThreatReader> _logger;
 
-        private const string EntityDisplayName = "ComponentPropertyOptionThreatSecurityRequirement";
-        private const string EntitySubFolder = YamlFolderConstants.ComponentPropertyOptionThreatSecurityRequirementFolder;
+        private const string EntityDisplayName = "ComponentPropertyOptionThreat";
+        private const string EntitySubFolder = YamlFolderConstants.ComponentPropertyOptionThreatFolder;
 
-        public YamlCpoThreatSrReader(ILogger<YamlCpoThreatSrReader> logger)
+        public YamlCpoThreatReader(ILogger<YamlCpoThreatReader> logger)
             => _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        public Task<List<ComponentPropertyOptionThreatSecurityRequirementMapping>> GetAllAsync(
+        public Task<List<ComponentPropertyOptionThreatMapping>> GetAllAsync(
             string rootFolderPath,
             CancellationToken ct = default)
             => LoadYamlEntitiesFromFolderAsync(
                 rootFolderPath,
                 EntitySubFolder,
                 _logger,
-                ParseCpoThreatSecurityRequirement,
+                ParseComponentPropertyOptionThreat,
                 EntityDisplayName,
                 ct);
 
-        public Task<ComponentPropertyOptionThreatSecurityRequirementMapping> GetFromFileAsync(
-            string yamlFilePath)
+        public Task<ComponentPropertyOptionThreatMapping> GetFromFileAsync(string yamlFilePath)
             => LoadYamlEntityAsync(
                 yamlFilePath,
                 _logger,
-                ParseCpoThreatSecurityRequirement,
+                ParseComponentPropertyOptionThreat,
                 EntityDisplayName,
                 CancellationToken.None);
 
         #region Parsing
 
-        private ComponentPropertyOptionThreatSecurityRequirementMapping? ParseCpoThreatSecurityRequirement(
+        private ComponentPropertyOptionThreatMapping? ParseComponentPropertyOptionThreat(
             string yaml,
             string filePath)
         {
@@ -63,19 +63,17 @@ namespace ThreatFramework.Infrastructure.YamlRepository
                 var propertyGuidStr = RequiredScalar(root, "propertyGuid", filePath);
                 var propertyOptionGuidStr = RequiredScalar(root, "propertyOptionGuid", filePath);
                 var threatGuidStr = RequiredScalar(root, "threatGuid", filePath);
-                var securityRequirementGuidStr = RequiredScalar(root, "securityRequirementGuid", filePath);
 
                 var isHidden = GetFlag(root, "isHidden", defaultValue: false);
                 var isOverridden = GetFlag(root, "isOverridden", defaultValue: false);
 
-                return new ComponentPropertyOptionThreatSecurityRequirementMapping
+                return new ComponentPropertyOptionThreatMapping
                 {
                     Id = 0,
                     ComponentGuid = G(componentGuidStr, "componentGuid", filePath),
                     PropertyGuid = G(propertyGuidStr, "propertyGuid", filePath),
                     PropertyOptionGuid = G(propertyOptionGuidStr, "propertyOptionGuid", filePath),
                     ThreatGuid = G(threatGuidStr, "threatGuid", filePath),
-                    SecurityRequirementGuid = G(securityRequirementGuidStr, "securityRequirementGuid", filePath),
                     IsHidden = isHidden,
                     IsOverridden = isOverridden
                 };

@@ -27,14 +27,18 @@ using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
 using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Builder;
 using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service;
 using ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule;
 using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
 using ThreatModeler.TF.Infra.Implmentation.Repository.ThreatMapping;
+using ThreatModeler.TF.Infra.Implmentation.YamlRepository.AssistRules;
 using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Global;
+using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -147,6 +151,9 @@ builder.Services.AddSingleton<IAssistRuleIndexIdGenerator, AssistRuleIndexIdGene
 builder.Services.AddSingleton<IAssistRuleIndexSerializer, AssistRuleIndexYamlSerializer>();
 builder.Services.AddSingleton<ITextFileStore, FileSystemTextFileStore>();
 
+builder.Services.AddScoped<IYamlRelationshipReader, YamlRelationshipReader>();
+builder.Services.AddScoped<IYamlResourceTypesValueReader, YamlResourceTypeValueReader>();
+builder.Services.AddScoped<IYamlResourceTypesValueRelationshipReader, YamlResourceTypeValueRelationshipReader>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
