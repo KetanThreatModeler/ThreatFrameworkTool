@@ -1,8 +1,9 @@
 ﻿using System.Text;
 using ThreatFramework.Core;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.Model;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.AssistRules;
+using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatModeler.TF.Drift.Contract.Dto
 {
@@ -22,6 +23,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
+        public List<AddedResourceTypeValueDto> ResourceTypeValues { get; init; } = new();
     }
 
     public class DeletedLibraryDto
@@ -33,6 +35,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public List<TestCase> TestCases { get; init; } = new();
         public List<Property> Properties { get; init; } = new();
+        public List<RemovedResourceTypeValueDto> ResourceTypeValues { get; init; } = new();
     }
 
     public class GlobalDriftDto
@@ -40,6 +43,7 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public EntityDiff<PropertyOption> PropertyOptions { get; init; } = new();
         public EntityDiff<PropertyType> PropertyTypes { get; init; } = new();
         public EntityDiff<ComponentType> ComponentTypes { get; init; } = new();
+        public EntityDiff<Relationship> Relatioships { get; init; } = new();
     }
 
 
@@ -48,6 +52,40 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public List<AddedThreatDto> Added { get; init; } = new();
         public List<RemovedThreatDto> Removed { get; init; } = new();
         public List<ModifiedThreatDto> Modified { get; init; } = new();
+    }
+
+    public class ResourceTypeValueDriftDto
+    {
+        public List<AddedResourceTypeValueDto> Added { get; init; } = new();
+        public List<RemovedResourceTypeValueDto> Removed { get; init; } = new();
+        public List<ModifiedResourceTypeValueDto> Modified { get; init; } = new();
+    }
+
+    public class AddedResourceTypeValueDto
+    {
+        public ResourceTypeValues ResourceTypeValue { get; init; } = new();
+        public List<ResourceTypeValueRelationship> Relationships { get; init; } = new();
+    }
+
+    public class RemovedResourceTypeValueDto
+    {
+        public ResourceTypeValues ResourceTypeValue { get; init; }
+        public List<ResourceTypeValueRelationship> Relationships { get; init; } = new();
+    }
+
+    public class ModifiedResourceTypeValueDto
+    {
+        public ResourceTypeValues ResourceTypeValue { get; init; }
+        public List<FieldChange> ChangedFields { get; set; } = new();
+        public List<ResourceTypeValueRelationship> RelationshipsAdded { get; init; } = new();
+        public List<ResourceTypeValueRelationship> RelationshipsRemoved { get; init; } = new();
+        public List<ModifiedResourceTypeValueRelationshipDto> RelationshipsModified { get; init; } = new();
+    }
+
+    public class ModifiedResourceTypeValueRelationshipDto
+    {
+        public ResourceTypeValueRelationship Relationship { get; init; }
+        public List<FieldChange> ChangedFields { get; set; } = new();
     }
 
     public class AddedThreatDto
@@ -60,8 +98,6 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
     {
         public Threat Threat { get; init; }
         public List<FieldChange> ChangedFields { get; set; } = new();
-
-        // Granular mapping changes for this modified component
         public ThreatMappingCollectionDto MappingsAdded { get; set; } = new();
         public ThreatMappingCollectionDto MappingsRemoved { get; set; } = new();
     }
@@ -76,5 +112,4 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
     {
         public List<SRMappingDto> SecurityRequirements { get; set; } = new();
     }
-
 }

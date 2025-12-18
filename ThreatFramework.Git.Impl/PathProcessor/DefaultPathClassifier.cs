@@ -78,6 +78,10 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
                 FolderNames.TestCases => DomainEntityType.TestCases,
                 FolderNames.Threats => DomainEntityType.Threats,
                 FolderNames.Properties => DomainEntityType.Properties,
+
+                FolderNames.ResourceTypeValues => DomainEntityType.ResourceTypeValues,
+                FolderNames.ResourceValueTypeRelationship => DomainEntityType.ResourceTypeValueRelationships,
+
                 _ => DomainEntityType.Unknown
             };
 
@@ -87,6 +91,7 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
                 FolderNames.ComponentType => DomainEntityType.ComponentType,
                 FolderNames.PropertyType => DomainEntityType.PropertyType,
                 FolderNames.PropertyOptions => DomainEntityType.PropertyOptions,
+                FolderNames.Relationships => DomainEntityType.Relationships,
                 _ => DomainEntityType.Unknown
             };
 

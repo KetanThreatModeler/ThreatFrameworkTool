@@ -1,4 +1,4 @@
-﻿using ThreatFramework.Core.ComponentMapping;
+﻿using ThreatModeler.TF.Core.Model.ComponentMapping;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping

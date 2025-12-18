@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Index;
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Drift.Contract.Model;
@@ -19,18 +19,21 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
         private readonly ILibraryCacheService _libraryCacheService;
         private readonly PathOptions _pathOptions;
         private readonly ILogger<DriftController> _logger;
+        private readonly ILibraryChangeSummaryMapper _libraryChangeSummaryMapper;
 
         public DriftController(
             IDriftService finalDriftService,
             IGuidIndexService guidIndexService,
             ILibraryCacheService libraryCacheService,
             IOptions<PathOptions> pathOptions,
+            ILibraryChangeSummaryMapper libraryChangeSummaryMapper,
             ILogger<DriftController> logger)
         {
             _finalDriftService = finalDriftService ?? throw new ArgumentNullException(nameof(finalDriftService));
             _guidIndexService = guidIndexService ?? throw new ArgumentNullException(nameof(guidIndexService));
             _libraryCacheService = libraryCacheService ?? throw new ArgumentNullException(nameof(libraryCacheService));
             _pathOptions = pathOptions?.Value ?? throw new ArgumentNullException(nameof(pathOptions));
+            _libraryChangeSummaryMapper = libraryChangeSummaryMapper ?? throw new ArgumentNullException(nameof(libraryChangeSummaryMapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -87,5 +90,25 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
                 var drift = await _finalDriftService.DriftAsync1(readOnlyLibraryGuids, cancellationToken);
                 return Ok(drift);
             }
+
+        [HttpPost("readonly/v2/summary")]
+        [ProducesResponseType(typeof(IReadOnlyList<LibraryChangeSummaryDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetReadonlyDriftV2SummaryAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Starting readonly drift V2 summary: refreshing GUID index...");
+            await _guidIndexService.RefreshAsync(_pathOptions.IndexYaml);
+
+            _logger.LogInformation("Refreshing library cache...");
+            await _libraryCacheService.RefreshCacheAsync();
+
+            var readOnlyLibraryGuids = await _libraryCacheService.GetReadonlyLibraryGuidsAsync();
+            if (readOnlyLibraryGuids == null || readOnlyLibraryGuids.Count == 0)
+                return Ok(Array.Empty<LibraryChangeSummaryDto>());
+
+            var drift = await _finalDriftService.DriftAsync1(readOnlyLibraryGuids, cancellationToken);
+
+            var summary = _libraryChangeSummaryMapper.Map(drift);
+            return Ok(summary);
         }
+    }
     }

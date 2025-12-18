@@ -3,12 +3,14 @@ using Microsoft.Extensions.Options;
 using ThreatFramework.Core;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Drift.Contract.Model;
-using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor;
+using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.AssistRules;
+using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.CoreEntities;
 using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Global;
+using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
@@ -87,7 +89,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                                         _driftOptions,
                                         _logger
                                     );
-            await TestCaseDriftProcessor.ProcessAsync(
+            /*await TestCaseDriftProcessor.ProcessAsync(
                 drift,
                 ctx.GetTestCaseFileChanges(),
                 _yamlReaderRouter,
@@ -142,9 +144,30 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 ctx.GetComponentFileChanges(),
                 _yamlReaderRouter,
                 _driftOptions,
+                _logger);*/
+
+            await RelationshipDriftProcessor.ProcessAsync(
+    drift,
+    ctx.GetRelationshipFileChanges(),
+    _yamlReaderRouter,
+    _driftOptions,
+    _logger);
+
+            await ResourceValuesTypeDriftProcessor.ProcessAsync(
+                drift,
+                ctx.GetResourceTypeValuesFileChanges(),
+                _yamlReaderRouter,
+                _driftOptions,
                 _logger);
 
-            await ComponentMappingDriftProcessor.ProcessAsync(
+            await ResourceTypeValueRelationshipsDriftProcessor.ProcessAsync(
+                drift,
+                ctx.GetResourceTypeValueRelationshipsFileChanges(),
+                _yamlReaderRouter,
+                _driftOptions,
+                _logger);
+
+           /* await ComponentMappingDriftProcessor.ProcessAsync(
                 drift,
                 ctx,
                 _guidIndexService,
@@ -156,7 +179,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 ctx,
                 _guidIndexService,
                 libraryIds,
-                _logger);
+                _logger);*/
 
             return drift;
         }

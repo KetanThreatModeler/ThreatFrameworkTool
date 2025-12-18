@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatFramework.Infrastructure
 {
@@ -12,13 +13,13 @@ namespace ThreatFramework.Infrastructure
     {
         private static readonly Dictionary<Type, string> _map = new()
         {
-            { typeof(ThreatFramework.Core.CoreEntities.Threat), "threats" },
-            { typeof(ThreatFramework.Core.CoreEntities.Component), "components" },
-            { typeof(ThreatFramework.Core.CoreEntities.SecurityRequirement), "security-requirnment" },
-            { typeof(ThreatFramework.Core.CoreEntities.TestCase), "test-cases" },
-            { typeof(ThreatFramework.Core.CoreEntities.Property), "property" },
+            { typeof(Threat), "threats" },
+            { typeof(Component), "components" },
+            { typeof(SecurityRequirement), "security-requirnment" },
+            { typeof(TestCase), "test-cases" },
+            { typeof(Property), "property" },
             { typeof(PropertyOption), "property-option" },
-            { typeof(ThreatFramework.Core.CoreEntities.Library), "libraries" },
+            { typeof(Library), "libraries" },
         };
 
         public string GetSubfolderFor<T>()

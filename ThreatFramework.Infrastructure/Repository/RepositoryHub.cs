@@ -1,7 +1,10 @@
 ﻿using ThreatFramework.Infra.Contract;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatModeler.TF.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
 
 namespace ThreatModeler.TF.Infra.Implmentation.Repository
 {
@@ -25,7 +28,10 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
                              IComponentPropertyMappingRepository cp,
                              IComponentPropertyOptionMappingRepository cpo,
                              IComponentPropertyOptionThreatMappingRepository cpoth,
-                             IComponentPropertyOptionThreatSecurityRequirementMappingRepository cpotsr)
+                             IComponentPropertyOptionThreatSecurityRequirementMappingRepository cpotsr,
+                             IRelationshipRepository relationshipRepository,
+                             IResourceTypeValuesRepository resourceTypeValuesRepository,
+                             IResourceTypeValueRelationshipRepository resourceTypeValueRelationshipRepository)
         {
             ConnectionFactory = factory;
             LibraryCache = libraryCache;
@@ -46,6 +52,9 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
             ComponentPropertyOptionMappings = cpo;
             ComponentPropertyOptionThreatMappings = cpoth;
             ComponentPropertyOptionThreatSecurityRequirementMappings = cpotsr;
+            Relationships = relationshipRepository;
+            ResourceTypeValues = resourceTypeValuesRepository;
+            ResourceTypeValueRelationships = resourceTypeValueRelationshipRepository;
         }
 
         public ISqlConnectionFactory ConnectionFactory { get; }
@@ -70,6 +79,11 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository
         public IComponentPropertyOptionThreatSecurityRequirementMappingRepository ComponentPropertyOptionThreatSecurityRequirementMappings { get; }
 
         public IRiskRepository Risks { get; }
-    
+
+        public IRelationshipRepository Relationships { get; }
+
+        public IResourceTypeValuesRepository ResourceTypeValues { get; }
+
+        public IResourceTypeValueRelationshipRepository ResourceTypeValueRelationships { get; }
     }
 }

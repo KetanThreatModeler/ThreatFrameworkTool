@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
@@ -24,7 +24,6 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
 
             var libraries = new List<Library>();
 
-            // We iterate sequentially to keep logging + error flow simple and predictable.
             foreach (var file in yamlFilePaths.Where(p => !string.IsNullOrWhiteSpace(p)))
             {
                 try
@@ -54,7 +53,6 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         continue;
                     }
 
-                    // Load root mapping (flat structure)
                     var yamlStream = new YamlStream();
                     using (var sr = new StringReader(yaml))
                     {
@@ -67,23 +65,31 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         continue;
                     }
 
-                    // Required root-level scalars
+                    // Required fields
                     var guidStr = RequiredScalar(root, "guid", file);
                     var name = RequiredScalar(root, "name", file);
 
-                    // Optional scalars
+                    // Optional scalars (default to empty string)
                     TryGetScalar(root, "version", out var version);
                     TryGetScalar(root, "description", out var descriptionRaw);
+                    TryGetScalar(root, "imageUrl", out var imageUrl);
+
+                    // New fields from your sample YAML
+                    TryGetScalar(root, "releaseNote", out var releaseNote);
+                    TryGetScalar(root, "sharingType", out var sharingType);
+
+                    // Clean/normalize
                     var description = string.IsNullOrWhiteSpace(descriptionRaw)
-                        ? null
+                        ? string.Empty
                         : System.Net.WebUtility.HtmlDecode(descriptionRaw);
 
-                    TryGetScalar(root, "imageUrl", out var imageUrl);
-                    TryGetScalar(root, "createdAt", out var createdAtStr);
-                    TryGetScalar(root, "updatedAt", out var updatedAtStr);
+                    version = string.IsNullOrWhiteSpace(version) ? string.Empty : version.Trim();
+                    imageUrl = string.IsNullOrWhiteSpace(imageUrl) ? string.Empty : imageUrl.Trim();
+                    releaseNote = string.IsNullOrWhiteSpace(releaseNote) ? string.Empty : releaseNote.Trim();
+                    sharingType = string.IsNullOrWhiteSpace(sharingType) ? string.Empty : sharingType.Trim();
 
-                    // labels: [] -> comma-separated string (null if empty)
-                    string? labels = null;
+                    // labels: [] -> comma-separated string (empty string if none)
+                    var labels = string.Empty;
                     if (root.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
                         && labelsNode is YamlSequenceNode seq && seq.Children.Count > 0)
                     {
@@ -91,8 +97,8 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                             .OfType<YamlScalarNode>()
                             .Where(s => !string.IsNullOrWhiteSpace(s.Value))
                             .Select(s => s.Value!.Trim());
-                        var joined = string.Join(",", labelValues);
-                        labels = string.IsNullOrWhiteSpace(joined) ? null : joined;
+
+                        labels = string.Join(",", labelValues);
                     }
 
                     // flags at root
@@ -105,13 +111,14 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         DepartmentId = 0, // Not present in YAML; set elsewhere if needed
                         Readonly = readonlyFlag,
                         IsDefault = isDefault,
+
                         Name = name,
-                        SharingType = null, // Not present in your YAML shape
+                        SharingType = sharingType,          // ✅ new
                         Description = description,
                         Labels = labels,
-                        Version = string.IsNullOrWhiteSpace(version) ? null : version,
-                        ReleaseNotes = null, // Not present in your YAML shape
-                        ImageURL = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl
+                        Version = version,
+                        ReleaseNotes = releaseNote,         // ✅ YAML: releaseNote -> Library.ReleaseNotes
+                        ImageURL = imageUrl
                     };
 
                     libraries.Add(library);

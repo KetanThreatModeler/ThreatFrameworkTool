@@ -1,16 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infrastructure.Repository;
 using ThreatFramework.Infrastructure.Services;
 using ThreatModeler.TF.Infra.Contract.Repository;
 using ThreatModeler.TF.Infra.Implmentation.Repository;
+using ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule;
+using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
+using ThreatModeler.TF.Infra.Implmentation.Repository.ThreatMapping;
 
 namespace ThreatFramework.Infrastructure
 {
@@ -53,10 +51,12 @@ namespace ThreatFramework.Infrastructure
             var cpo = new ComponentPropertyOptionMappingRepository(factory, libraryCache);
             var cpoth = new ComponentPropertyOptionThreatMappingRepository(factory, libraryCache);
             var cpotsr = new ComponentPropertyOptionThreatSecurityRequirementMappingRepository(factory, libraryCache);
-
+            var relationships = new RelationshipRepository(factory, _loggerFactory.CreateLogger<RelationshipRepository>());
+            var resourceTypeValues = new ResourceTypeValuesRepository(factory, libraryCache, _loggerFactory.CreateLogger<ResourceTypeValuesRepository>());
+            var resourceTypeValueRelationships = new ResourceTypeValueRelationshipRepository(factory, libraryCache, _loggerFactory.CreateLogger<ResourceTypeValueRelationshipRepository>());
             return new RepositoryHub(factory, libraries, libraryCache, threats, components, componentTypes, securityReqs,
                                      testcases, properties, propertyTypes, propertyOptions, csr, ct, ctsr, tsr,
-                                     cp, cpo, cpoth, cpotsr);
+                                     cp, cpo, cpoth, cpotsr, relationships, resourceTypeValues, resourceTypeValueRelationships);
         }
     }
 }

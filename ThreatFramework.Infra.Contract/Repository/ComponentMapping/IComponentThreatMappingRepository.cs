@@ -1,4 +1,4 @@
-﻿using ThreatFramework.Core.ComponentMapping;
+﻿using ThreatModeler.TF.Core.Model.ComponentMapping;
 
 namespace ThreatFramework.Infra.Contract.Repository
 {

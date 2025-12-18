@@ -1,5 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 
 namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global

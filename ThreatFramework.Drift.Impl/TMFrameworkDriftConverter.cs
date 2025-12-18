@@ -1,4 +1,5 @@
-﻿using ThreatFramework.Core.CoreEntities;
+﻿using System.Runtime.CompilerServices;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Drift.Contract.Model;
@@ -68,6 +69,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 
             var components = await ConvertComponentDriftAsync(source.Components).ConfigureAwait(false);
             var threats = await ConvertThreatDriftAsync(source.Threats).ConfigureAwait(false);
+            var resourceTypeValues = await ConvertResourceTypeValueDrift(source.ResourceTypeValues).ConfigureAwait(false);
 
             return new LibraryDrift
             {
@@ -77,7 +79,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 Threats = threats,
                 SecurityRequirements = source.SecurityRequirements,
                 TestCases = source.TestCases,
-                Properties = source.Properties
+                Properties = source.Properties,
+                ResourceTypeValues = resourceTypeValues
             };
         }
 
@@ -94,7 +97,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 Threats = await ToAddedThreat1ListAsync(source.Threats),
                 SecurityRequirements = source.SecurityRequirements ?? new(),
                 TestCases = source.TestCases ?? new(),
-                Properties = source.Properties ?? new()
+                Properties = source.Properties ?? new(),
+                ResourceTypeValues = await AddedResourceTypeValues(source.ResourceTypeValues)
             };
         }
 
@@ -102,15 +106,19 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         {
             if (source == null) return null;
 
+            var library = await _yamlRouter
+                .GetLibraryByGuidAsync(source.LibraryGuid, DriftSource.GoldenDb)
+                .ConfigureAwait(false);
+
             return new DeletedLibrary
             {
-                LibraryGuid = source.LibraryGuid,
-                LibraryName = source.LibraryName,
+                Library = library,
                 Components = await ConvertDeletedComponentsAsync(source.Components),
                 Threats = await ToDeletedThreat1ListAsync(source.Threats),
                 SecurityRequirements = source.SecurityRequirements ?? new(),
                 TestCases = source.TestCases ?? new(),
-                Properties = source.Properties ?? new()
+                Properties = source.Properties ?? new(),
+                ResourceTypeValues = await DeletedResourceTypeValues(source.ResourceTypeValues)
             };
         }
 
@@ -497,6 +505,94 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 Modified = modified
             };
         }
+
+        private async Task<List<AddedResourceTypeValue>> AddedResourceTypeValues(List<AddedResourceTypeValueDto> addedResourceTypeValues)
+        {
+            var addedResourceTypeValueList = new List<AddedResourceTypeValue>();
+            if (addedResourceTypeValues == null) return addedResourceTypeValueList;
+            foreach (var resourceTypeValue in addedResourceTypeValues)
+            {
+                var addedResourceTypeValue = new AddedResourceTypeValue
+                {
+                    ResourceTypeValue = resourceTypeValue.ResourceTypeValue,
+                    Relationships = resourceTypeValue.Relationships
+                };
+                addedResourceTypeValueList.Add(addedResourceTypeValue);
+            }
+            return addedResourceTypeValueList;
+        }
+
+        private async Task<List<DeletedResourceTypeValue>> DeletedResourceTypeValues(List<RemovedResourceTypeValueDto> removedResourceTypeValues)
+        {
+            var deletedResourceTypeValueList = new List<DeletedResourceTypeValue>();
+            if (removedResourceTypeValues == null) return deletedResourceTypeValueList;
+            foreach (var resourceTypeValue in removedResourceTypeValues)
+            {
+                var deletedResourceTypeValue = new DeletedResourceTypeValue
+                {
+                    ResourceTypeValue = resourceTypeValue.ResourceTypeValue,
+                    Relationships = resourceTypeValue.Relationships
+                };
+                deletedResourceTypeValueList.Add(deletedResourceTypeValue);
+            }
+            return deletedResourceTypeValueList;
+        }
+
+        private async Task<ResourceTypeValueDrift> ConvertResourceTypeValueDrift(ResourceTypeValueDriftDto resourceTypeValueDrift)
+        {
+            if (resourceTypeValueDrift == null) return new ResourceTypeValueDrift();
+            var addedResourceTypeValues = await AddedResourceTypeValues(resourceTypeValueDrift.Added);
+            var deletedResourceTypeValues = await DeletedResourceTypeValues(resourceTypeValueDrift.Removed);
+            return new ResourceTypeValueDrift
+            {
+
+                Modified = await ModifiedResourceTypeValue(resourceTypeValueDrift.Modified),
+                Added = addedResourceTypeValues,
+                Removed = deletedResourceTypeValues
+            };
+        }
+
+        private async Task<List<ModifiedResourceTypeValue>> ModifiedResourceTypeValue(List<ModifiedResourceTypeValueDto> modifiedResourceTypeValueDto)
+        {
+            var modifiedResourceTypeValueList = new List<ModifiedResourceTypeValue>();
+            if (modifiedResourceTypeValueDto == null) return modifiedResourceTypeValueList;
+
+            foreach (var modifiedResource in modifiedResourceTypeValueDto)
+            {
+                var modifiedResourceTypeValue = new ModifiedResourceTypeValue
+                {
+                    ResourceTypeValue = modifiedResource.ResourceTypeValue,
+                    ChangedFields = modifiedResource.ChangedFields,
+                    AddedRelationships = modifiedResource.RelationshipsAdded,
+                    RemovedRelationships = modifiedResource.RelationshipsRemoved,
+                    ModifiedRelationships = await ConvertToModifiedResourceTypeValueRelationship(modifiedResource.RelationshipsModified)
+                };
+                modifiedResourceTypeValueList.Add(modifiedResourceTypeValue);
+
+            }
+            return modifiedResourceTypeValueList;
+        }
+
+        private async Task<List<ModifiedResourceTypeValueRelationship>> ConvertToModifiedResourceTypeValueRelationship(List<ModifiedResourceTypeValueRelationshipDto> modifiedResourceTypeValueRelationshipDtos)
+        {
+            var modifiedRelationships = new List<ModifiedResourceTypeValueRelationship>();
+            if (modifiedResourceTypeValueRelationshipDtos == null) return null;
+
+            foreach (var relationshipDto in modifiedResourceTypeValueRelationshipDtos)
+            {
+                var modifiedRelationship = new ModifiedResourceTypeValueRelationship
+                {
+                    Relationship = relationshipDto.Relationship,
+                    ChangedFields = relationshipDto.ChangedFields
+                };
+                modifiedRelationships.Add(modifiedRelationship);
+            }
+
+            return modifiedRelationships;
+        }
+
+
         #endregion
     }
+
 }

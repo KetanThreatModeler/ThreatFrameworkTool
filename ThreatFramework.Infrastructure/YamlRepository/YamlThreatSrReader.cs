@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ThreatFramework.Core.ComponentMapping;
-using ThreatFramework.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Core.Model.ThreatMapping;
 using ThreatModeler.TF.Infra.Contract.YamlRepository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository

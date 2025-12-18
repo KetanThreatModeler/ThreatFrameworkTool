@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using ThreatFramework.Infra.Contract;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
 
 namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global

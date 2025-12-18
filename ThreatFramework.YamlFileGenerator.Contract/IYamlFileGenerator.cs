@@ -19,5 +19,9 @@
         Task<(string path, int fileCount)> GenerateYamlFilesForComponentPropertyOptionMappings(string path, List<Guid> libraryIds);
         Task<(string path, int fileCount)> GenerateYamlFilesForComponentPropertyOptionThreatMappings(string path, List<Guid> libraryIds);
         Task<(string path, int fileCount)> GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(string path, List<Guid> libraryIds);
+
+        Task<(string path, int fileCount)> GenerateYamlFilesForRelationships(string path);
+        Task<(string path, int fileCount)> GenerateYamlFilesForResourceTypeValues(string path, List<Guid> libraryIds);
+        Task<(string path, int fileCount)> GenerateYamlFilesForResourceTypeValueRelationships(string path, List<Guid> libraryIds);
     }
 }

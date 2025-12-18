@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ThreatFramework.Core
+﻿namespace ThreatFramework.Core
 {
     public sealed class EntityDriftAggregationOptions
     {
         public List<string> LibraryDefaultFields { get; init; } = new List<string>
         {
             "IsDefault",
-            "sharingtype",
-            "version",
+            "Sharingtype",
             "ReleaseNotes",
             "ImageUrl",
             "Name",
             "Version",
-            "Description"
+            "Description",
+            "Readonly"
         };
 
         public List<string> ThreatDefaultFields { get; init; } = new List<string>
@@ -101,7 +95,6 @@ namespace ThreatFramework.Core
         };
 
         public List<string> ComponentTypeDefaultFields { get; init; } = new List<string> {
-            "Guid",
             "Name",
             "Description",
             "ChineseName",
@@ -109,7 +102,27 @@ namespace ThreatFramework.Core
             "IsHidden",
             "IsSecurityControl"
         };
+        public List<string> RelationshipDefaultFields { get; init; } = new List<string>
+        {
+            "RelationshipName",
+            "Description",
+            "ChineseRelationship"
+        };
 
+        public List<string> ResourceTypeValuesDefaultFields { get; init; } = new List<string>
+        {
+            "ResourceName",
+            "ResourceTypeValue",
+            "ComponentGuid"
+        };
+
+        public List<string> ResourceTypeValueRelationshipDefaultFields { get; init; } = new List<string>
+        {
+            "SourceResourceTypeValue",
+            "RelationshipGuid",
+            "TargetResourceTypeValue",
+            "IsRequired",
+            "IsDeleted"
+        };
     }
-
 }

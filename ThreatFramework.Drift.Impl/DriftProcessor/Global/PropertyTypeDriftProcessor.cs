@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatFramework.Core;
 using ThreatFramework.Drift.Contract.Model;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;

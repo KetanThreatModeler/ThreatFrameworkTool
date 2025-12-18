@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using ThreatFramework.API.ServiceRegister;
 using ThreatFramework.Git.Contract;
 using ThreatFramework.Git.Impl;
@@ -14,18 +15,32 @@ using ThreatFramework.Infrastructure.YamlRepository;
 using ThreatFramework.Infrastructure.YamlRepository.CoreEntities;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
-using ThreatModeler.TF.Core.CoreEntities;
+using ThreatModeler.TF.API.ServiceRegister;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Implemenetation;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Git.Implementation.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
+using ThreatModeler.TF.Infra.Contract.Repository.ThreatMapping;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
-using ThreatModeler.TF.Infra.Implmentation.Repository;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Builder;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule;
+using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
+using ThreatModeler.TF.Infra.Implmentation.Repository.ThreatMapping;
+using ThreatModeler.TF.Infra.Implmentation.YamlRepository.AssistRules;
 using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Global;
+using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +56,8 @@ builder.Services
     .Bind(builder.Configuration.GetSection(PathOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+
+builder.Services.AddSingleton<IPostConfigureOptions<PathOptions>, PathOptionsPostConfigure>();
 
 // Core services
 builder.Services.AddScoped<ILibraryCacheService, LibraryCacheService>();
@@ -67,6 +84,11 @@ builder.Services.AddScoped<IThreatSecurityRequirementMappingRepository, ThreatSe
 builder.Services.AddScoped<IComponentThreatMappingRepository, ComponentThreatMappingRepository>();
 builder.Services.AddScoped<IComponentThreatSecurityRequirementMappingRepository, ComponentThreatSecurityRequirementMappingRepository>();
 builder.Services.AddScoped<IComponentSecurityRequirementMappingRepository, ComponentSecurityRequirementMappingRepository>();
+
+//assist rule repositories
+builder.Services.AddScoped<IRelationshipRepository, RelationshipRepository>();
+builder.Services.AddScoped<IResourceTypeValuesRepository, ResourceTypeValuesRepository>();
+builder.Services.AddScoped<IResourceTypeValueRelationshipRepository, ResourceTypeValueRelationshipRepository>();
 
 builder.Services.AddScoped<IYamlComponentReader, YamlComponentReader>();
 builder.Services.AddScoped<IYamlLibraryReader, YamlLibraryReader>();
@@ -120,6 +142,23 @@ builder.Services.AddScoped<ILibraryScopedDiffService, LibraryScopedDiffService>(
 builder.Services.AddScoped<IDriftService, DriftService>();
 builder.Services.AddScoped<ITMFrameworkDriftConverter, TMFrameworkDriftConverter>();
 builder.Services.AddScoped<IYamlRouter, YamlRouter>();
+
+//assist rule index services
+builder.Services.AddSingleton<AssistRuleIndexCache>();
+builder.Services.AddSingleton<IAssistRuleIndexQuery>(sp => sp.GetRequiredService<AssistRuleIndexCache>());
+
+// Manager orchestrates build/write/reload (scoped is typical)
+builder.Services.AddScoped<IAssistRuleIndexManager, AssistRuleIndexManager>();
+
+// Supporting components
+builder.Services.AddSingleton<IAssistRuleIndexIdGenerator, AssistRuleIndexIdGenerator>();
+builder.Services.AddSingleton<IAssistRuleIndexSerializer, AssistRuleIndexYamlSerializer>();
+builder.Services.AddSingleton<ITextFileStore, FileSystemTextFileStore>();
+
+builder.Services.AddScoped<IYamlRelationshipReader, YamlRelationshipReader>();
+builder.Services.AddScoped<IYamlResourceTypesValueReader, YamlResourceTypeValueReader>();
+builder.Services.AddScoped<IYamlResourceTypesValueRelationshipReader, YamlResourceTypeValueRelationshipReader>();
+builder.Services.AddSingleton<ILibraryChangeSummaryMapper, LibraryChangeSummaryMapper>();
 
 var app = builder.Build();
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using ThreatModeler.TF.Git.Contract.Models;
+﻿using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 
 namespace ThreatModeler.TF.Git.Implementation.PathProcessor
@@ -393,6 +389,24 @@ namespace ThreatModeler.TF.Git.Implementation.PathProcessor
         private static string NormalizePath(string relativePath)
         {
             return relativePath.Replace('/', Path.DirectorySeparatorChar);
+        }
+
+        public EntityFileChangeSet GetRelationshipFileChanges()
+        {
+            // Relationships are global: global/relationships/...
+            return GetGlobalEntityFileChanges(DomainEntityType.Relationships);
+        }
+
+        public EntityFileChangeSet GetResourceTypeValuesFileChanges()
+        {
+            // ResourceTypeValues are library scoped: {libId}/resourceTypeValues/...
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.ResourceTypeValues);
+        }
+
+        public EntityFileChangeSet GetResourceTypeValueRelationshipsFileChanges()
+        {
+            // ResourceTypeValueRelationships are library scoped: {libId}/resourceTypeValueRelationships/...
+            return GetAggregatedLibraryEntityFileChanges(DomainEntityType.ResourceTypeValueRelationships);
         }
 
         #endregion

@@ -1,5 +1,4 @@
-﻿using ThreatFramework.Core.CoreEntities;
-
+﻿
 namespace ThreatFramework.Infra.Contract.Index
 {
     public enum EntityType

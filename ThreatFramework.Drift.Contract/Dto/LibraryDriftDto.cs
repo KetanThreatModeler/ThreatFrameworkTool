@@ -1,6 +1,7 @@
 ﻿using ThreatFramework.Core;
-using ThreatFramework.Core.CoreEntities;
 using ThreatFramework.Drift.Contract.Model;
+using ThreatModeler.TF.Core.Model.AssistRules;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 
 namespace ThreatModeler.TF.Drift.Contract.Dto
 {
@@ -13,7 +14,9 @@ namespace ThreatModeler.TF.Drift.Contract.Dto
         public EntityDiff<SecurityRequirement> SecurityRequirements { get; init; } = new();
         public EntityDiff<TestCase> TestCases { get; init; } = new();
         public EntityDiff<Property> Properties { get; init; } = new();
+        public ResourceTypeValueDriftDto ResourceTypeValues { get; init; } = new();
     }
+
 
     public class ComponentDriftDto
     {

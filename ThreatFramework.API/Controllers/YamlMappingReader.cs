@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ThreatFramework.Core.ComponentMapping;
 using ThreatFramework.Infra.Contract.YamlRepository;
 using ThreatFramework.Infrastructure.YamlRepository;
+using ThreatModeler.TF.Core.Model.ComponentMapping;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
+using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
 
 namespace ThreatFramework.API.Controllers
 {

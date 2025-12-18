@@ -1,5 +1,6 @@
 ﻿using ThreatFramework.Drift.Contract.Model;
-using ThreatModeler.TF.Core.Global;
+using ThreatModeler.TF.Core.Model.AssistRules;
+using ThreatModeler.TF.Core.Model.Global;
 
 namespace ThreatModeler.TF.Drift.Contract.Model
 {
@@ -17,5 +18,6 @@ namespace ThreatModeler.TF.Drift.Contract.Model
         public EntityDiff<PropertyOption> PropertyOptions { get; init; } = new();
         public EntityDiff<PropertyType> PropertyTypes { get; init; } = new();
         public EntityDiff<ComponentType> ComponentTypes { get; init; } = new();
+        public EntityDiff<Relationship> RelationShips { get; init; } = new();
     }
 }
