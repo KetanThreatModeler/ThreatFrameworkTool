@@ -66,37 +66,76 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 
         private static string BuildPropertySelectQuery()
         {
-            return @"SELECT p.Id, p.LibraryId, p.PropertyTypeId, p.isSelected, p.IsOptional, p.IsGlobal, 
-                            p.isHidden, p.IsOverridden, p.CreatedDate, p.LastUpdated, p.Guid, p.Name, 
-                            p.ChineseName, p.Labels, p.Description, p.ChineseDescription,
-                            pt.Guid AS PropertyTypeGuid, pt.Name AS PropertyTypeName
-                    FROM Properties p
-                    INNER JOIN PropertyTypes pt ON p.PropertyTypeId = pt.Id";
+            return @"
+        SELECT
+            p.Id,
+            p.LibraryId,
+            p.PropertyTypeId,
+            p.[isSelected] AS IsSelected,
+            p.IsOptional,
+            p.[isHidden] AS IsHidden,
+            p.LastUpdated,
+            p.Guid,
+            p.Name,
+            p.ChineseName,
+            p.Labels,
+            p.Description,
+            p.ChineseDescription,
+            pt.Guid AS PropertyTypeGuid,
+            pt.Name AS PropertyTypeName
+        FROM Properties p
+        INNER JOIN PropertyTypes pt ON p.PropertyTypeId = pt.Id";
         }
+
 
         private async Task<IEnumerable<Property>> ExecutePropertyReaderAsync(SqlCommand command)
         {
             var properties = new List<Property>();
             using var reader = await command.ExecuteReaderAsync();
 
+            // Cache ordinals (fails fast if select/query mismatches)
+            int ordLibraryId = reader.GetOrdinal("LibraryId");
+            int ordPropertyTypeGuid = reader.GetOrdinal("PropertyTypeGuid");
+            int ordPropertyTypeName = reader.GetOrdinal("PropertyTypeName");
+            int ordIsSelected = reader.GetOrdinal("IsSelected");   // from alias
+            int ordIsOptional = reader.GetOrdinal("IsOptional");
+            int ordIsHidden = reader.GetOrdinal("IsHidden");       // from alias
+            int ordGuid = reader.GetOrdinal("Guid");
+            int ordName = reader.GetOrdinal("Name");
+            int ordChineseName = reader.GetOrdinal("ChineseName");
+            int ordLabels = reader.GetOrdinal("Labels");
+            int ordDescription = reader.GetOrdinal("Description");
+            int ordChineseDescription = reader.GetOrdinal("ChineseDescription");
+
             while (await reader.ReadAsync())
             {
+                var sqlLibraryId = reader.GetInt32(ordLibraryId);
+                var libraryGuid = await _libraryCacheService.GetGuidByIdAsync(sqlLibraryId);
+
                 properties.Add(new Property
                 {
-                    LibraryGuid = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
-                    PropertyTypeGuid = (Guid)reader["PropertyTypeGuid"],
-                    PropertyTypeName = reader["PropertyTypeName"] as string,
-                    IsSelected = (bool)reader["isSelected"],
-                    IsOptional = (bool)reader["IsOptional"],
-                    IsGlobal = (bool)reader["IsGlobal"],
-                    IsHidden = (bool)reader["isHidden"],
-                    IsOverridden = (bool)reader["IsOverridden"],
-                    Guid = (Guid)reader["Guid"],
-                    Name = reader["Name"] as string,
-                    ChineseName = reader["ChineseName"] as string,
-                    Labels = reader["Labels"] as string,
-                    Description = reader["Description"] as string,
-                    ChineseDescription = reader["ChineseDescription"] as string
+                    LibraryGuid = libraryGuid,
+                    PropertyTypeGuid = reader.GetGuid(ordPropertyTypeGuid),
+                    PropertyTypeName = reader.IsDBNull(ordPropertyTypeName) ? null : reader.GetString(ordPropertyTypeName),
+
+                    IsSelected = !reader.IsDBNull(ordIsSelected) && reader.GetBoolean(ordIsSelected),
+                    IsOptional = !reader.IsDBNull(ordIsOptional) && reader.GetBoolean(ordIsOptional),
+
+                    // Not present in the table script -> keep domain compatibility
+                    IsGlobal = false,
+                    IsOverridden = false,
+
+                    IsHidden = !reader.IsDBNull(ordIsHidden) && reader.GetBoolean(ordIsHidden),
+
+                    Guid = reader.GetGuid(ordGuid),
+                    Name = reader.IsDBNull(ordName) ? null : reader.GetString(ordName),
+                    ChineseName = reader.IsDBNull(ordChineseName) ? null : reader.GetString(ordChineseName),
+
+                    // Keep your current types; if your model expects List<string> use ToLabelList()
+                    Labels = reader.IsDBNull(ordLabels) ? null : reader.GetValue(ordLabels)?.ToString(),
+
+                    Description = reader.IsDBNull(ordDescription) ? null : reader.GetString(ordDescription),
+                    ChineseDescription = reader.IsDBNull(ordChineseDescription) ? null : reader.GetString(ordChineseDescription)
                 });
             }
 

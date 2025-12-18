@@ -66,35 +66,65 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 
         private static string BuildTestCaseSelectQuery()
         {
-            return @"SELECT tc.Id, tc.LibraryId, tc.isHidden, tc.IsOverridden, 
-                            tc.CreatedDate, tc.LastUpdated, tc.Guid, tc.Name, tc.ChineseName, tc.Labels, 
-                            tc.Description, tc.ChineseDescription 
-                    FROM TestCases tc";
+            return @"
+        SELECT
+            tc.Id,
+            tc.LibraryId,
+            tc.[isHidden] AS IsHidden,
+            tc.LastUpdated,
+            tc.Guid,
+            tc.Name,
+            tc.ChineseName,
+            tc.Labels,
+            tc.Description,
+            tc.ChineseDescription
+        FROM TestCases tc";
         }
+
 
         private async Task<IEnumerable<TestCase>> ExecuteTestCaseReaderAsync(SqlCommand command)
         {
             var testCases = new List<TestCase>();
             using var reader = await command.ExecuteReaderAsync();
 
+            // Cache ordinals (fails fast if query changes)
+            int ordLibraryId = reader.GetOrdinal("LibraryId");
+            int ordIsHidden = reader.GetOrdinal("IsHidden"); // from alias
+            int ordGuid = reader.GetOrdinal("Guid");
+            int ordName = reader.GetOrdinal("Name");
+            int ordChineseName = reader.GetOrdinal("ChineseName");
+            int ordLabels = reader.GetOrdinal("Labels");
+            int ordDescription = reader.GetOrdinal("Description");
+            int ordChineseDescription = reader.GetOrdinal("ChineseDescription");
+
             while (await reader.ReadAsync())
             {
+                var sqlLibraryId = reader.GetInt32(ordLibraryId);
+                var libraryGuid = await _libraryCacheService.GetGuidByIdAsync(sqlLibraryId);
+
                 testCases.Add(new TestCase
                 {
-                    LibraryId = await _libraryCacheService.GetGuidByIdAsync((int)reader["LibraryId"]),
-                    IsHidden = (bool)reader["isHidden"],
-                    IsOverridden = (bool)reader["IsOverridden"],
-                    Guid = (Guid)reader["Guid"],
-                    Name = (string)reader["Name"],
-                    ChineseName = reader["ChineseName"] as string,
-                    Labels = reader["Labels"] as string,
-                    Description = reader["Description"] as string,
-                    ChineseDescription = reader["ChineseDescription"] as string
+                    LibraryId = libraryGuid,
+                    IsHidden = !reader.IsDBNull(ordIsHidden) && reader.GetBoolean(ordIsHidden),
+
+                    // Not present in table per your script — keep model stable
+                    IsOverridden = false,
+
+                    Guid = reader.GetGuid(ordGuid),
+                    Name = reader.IsDBNull(ordName) ? string.Empty : reader.GetString(ordName),
+                    ChineseName = reader.IsDBNull(ordChineseName) ? null : reader.GetString(ordChineseName),
+
+                    // Keep as-is to avoid breaking (if your model expects string)
+                    Labels = reader.IsDBNull(ordLabels) ? null : reader.GetValue(ordLabels)?.ToString(),
+
+                    Description = reader.IsDBNull(ordDescription) ? null : reader.GetString(ordDescription),
+                    ChineseDescription = reader.IsDBNull(ordChineseDescription) ? null : reader.GetString(ordChineseDescription)
                 });
             }
 
             return testCases;
         }
+
 
         public async Task<IEnumerable<Guid>> GetGuidsAsync()
         {

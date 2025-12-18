@@ -66,16 +66,14 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
         public async Task<IEnumerable<PropertyOption>> GetAllPropertyOptionsAsync()
         {
             const string sql = @"
-                SELECT 
-                    [Id],
-                    [PropertyId],
-                    [IsDefault],
-                    [isHidden],
-                    [IsOverridden],
-                    [Guid],
-                    [OptionText],
-                    [ChineseOptionText]
-                FROM [dbo].[PropertyOptions];";
+        SELECT 
+            [Id],
+            [PropertyId],
+            [IsDefault],
+            [Guid],
+            [OptionText],
+            [ChineseOptionText]
+        FROM [dbo].[PropertyOptions];";
 
             _logger.LogInformation("Starting {Method}.", nameof(GetAllPropertyOptionsAsync));
 
@@ -100,6 +98,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
             }
         }
 
+
         private async Task<List<PropertyOption>> ExecutePropertyOptionReaderAsync(SqlCommand command)
         {
             var results = new List<PropertyOption>();
@@ -110,8 +109,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
             var idOrdinal = reader.GetOrdinal("Id");
             var propertyIdOrdinal = reader.GetOrdinal("PropertyId");
             var isDefaultOrdinal = reader.GetOrdinal("IsDefault");
-            var isHiddenOrdinal = reader.GetOrdinal("isHidden");       // actual column name
-            var isOverriddenOrdinal = reader.GetOrdinal("IsOverridden");
             var guidOrdinal = reader.GetOrdinal("Guid");
             var optionTextOrdinal = reader.GetOrdinal("OptionText");
             var chineseOptionTextOrdinal = reader.GetOrdinal("ChineseOptionText");
@@ -120,7 +117,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
             {
                 try
                 {
-                    // Handle possible NULL PropertyId → map to 0 and log once per row
                     int propertyGuidValue;
                     if (reader.IsDBNull(propertyIdOrdinal))
                     {
@@ -136,30 +132,24 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
 
                     var option = new PropertyOption
                     {
-                        // DB's PK Id is not exposed on the model, so we ignore it here.
                         PropertyGuid = propertyGuidValue,
                         Guid = reader.GetGuid(guidOrdinal),
 
                         IsDefault = !reader.IsDBNull(isDefaultOrdinal) && reader.GetBoolean(isDefaultOrdinal),
-                        IsHidden = !reader.IsDBNull(isHiddenOrdinal) && reader.GetBoolean(isHiddenOrdinal),
-                        IsOverridden = !reader.IsDBNull(isOverriddenOrdinal) && reader.GetBoolean(isOverriddenOrdinal),
 
-                        OptionText = reader.IsDBNull(optionTextOrdinal)
-                            ? string.Empty
-                            : reader.GetString(optionTextOrdinal),
+                        // Not present in DB per your script — keep model stable
+                        IsHidden = false,
+                        IsOverridden = false,
 
-                        ChineseOptionText = reader.IsDBNull(chineseOptionTextOrdinal)
-                            ? string.Empty
-                            : reader.GetString(chineseOptionTextOrdinal)
+                        OptionText = reader.IsDBNull(optionTextOrdinal) ? string.Empty : reader.GetString(optionTextOrdinal),
+                        ChineseOptionText = reader.IsDBNull(chineseOptionTextOrdinal) ? string.Empty : reader.GetString(chineseOptionTextOrdinal)
                     };
 
                     results.Add(option);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(
-                        ex,
-                        "Failed to hydrate PropertyOption from current data row. Skipping row.");
+                    _logger.LogWarning(ex, "Failed to hydrate PropertyOption from current data row. Skipping row.");
                 }
             }
 

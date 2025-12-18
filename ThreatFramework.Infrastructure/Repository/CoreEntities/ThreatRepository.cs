@@ -1,9 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
@@ -239,23 +235,23 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
         private static string BuildThreatSelectQuery()
         {
             return @"
-                SELECT 
-                    t.LibraryId,
-                    t.Automated,
-                    t.IsHidden,
-                    t.IsOverridden,
-                    t.Guid,
-                    t.Name,
-                    t.ChineseName,
-                    t.Labels,
-                    t.Description,
-                    t.Reference,
-                    t.Intelligence,
-                    t.ChineseDescription,
-                    r.Name AS RiskName
-                FROM Threats t
-                LEFT JOIN Risks r ON t.RiskId = r.Id";
+        SELECT 
+            t.LibraryId,
+            t.Automated,
+            t.[isHidden] AS IsHidden,
+            t.Guid,
+            t.Name,
+            t.ChineseName,
+            t.Labels,
+            t.Description,
+            t.Reference,
+            t.Intelligence,
+            t.ChineseDescription,
+            r.Name AS RiskName
+        FROM Threats t
+        LEFT JOIN Risks r ON t.RiskId = r.Id";
         }
+
 
         #endregion
 
@@ -294,11 +290,9 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 
             using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
 
-            // Cache ordinals once for performance
             var libraryIdOrdinal = reader.GetOrdinal("LibraryId");
             var automatedOrdinal = reader.GetOrdinal("Automated");
-            var isHiddenOrdinal = reader.GetOrdinal("IsHidden");
-            var isOverriddenOrdinal = reader.GetOrdinal("IsOverridden");
+            var isHiddenOrdinal = reader.GetOrdinal("IsHidden");   // from alias
             var guidOrdinal = reader.GetOrdinal("Guid");
             var nameOrdinal = reader.GetOrdinal("Name");
             var chineseNameOrdinal = reader.GetOrdinal("ChineseName");
@@ -320,18 +314,17 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 
                     var threat = new Threat
                     {
-                        // RiskName from Risks table; fallback to empty if null
-                        RiskName = reader.IsDBNull(riskNameOrdinal)
-                            ? string.Empty
-                            : reader.GetString(riskNameOrdinal),
+                        RiskName = reader.IsDBNull(riskNameOrdinal) ? string.Empty : reader.GetString(riskNameOrdinal),
 
                         LibraryGuid = libraryGuid,
                         Automated = !reader.IsDBNull(automatedOrdinal) && reader.GetBoolean(automatedOrdinal),
                         IsHidden = !reader.IsDBNull(isHiddenOrdinal) && reader.GetBoolean(isHiddenOrdinal),
-                        IsOverridden = !reader.IsDBNull(isOverriddenOrdinal) && reader.GetBoolean(isOverriddenOrdinal),
+
+                        // Column doesn't exist in Threats table per your script; keep behavior stable
+                        IsOverridden = false,
+
                         Guid = reader.GetGuid(guidOrdinal),
 
-                        // String helpers handle DBNull safely
                         Name = reader.IsDBNull(nameOrdinal) ? string.Empty : reader["Name"].ToSafeString(),
                         ChineseName = reader.IsDBNull(chineseNameOrdinal) ? string.Empty : reader["ChineseName"].ToSafeString(),
                         Description = reader.IsDBNull(descriptionOrdinal) ? string.Empty : reader["Description"].ToSafeString(),
@@ -345,14 +338,13 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(
-                        ex,
-                        "Failed to hydrate Threat from current data row. Skipping row.");
+                    _logger.LogWarning(ex, "Failed to hydrate Threat from current data row. Skipping row.");
                 }
             }
 
             return threats;
         }
+
 
         private async Task<IEnumerable<(Guid ThreatGuid, Guid LibraryGuid)>> FetchThreatLibraryGuidPairsAsync(
             string sql,
@@ -386,7 +378,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
                 throw;
             }
         }
-
         #endregion
     }
 }

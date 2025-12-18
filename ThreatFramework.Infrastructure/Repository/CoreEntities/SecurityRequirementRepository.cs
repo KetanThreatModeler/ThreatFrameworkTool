@@ -211,21 +211,21 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
         private static string BuildSecurityRequirementSelectQuery()
         {
             return @"
-                SELECT 
-                    sr.LibraryId,
-                    sr.IsCompensatingControl,
-                    sr.IsHidden,
-                    sr.IsOverridden,
-                    sr.Guid,
-                    sr.Name,
-                    sr.ChineseName,
-                    sr.Labels,
-                    sr.Description,
-                    sr.ChineseDescription,
-                    r.Name AS RiskName
-                FROM SecurityRequirements sr
-                LEFT JOIN Risks r ON sr.RiskId = r.Id";
+        SELECT 
+            sr.LibraryId,
+            sr.IsCompensatingControl,
+            sr.[isHidden] AS IsHidden,
+            sr.Guid,
+            sr.Name,
+            sr.ChineseName,
+            sr.Labels,
+            sr.Description,
+            sr.ChineseDescription,
+            r.Name AS RiskName
+        FROM SecurityRequirements sr
+        LEFT JOIN Risks r ON sr.RiskId = r.Id";
         }
+
 
         #endregion
 
@@ -275,8 +275,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
             var riskNameOrdinal = reader.GetOrdinal("RiskName");
             var libraryIdOrdinal = reader.GetOrdinal("LibraryId");
             var isCompensatingOrdinal = reader.GetOrdinal("IsCompensatingControl");
-            var isHiddenOrdinal = reader.GetOrdinal("IsHidden");
-            var isOverriddenOrdinal = reader.GetOrdinal("IsOverridden");
+            var isHiddenOrdinal = reader.GetOrdinal("IsHidden"); // from alias
             var guidOrdinal = reader.GetOrdinal("Guid");
             var nameOrdinal = reader.GetOrdinal("Name");
             var chineseNameOrdinal = reader.GetOrdinal("ChineseName");
@@ -301,9 +300,14 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
                     {
                         RiskName = riskName,
                         LibraryId = libraryGuid,
+
                         IsCompensatingControl = !reader.IsDBNull(isCompensatingOrdinal) && reader.GetBoolean(isCompensatingOrdinal),
                         IsHidden = !reader.IsDBNull(isHiddenOrdinal) && reader.GetBoolean(isHiddenOrdinal),
-                        IsOverridden = !reader.IsDBNull(isOverriddenOrdinal) && reader.GetBoolean(isOverriddenOrdinal),
+
+                        // Column not present in SecurityRequirements table per your script.
+                        // Keep domain compatibility.
+                        IsOverridden = false,
+
                         Guid = reader.GetGuid(guidOrdinal),
                         Name = reader.IsDBNull(nameOrdinal) ? string.Empty : reader.GetString(nameOrdinal),
                         ChineseName = reader.IsDBNull(chineseNameOrdinal) ? null : reader.GetString(chineseNameOrdinal),
@@ -316,14 +320,13 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(
-                        ex,
-                        "Failed to hydrate SecurityRequirement row. Skipping current row.");
+                    _logger.LogWarning(ex, "Failed to hydrate SecurityRequirement row. Skipping current row.");
                 }
             }
 
             return securityRequirements;
         }
+
 
         /// <summary>
         /// Shared helper for GUID/library GUID pairs.

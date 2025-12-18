@@ -43,8 +43,8 @@ namespace ThreatFramework.Infrastructure
             var propertyTypes = new PropertyTypeRepository(factory);
             var propertyOptions = new PropertyOptionRepository(factory, _loggerFactory.CreateLogger<PropertyOptionRepository>());
 
-            var csr = new ComponentSecurityRequirementMappingRepository(factory, libraryCache);
-            var ct = new ComponentThreatMappingRepository(factory, libraryCache);
+            var csr = new ComponentSecurityRequirementMappingRepository(factory, libraryCache, _loggerFactory.CreateLogger<ComponentSecurityRequirementMappingRepository>());
+            var ct = new ComponentThreatMappingRepository(factory, libraryCache, _loggerFactory.CreateLogger<ComponentThreatMappingRepository>());
             var ctsr = new ComponentThreatSecurityRequirementMappingRepository(factory, libraryCache);
             var tsr = new ThreatSecurityRequirementMappingRepository(factory, libraryCache);
             var cp = new ComponentPropertyMappingRepository(factory, libraryCache);

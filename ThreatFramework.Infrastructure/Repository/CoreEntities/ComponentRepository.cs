@@ -279,27 +279,25 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 
         private static string BuildComponentSelectQuery()
         {
-            // Assumes DB column is renamed to IsOverridden
             return @"
-                SELECT
-                    c.Id,
-                    c.Guid,
-                    c.LibraryId,
-                    c.ComponentTypeId,
-                    ct.Guid AS ComponentTypeGuid,
-                    c.IsHidden,
-                    c.IsOverridden,
-                    c.CreatedDate,
-                    c.LastUpdated,
-                    c.Name,
-                    c.ImagePath,
-                    c.Labels,
-                    c.Version,
-                    c.Description,
-                    c.ChineseDescription
-                FROM Components c
-                INNER JOIN ComponentTypes ct ON c.ComponentTypeId = ct.Id";
+        SELECT
+            c.Id,
+            c.Guid,
+            c.LibraryId,
+            c.ComponentTypeId,
+            ct.Guid AS ComponentTypeGuid,
+            c.[isHidden] AS IsHidden,
+            c.LastUpdated,
+            c.Name,
+            c.ImagePath,
+            c.Labels,
+            c.Version,
+            c.Description,
+            c.ChineseDescription
+        FROM Components c
+        INNER JOIN ComponentTypes ct ON c.ComponentTypeId = ct.Id";
         }
+
 
         private SqlCommand CreateCommand(SqlConnection connection, string sql)
         {
@@ -321,9 +319,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
             }
         }
 
-        /// <summary>
-        /// Strict reader: if ANY row fails mapping, the method throws (no silent skipping).
-        /// </summary>
+
         private async Task<List<Component>> ExecuteComponentReaderStrictAsync(SqlCommand command)
         {
             const string methodName = nameof(ExecuteComponentReaderStrictAsync);
@@ -336,13 +332,10 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
             {
                 using SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                // Cache ordinals once (also forces exceptions early if column missing)
                 int ordGuid = reader.GetOrdinal("Guid");
                 int ordLibraryId = reader.GetOrdinal("LibraryId");
                 int ordComponentTypeGuid = reader.GetOrdinal("ComponentTypeGuid");
-                int ordIsHidden = reader.GetOrdinal("IsHidden");
-                int ordIsOverridden = reader.GetOrdinal("IsOverridden");
-
+                int ordIsHidden = reader.GetOrdinal("IsHidden"); // mapped via alias
                 int ordName = reader.GetOrdinal("Name");
                 int ordImagePath = reader.GetOrdinal("ImagePath");
                 int ordLabels = reader.GetOrdinal("Labels");
@@ -352,7 +345,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 
                 while (await reader.ReadAsync())
                 {
-                    // If anything blows up here -> log + rethrow
                     var libraryId = reader.GetInt32(ordLibraryId);
                     Guid libraryGuid = await _libraryCacheService.GetGuidByIdAsync(libraryId);
 
@@ -363,7 +355,9 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
                         ComponentTypeGuid = reader.GetGuid(ordComponentTypeGuid),
 
                         IsHidden = reader.GetBoolean(ordIsHidden),
-                        IsOverridden = reader.GetBoolean(ordIsOverridden),
+
+                        // Column not present in your table script -> default to false
+                        IsOverridden = false,
 
                         Name = reader.GetValue(ordName).ToSafeString(),
                         ImagePath = reader.GetValue(ordImagePath).ToSafeString(),
@@ -387,8 +381,9 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
                     methodName,
                     command.CommandText);
 
-                throw; // IMPORTANT: no silent failure
+                throw;
             }
         }
+
     }
 }
