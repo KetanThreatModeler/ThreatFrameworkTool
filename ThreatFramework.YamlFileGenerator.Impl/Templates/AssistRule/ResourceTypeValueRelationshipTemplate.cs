@@ -16,6 +16,7 @@ namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.AssistRule
                 .AddQuoted("sourceResourceTypeValue", relationship.SourceResourceTypeValue)
                 .AddQuoted("targetResourceTypeValue", relationship.TargetResourceTypeValue)
                 .AddQuoted("relationshipGuid", relationship.RelationshipGuid.ToString())
+                .AddQuoted("relationshipName", relationship.RelationshipName)
                 .AddQuoted("libraryGuid", relationship.LibraryId.ToString())
                 .AddParent("flags:", b2 =>
                 {

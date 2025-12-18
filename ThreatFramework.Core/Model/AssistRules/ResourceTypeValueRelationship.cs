@@ -10,6 +10,7 @@ namespace ThreatModeler.TF.Core.Model.AssistRules
     {
         public string SourceResourceTypeValue { get; set; } = string.Empty;
         public Guid RelationshipGuid { get; set; }
+        public string RelationshipName { get; set; } = string.Empty;
         public string TargetResourceTypeValue { get; set; } = string.Empty;
         public bool IsRequired { get; set; }
         public Guid LibraryId { get; set; }
