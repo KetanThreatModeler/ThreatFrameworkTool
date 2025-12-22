@@ -19,11 +19,11 @@ public sealed class LibraryChangeSummaryMapper : ILibraryChangeSummaryMapper
 
             result.Add(new LibraryChangeSummaryDto
             {
-                LibraryGuid = lib.Guid,
+                Guid = lib.Guid,
                 LibraryName = lib.Name ?? string.Empty,
                 Operation = "Added",
-                ExistingVersion = lib.Version,
-                NewVersion = lib.Version,
+                LocalLibraryVersion = lib.Version,
+                LibraryVersion = lib.Version,
                 ReleaseNote = lib.ReleaseNotes
             });
         }
@@ -35,11 +35,11 @@ public sealed class LibraryChangeSummaryMapper : ILibraryChangeSummaryMapper
 
             result.Add(new LibraryChangeSummaryDto
             {
-                LibraryGuid = d.Library.Guid,
+                Guid = d.Library.Guid,
                 LibraryName = d.Library.Name ?? string.Empty,
                 Operation = "Removed",
-                ExistingVersion = d.Library.Version,
-                NewVersion = d.Library.Version,
+                LocalLibraryVersion = d.Library.Version,
+                LibraryVersion = d.Library.Version,
                 ReleaseNote = d.Library.ReleaseNotes
             });
         }
@@ -58,11 +58,11 @@ public sealed class LibraryChangeSummaryMapper : ILibraryChangeSummaryMapper
 
             result.Add(new LibraryChangeSummaryDto
             {
-                LibraryGuid = lib.Guid,
+                Guid = lib.Guid,
                 LibraryName = lib.Name ?? string.Empty,
                 Operation = "Modified",
-                ExistingVersion = oldVersion,
-                NewVersion = newVersion,
+                LocalLibraryVersion = oldVersion,
+                LibraryVersion = newVersion,
                 ReleaseNote = releaseNotes
             });
         }
