@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using ThreatModeler.TF.Core.Model.CoreEntities;
+﻿using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Drift.Contract.Model;
@@ -399,16 +398,16 @@ namespace ThreatModeler.TF.Drift.Implemenetation
 
 
         #region ThreatRegion
-        private Task<ThreatMappingCollection> ToThreatMappingCollection1Async(ThreatMappingCollectionDto source, DriftSource dataSource)
+        private async Task<List<SecurityRequirement>> ToSecurityRequirements(ThreatMappingCollectionDto source, DriftSource dataSource)
         {
-            if (source == null) return Task.FromResult(new ThreatMappingCollection());
-            ThreatMappingCollection threatMappingCollection1 = new ThreatMappingCollection();
+            if (source == null) return new List<SecurityRequirement>();
+            var threatMappingCollection1 = new List<SecurityRequirement>();
             foreach (var srMapping in source.SecurityRequirements)
             {
-                var sr = _yamlRouter.GetSecurityRequirementByGuidAsync(srMapping.SecurityRequirementId, dataSource).Result;
-                threatMappingCollection1.SecurityRequirement.Add(sr);
+                var sr = await _yamlRouter.GetSecurityRequirementByGuidAsync(srMapping.SecurityRequirementId, dataSource);
+                threatMappingCollection1.Add(sr);
             }
-            return Task.FromResult(threatMappingCollection1);
+            return threatMappingCollection1;
         }
 
         private async Task<List<AddedThreat>> ToAddedThreat1ListAsync(List<AddedThreatDto> addedThreats)
@@ -452,11 +451,11 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             if (addedThreat == null) return await Task.FromResult<AddedThreat>(null);
 
             var threat = await _yamlRouter.GetThreatByGuidAsync(addedThreat.Threat.Guid, DriftSource.GoldenDb);
-            var threatMappingCollection1 = await ToThreatMappingCollection1Async(addedThreat.Mappings, DriftSource.GoldenDb);
+            var threatMappingCollection1 = await ToSecurityRequirements(addedThreat.Mappings, DriftSource.GoldenDb);
             var addedThreat1 = new AddedThreat
             {
                 Threat = threat,
-                Added = threatMappingCollection1
+                SecurityRequirements = threatMappingCollection1
             };
             return addedThreat1;
         }
@@ -466,11 +465,11 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             if (removedThreat == null) return await Task.FromResult<DeletedThreat>(null);
 
             var threat = await _yamlRouter.GetThreatByGuidAsync(removedThreat.Threat.Guid, DriftSource.Client);
-            var threatMappingCollection1 = await ToThreatMappingCollection1Async(removedThreat.Mappings, DriftSource.Client);
+            var threatMappingCollection1 = await ToSecurityRequirements(removedThreat.Mappings, DriftSource.Client);
             var deletedThreat1 = new DeletedThreat
             {
                 Threat = threat,
-                Removed = threatMappingCollection1
+                SecurityRequirements = threatMappingCollection1
             };
             return deletedThreat1;
         }
@@ -480,14 +479,14 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             if (modifiedThreat == null) return await Task.FromResult<ModifiedThreat>(null);
 
             var threat = await _yamlRouter.GetThreatByGuidAsync(modifiedThreat.Threat.Guid, DriftSource.Client);
-            var mappingsAdded = await ToThreatMappingCollection1Async(modifiedThreat.MappingsAdded, DriftSource.GoldenDb);
-            var mappingsRemoved = await ToThreatMappingCollection1Async(modifiedThreat.MappingsRemoved, DriftSource.Client);
+            var mappingsAdded = await ToSecurityRequirements(modifiedThreat.MappingsAdded, DriftSource.GoldenDb);
+            var mappingsRemoved = await ToSecurityRequirements(modifiedThreat.MappingsRemoved, DriftSource.Client);
             var modifiedThreat1 = new ModifiedThreat
             {
                 Threat = threat,
                 ChangedFields = modifiedThreat.ChangedFields,
-                Added = mappingsAdded,
-                Removed = mappingsRemoved
+                SecurityRequirementAdded = mappingsAdded,
+                SecurityRequirementRemoved = mappingsRemoved
             };
             return modifiedThreat1;
         }
@@ -501,7 +500,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             return new ThreatDrift
             {
                 Added = added,
-                Deleted = deleted,
+                Removed = deleted,
                 Modified = modified
             };
         }

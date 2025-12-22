@@ -171,6 +171,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors(cors => cors
+    .AllowAnyOrigin()     // dev only
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+);
+
 app.UseAuthorization();
 
 app.MapControllers();

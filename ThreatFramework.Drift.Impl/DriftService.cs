@@ -89,7 +89,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                                         _driftOptions,
                                         _logger
                                     );
-            /*await TestCaseDriftProcessor.ProcessAsync(
+            await TestCaseDriftProcessor.ProcessAsync(
                 drift,
                 ctx.GetTestCaseFileChanges(),
                 _yamlReaderRouter,
@@ -144,7 +144,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 ctx.GetComponentFileChanges(),
                 _yamlReaderRouter,
                 _driftOptions,
-                _logger);*/
+                _logger);
 
             await RelationshipDriftProcessor.ProcessAsync(
     drift,
@@ -167,7 +167,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 _driftOptions,
                 _logger);
 
-           /* await ComponentMappingDriftProcessor.ProcessAsync(
+           await ComponentMappingDriftProcessor.ProcessAsync(
                 drift,
                 ctx,
                 _guidIndexService,
@@ -179,7 +179,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 ctx,
                 _guidIndexService,
                 libraryIds,
-                _logger);*/
+                _logger);
 
             return drift;
         }

@@ -57,11 +57,12 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule
                 if (!libraryIds.Any())
                     return Enumerable.Empty<ResourceTypeValueRelationship>();
 
-                var sql = $"{BuildSelectQuery()} WHERE LIbraryId IN ({string.Join(",", libraryIds)})";
+                // NOTE: Keeping your existing pattern; if you want proper parameterization for IN,
+                // we can convert this to individual parameters (@id0,@id1,...) safely.
+                var sql = $"{BuildSelectQuery()} WHERE rtv.LIbraryId IN ({string.Join(",", libraryIds)})";
 
                 using var connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using var command = new SqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@libraryIds", string.Join(",", libraryIds));
 
                 return await ExecuteReaderAsync(command);
             }
@@ -85,7 +86,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule
                     "Executing GetBySourceResourceTypeValueAsync. SourceResourceTypeValue: {Value}",
                     sourceResourceTypeValue);
 
-                var sql = $"{BuildSelectQuery()} WHERE SourceResourceTypeValue = @sourceValue";
+                var sql = $"{BuildSelectQuery()} WHERE rtv.SourceResourceTypeValue = @sourceValue";
 
                 using var connection = await _connectionFactory.CreateOpenConnectionAsync();
                 using var command = new SqlCommand(sql, connection);
@@ -106,15 +107,19 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule
 
         private static string BuildSelectQuery()
         {
+            // Added join to dbo.Relationships to populate RelationshipName
             return @"
                 SELECT 
-                    SourceResourceTypeValue,
-                    RelationshipGuid,
-                    TargetResourceTypeValue,
-                    IsRequired,
-                    LIbraryId,
-                    IsDeleted
-                FROM [dbo].[ResporceTypeValueRelationships]";
+                    rtv.SourceResourceTypeValue,
+                    rtv.RelationshipGuid,
+                    rel.[Relationship] AS RelationshipName,
+                    rtv.TargetResourceTypeValue,
+                    rtv.IsRequired,
+                    rtv.LIbraryId,
+                    rtv.IsDeleted
+                FROM [dbo].[ResporceTypeValueRelationships] rtv
+                LEFT JOIN [dbo].[Relationships] rel
+                    ON rel.[Guid] = rtv.RelationshipGuid";
         }
 
         private async Task<IEnumerable<ResourceTypeValueRelationship>> ExecuteReaderAsync(SqlCommand command)
@@ -125,6 +130,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule
 
             var sourceOrdinal = reader.GetOrdinal("SourceResourceTypeValue");
             var relationshipGuidOrdinal = reader.GetOrdinal("RelationshipGuid");
+            var relationshipNameOrdinal = reader.GetOrdinal("RelationshipName"); // NEW
             var targetOrdinal = reader.GetOrdinal("TargetResourceTypeValue");
             var isRequiredOrdinal = reader.GetOrdinal("IsRequired");
             var libraryIdOrdinal = reader.GetOrdinal("LIbraryId");
@@ -139,6 +145,10 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule
                         : reader.GetString(sourceOrdinal),
 
                     RelationshipGuid = reader.GetGuid(relationshipGuidOrdinal),
+
+                    RelationshipName = reader.IsDBNull(relationshipNameOrdinal)
+                        ? string.Empty
+                        : reader.GetString(relationshipNameOrdinal),
 
                     TargetResourceTypeValue = reader.IsDBNull(targetOrdinal)
                         ? null

@@ -118,9 +118,6 @@
 
         public List<string> ResourceTypeValueRelationshipDefaultFields { get; init; } = new List<string>
         {
-            "SourceResourceTypeValue",
-            "RelationshipGuid",
-            "TargetResourceTypeValue",
             "IsRequired",
             "IsDeleted"
         };

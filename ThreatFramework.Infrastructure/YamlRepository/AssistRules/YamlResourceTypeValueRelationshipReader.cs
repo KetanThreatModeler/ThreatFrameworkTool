@@ -72,11 +72,16 @@ namespace ThreatModeler.TF.Infra.Implmentation.YamlRepository.AssistRules
             if (!TryLoadRoot(yaml, out var root))
                 throw new InvalidOperationException($"YAML root is not a mapping. File: {filePath}");
 
-            // Required top-level fields
+          
+
+            // Required top-level fields (still required)
             var source = RequiredScalar(root, "sourceResourceTypeValue", filePath);
             var target = RequiredScalar(root, "targetResourceTypeValue", filePath);
             var relationshipGuidStr = RequiredScalar(root, "relationshipGuid", filePath);
             var libraryGuidStr = RequiredScalar(root, "libraryGuid", filePath);
+
+            // Required (new): relationshipName (present in sample YAML)
+            var relationshipName = RequiredScalar(root, "relationshipName", filePath);
 
             // Optional flags (default false if flags not present)
             var isRequired = false;
@@ -84,8 +89,12 @@ namespace ThreatModeler.TF.Infra.Implmentation.YamlRepository.AssistRules
 
             if (TryGetMap(root, "flags", out var flags))
             {
-                isRequired = GetBool(flags, "isRequired", defaultValue: false);
-                isDeleted = GetBool(flags, "isDeleted", defaultValue: false);
+                isRequired = GetBool(flags, "isRequired");
+                isDeleted = GetBool(flags, "isDeleted");
+            }
+            else
+            {
+                _logger.LogWarning("Missing 'flags' section in YAML. Using defaults. File: {File}", filePath);
             }
 
             var entity = new ResourceTypeValueRelationship
@@ -93,19 +102,22 @@ namespace ThreatModeler.TF.Infra.Implmentation.YamlRepository.AssistRules
                 SourceResourceTypeValue = source,
                 TargetResourceTypeValue = target,
                 RelationshipGuid = G(relationshipGuidStr, "relationshipGuid", filePath),
+                RelationshipName = relationshipName,               
                 LibraryId = G(libraryGuidStr, "libraryGuid", filePath),
                 IsRequired = isRequired,
                 IsDeleted = isDeleted
             };
 
             _logger.LogDebug(
-                "Parsed ResourceTypeValueRelationship YAML successfully. Source={Source}, RelGuid={RelGuid}, Target={Target}, Lib={Lib}",
+                "Parsed ResourceTypeValueRelationship YAML successfully. Source={Source}, RelGuid={RelGuid}, RelName={RelName}, Target={Target}, Lib={Lib}",
                 entity.SourceResourceTypeValue,
                 entity.RelationshipGuid,
+                entity.RelationshipName,
                 entity.TargetResourceTypeValue,
                 entity.LibraryId);
 
             return entity;
         }
+
     }
 }
