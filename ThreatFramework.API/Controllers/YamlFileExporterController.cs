@@ -30,7 +30,7 @@ public sealed class YamlExportsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GenerateClientAsync(CancellationToken ct)
+    public async Task<IActionResult> GenerateClientAsync(List<Guid> guids)
     {
         using (_logger.BeginScope("Action: GenerateClientYaml"))
         {
@@ -45,7 +45,7 @@ public sealed class YamlExportsController : ControllerBase
 
                 // Assuming Client Generator signature hasn't changed yet. 
                 // If it has, pass the push param here too.
-                await _clientGenerator.GenerateForLibraryIdsAsync(path, Enumerable.Empty<Guid>().ToList());
+                await _clientGenerator.GenerateForLibraryIdsAsync(path, guids);
 
                 _logger.LogInformation("Completed Client YAML export.");
 
