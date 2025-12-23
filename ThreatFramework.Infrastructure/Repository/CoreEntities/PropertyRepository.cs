@@ -261,5 +261,16 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 
             return results;
         }
+
+        public async Task<IEnumerable<Property>> GetAllPropertiesAsync()
+        {
+            var sql = BuildPropertySelectQuery();
+
+            using var connection = await _connectionFactory.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(sql, connection);
+
+            return await ExecutePropertyReaderAsync(command);
+        }
+
     }
 }

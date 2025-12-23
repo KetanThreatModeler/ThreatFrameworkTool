@@ -91,6 +91,24 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
                 return Ok(drift);
             }
 
+        [HttpPost("threatFramework/drift/libraries")]
+        [ProducesResponseType(typeof(TMFrameworkDrift), StatusCodes.Status200OK)]
+        public async Task<IActionResult> CalculateReadonlyDriftV3Async(List<Guid> guids, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Starting readonly drift V3 calculation: refreshing GUID index...");
+            //await _guidIndexService.RefreshAsync(_pathOptions.IndexYaml);
+
+            _logger.LogInformation("Refreshing library cache...");
+            await _libraryCacheService.RefreshCacheAsync();
+
+            var readOnlyLibraryGuids = await _libraryCacheService.GetReadonlyLibraryGuidsAsync();
+            if (readOnlyLibraryGuids == null || readOnlyLibraryGuids.Count == 0)
+                return Ok(new TMFrameworkDrift());
+
+            var drift = await _finalDriftService.DriftAsync1(guids, cancellationToken);
+            return Ok(drift);
+        }
+
         [HttpGet("threatFramework/drift/library-changes")]
         [ProducesResponseType(typeof(IReadOnlyList<LibraryChangeSummaryDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetReadonlyDriftLibraryChangesAsync(CancellationToken cancellationToken)

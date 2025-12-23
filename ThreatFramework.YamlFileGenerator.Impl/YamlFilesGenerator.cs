@@ -327,7 +327,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _logger.LogInformation("Starting YAML file generation in path: {Path}", path);
 
             // Get all properties for the specified libraries
-            var properties = await _propertyRepository.GetPropertiesByLibraryIdAsync(libraryIds);
+            var properties = await _propertyRepository.GetAllPropertiesAsync();
 
             // Group properties by library
             var propertiesGroupedByLibrary = properties.GroupBy(p => p.LibraryGuid);

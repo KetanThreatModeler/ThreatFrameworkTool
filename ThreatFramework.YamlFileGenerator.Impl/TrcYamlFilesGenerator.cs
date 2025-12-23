@@ -212,9 +212,9 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForPropertyTypes(root);
             await gen.GenerateYamlFilesForSpecificTestCases(root, libraryIds);
             await gen.GenerateYamlFilesForPropertyOptions(root);
-            await gen.GenerateYamlFilesForRelationships(root);
-            await gen.GenerateYamlFilesForResourceTypeValues(root, libraryIds);
-            await gen.GenerateYamlFilesForResourceTypeValueRelationships(root, libraryIds);
+            //await gen.GenerateYamlFilesForRelationships(root);
+            //await gen.GenerateYamlFilesForResourceTypeValues(root, libraryIds);
+            //await gen.GenerateYamlFilesForResourceTypeValueRelationships(root, libraryIds);
         }
 
         private async Task GenerateMappingsAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)

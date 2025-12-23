@@ -79,10 +79,26 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForPropertyTypes(outputFolderPath);
             await gen.GenerateYamlFilesForSpecificTestCases(outputFolderPath, libraryIds);
             await gen.GenerateYamlFilesForPropertyOptions(outputFolderPath);
-            await gen.GenerateYamlFilesForRelationships(outputFolderPath);
-            await gen.GenerateYamlFilesForResourceTypeValues(outputFolderPath, libraryIds);
-            await gen.GenerateYamlFilesForResourceTypeValueRelationships(outputFolderPath, libraryIds);
+            //await gen.GenerateYamlFilesForRelationships(outputFolderPath);
+            //await gen.GenerateYamlFilesForResourceTypeValues(outputFolderPath, libraryIds);
+            //await gen.GenerateYamlFilesForResourceTypeValueRelationships(outputFolderPath, libraryIds);
+            await GenerateMappingsAsync(gen, outputFolderPath, libraryIds);
             _logger.LogInformation("Client export completed to {Root}.", outputFolderPath);
+        }
+
+        private async Task GenerateMappingsAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)
+        {
+            _logger.LogDebug("Generating Mapping YAML files...");
+            var mappingsRoot = Path.Combine(root, "mappings");
+
+            await gen.GenerateYamlFilesForComponentSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForComponentThreatMappings(Path.Combine(mappingsRoot, "component-threat"), libraryIds);
+            await gen.GenerateYamlFilesForComponentThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-threat-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "threat-security-requirement"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyMappings(Path.Combine(mappingsRoot, "component-property"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionMappings(Path.Combine(mappingsRoot, "component-property-option"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionThreatMappings(Path.Combine(mappingsRoot, "component-property-option-threat"), libraryIds);
+            await gen.GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-property-option-threat-security-requirement"), libraryIds);
         }
     }
 }

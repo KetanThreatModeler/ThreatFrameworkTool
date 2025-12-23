@@ -6,6 +6,7 @@ namespace ThreatModeler.TF.Infra.Contract.Repository.CoreEntities
     {
         Task<IEnumerable<Property>> GetPropertiesByLibraryIdAsync(IEnumerable<Guid> libraryIds);
         Task<IEnumerable<Property>> GetReadOnlyPropertiesAsync();
+        Task<IEnumerable<Property>> GetAllPropertiesAsync();
         Task<IEnumerable<Guid>> GetGuidsAsync();
         Task<IEnumerable<(Guid PropertyGuid, Guid LibraryGuid)>> GetGuidsAndLibraryGuidsAsync();
 

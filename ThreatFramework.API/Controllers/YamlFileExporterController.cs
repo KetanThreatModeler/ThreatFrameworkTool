@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using ThreatFramework.Core.Cache;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.API.Controllers.Dtos;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -13,16 +15,20 @@ public sealed class YamlExportsController : ControllerBase
     private readonly IYamlFileGeneratorForClient _clientGenerator;
     private readonly IYamlFilesGeneratorForTRC _trcGenerator;
     private readonly PathOptions _exportOptions;
+    private readonly ILibraryRepository _libraryRepository;
+
 
     public YamlExportsController(
         ILogger<YamlExportsController> logger,
         IYamlFileGeneratorForClient clientGenerator,
         IYamlFilesGeneratorForTRC trcGenerator,
+        ILibraryRepository libraryRepository,
         IOptions<PathOptions> exportOptions)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _clientGenerator = clientGenerator ?? throw new ArgumentNullException(nameof(clientGenerator));
         _trcGenerator = trcGenerator ?? throw new ArgumentNullException(nameof(trcGenerator));
+        _libraryRepository = libraryRepository ?? throw new ArgumentNullException(nameof(libraryRepository));
         _exportOptions = exportOptions?.Value ?? throw new ArgumentNullException(nameof(exportOptions));
     }
 
@@ -153,6 +159,71 @@ public sealed class YamlExportsController : ControllerBase
             }
         }
     }
+
+    [HttpPost("client/readonly")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GenerateClientReadOnlyAsync(CancellationToken ct = default)
+    {
+        using (_logger.BeginScope("Action: GenerateClientReadOnlyYaml"))
+        {
+            if (!TryGetPath(_exportOptions.ClientOutput, "Client", out string path, out var errorResult))
+            {
+                return errorResult!;
+            }
+
+            try
+            {
+                _logger.LogInformation("Starting Client ReadOnly YAML export to {Output}", path);
+
+                var librariesCache = (await _libraryRepository.GetLibrariesCacheAsync())?.ToList()
+                                     ?? new List<LibraryCache>();
+
+                // IMPORTANT: adjust the property name below to match your LibraryCache model:
+                // examples: IsReadOnly, IsReadonly, ReadOnly, IsLocked, etc.
+                var readOnlyLibraryGuids = librariesCache
+                    .Where(l => l != null && l.IsReadonly)     // <-- adjust if your prop name differs
+                    .Select(l => l.Guid)
+                    .Where(g => g != Guid.Empty)
+                    .Distinct()
+                    .ToList();
+
+                if (!readOnlyLibraryGuids.Any())
+                {
+                    _logger.LogWarning("No read-only libraries found. Nothing to export.");
+                    return Ok(new
+                    {
+                        tenant = "Client",
+                        scope = "ReadOnly",
+                        count = 0,
+                        outputPath = path,
+                        status = "no-libraries"
+                    });
+                }
+
+                await _clientGenerator.GenerateForLibraryIdsAsync(path, readOnlyLibraryGuids);
+
+                _logger.LogInformation("Completed Client ReadOnly YAML export for {Count} libraries.", readOnlyLibraryGuids.Count);
+
+                return Ok(new
+                {
+                    tenant = "Client",
+                    scope = "ReadOnly",
+                    count = readOnlyLibraryGuids.Count,
+                    outputPath = path,
+                    status = "completed"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate Client ReadOnly YAMLs.");
+                return Problem(statusCode: 500, title: "Export Failed", detail: ex.Message);
+            }
+        }
+    }
+
+
 
     // --- Private Helper (DRY) ---
 
