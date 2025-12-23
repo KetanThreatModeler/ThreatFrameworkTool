@@ -1,6 +1,13 @@
-﻿namespace ThreatFramework.Infra.Contract.Index
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ThreatFramework.Infra.Contract.Index;
+
+namespace ThreatModeler.TF.Infra.Contract.Index.Client
 {
-    public interface IGuidIndexService
+    public interface IClientGuidIndexService
     {
         Task GenerateAsync(string? outputPath = null);
         Task GenerateForLibraryAsync(IEnumerable<Guid> libIds, string? outputPath = null);

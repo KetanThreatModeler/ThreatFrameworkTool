@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatFramework.API.Controllers
 {
@@ -11,12 +12,12 @@ namespace ThreatFramework.API.Controllers
     [Produces("application/json")]
     public sealed class GuidIndexController : ControllerBase
     {
-        private readonly IGuidIndexService _service;
+        private readonly ITRCGuidIndexService _service;
         private readonly PathOptions _pathOptions;
         private readonly ILogger<GuidIndexController> _logger;
 
         public GuidIndexController(
-            IGuidIndexService service,
+            ITRCGuidIndexService service,
             IOptions<PathOptions> options,
             ILogger<GuidIndexController> logger)
         {
@@ -47,7 +48,7 @@ namespace ThreatFramework.API.Controllers
                 {
                     _logger.LogInformation("Received request to generate global index.");
 
-                    await _service.GenerateAsync(_pathOptions.IndexYaml);
+                    await _service.GenerateAsync();
 
                     _logger.LogInformation("Global index generated successfully at {Path}.", _pathOptions.IndexYaml);
                     return Ok(new { message = "Global index generated.", path = _pathOptions.IndexYaml });
@@ -86,7 +87,7 @@ namespace ThreatFramework.API.Controllers
                     // We use the same configured path, or you could derive a library-specific path strategy here.
                     // For now, using the configured path implies overwriting the file with a partial index.
                     // CAUTION: Ensure this is the intended behavior.
-                    await _service.GenerateForLibraryAsync(libraryIds, _pathOptions.IndexYaml);
+                    await _service.GenerateForLibraryAsync(libraryIds);
 
                     _logger.LogInformation("Library index generated successfully.");
                     return Ok(new { message = "Library index generated.", path = _pathOptions.IndexYaml });
@@ -114,7 +115,7 @@ namespace ThreatFramework.API.Controllers
                 {
                     _logger.LogInformation("Received request to refresh cache from disk.");
 
-                    await _service.RefreshAsync(_pathOptions.IndexYaml);
+                    await _service.RefreshAsync();
 
                     _logger.LogInformation("Cache refreshed successfully.");
                     return Ok(new { message = "Cache refreshed.", path = _pathOptions.IndexYaml });
@@ -145,7 +146,7 @@ namespace ThreatFramework.API.Controllers
                 // Debug level is appropriate.
                 _logger.LogDebug("Looking up ID for GUID: {Guid}", guid);
 
-                var id = _service.GetInt(guid);
+                var id = _service.GetIntAsync(guid);
 
                 return Ok(new { Guid = guid, Id = id });
             }
@@ -174,7 +175,7 @@ namespace ThreatFramework.API.Controllers
             {
                 _logger.LogDebug("Looking up GUID for ID: {Id}", id);
 
-                var guid = _service.GetGuid(id);
+                var guid = _service.GetGuidAsync(id);
 
                 return Ok(new { Id = id, Guid = guid });
             }
@@ -206,7 +207,7 @@ namespace ThreatFramework.API.Controllers
                     "Looking up IDs for Library {LibraryId} and EntityType {EntityType}",
                     libraryId, entityType);
 
-                var ids = _service.GetIdsByLibraryAndType(libraryId, entityType);
+                var ids = _service.GetIdsByLibraryAndTypeAsync(libraryId, entityType);
 
                 return Ok(new { LibraryId = libraryId, EntityType = entityType, Ids = ids });
             }
@@ -230,7 +231,7 @@ namespace ThreatFramework.API.Controllers
         {
             try
             {
-                var ids = _service.GetComponentIds(libraryId);
+                var ids = _service.GetComponentIdsAsync(libraryId);
                 return Ok(new { LibraryId = libraryId, Ids = ids });
             }
             catch (Exception ex)
@@ -250,7 +251,7 @@ namespace ThreatFramework.API.Controllers
         {
             try
             {
-                var ids = _service.GetThreatIds(libraryId);
+                var ids = _service.GetThreatIdsAsync(libraryId);
                 return Ok(new { LibraryId = libraryId, Ids = ids });
             }
             catch (Exception ex)
@@ -270,7 +271,7 @@ namespace ThreatFramework.API.Controllers
         {
             try
             {
-                var ids = _service.GetSecurityRequirementIds(libraryId);
+                var ids = _service.GetSecurityRequirementIdsAsync(libraryId);
                 return Ok(new { LibraryId = libraryId, Ids = ids });
             }
             catch (Exception ex)
@@ -290,7 +291,7 @@ namespace ThreatFramework.API.Controllers
         {
             try
             {
-                var ids = _service.GetPropertyIds(libraryId);
+                var ids = _service.GetPropertyIdsAsync(libraryId);
                 return Ok(new { LibraryId = libraryId, Ids = ids });
             }
             catch (Exception ex)
@@ -310,7 +311,7 @@ namespace ThreatFramework.API.Controllers
         {
             try
             {
-                var ids = _service.GetTestCaseIds(libraryId);
+                var ids = _service.GetTestCaseIdsAsync(libraryId);
                 return Ok(new { LibraryId = libraryId, Ids = ids });
             }
             catch (Exception ex)

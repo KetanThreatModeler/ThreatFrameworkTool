@@ -25,6 +25,7 @@ using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Git.Implementation.PathProcessor;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
@@ -34,6 +35,7 @@ using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
 using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Builder;
 using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Implmentation.Index.TRC;
 using ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule;
 using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Implmentation.Repository.Global;
@@ -126,9 +128,9 @@ builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();
 
 builder.Services.AddScoped<IYamlReaderRouter, YamlReaderRouter>();
 
-builder.Services.AddScoped<IGuidSource, GuidSource>();
+builder.Services.AddScoped<ITRCGuidSource, TRCGuidSource>();
 builder.Services.AddSingleton<IGuidIndexRepository, GuidIndexRepository>(); // <-- interface
-builder.Services.AddScoped<IGuidIndexService, GuidIndexService>();
+builder.Services.AddScoped<ITRCGuidIndexService, TRCGuidIndexService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddAppServices(builder.Configuration);
 

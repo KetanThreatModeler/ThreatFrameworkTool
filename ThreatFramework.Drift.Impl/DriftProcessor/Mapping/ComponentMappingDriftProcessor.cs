@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using ThreatFramework.Core;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
 {
@@ -33,10 +33,10 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
             public ComponentMappingCollectionDto Removed { get; } = new();
         }
 
-        public static Task ProcessAsync(
+        public static async Task ProcessAsync(
             TMFrameworkDriftDto drift,
             IRepositoryDiffEntityPathContext pathContext,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             IEnumerable<Guid> libraryIds,
             ILogger logger)
         {
@@ -47,12 +47,13 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
             if (logger == null) throw new ArgumentNullException(nameof(logger));
 
             // 1) Group mappings per component (added / removed)
-            var buckets = BuildComponentMappingBuckets(pathContext, guidIndexService, logger);
+            var buckets = await BuildComponentMappingBucketsAsync(pathContext, guidIndexService, logger)
+                .ConfigureAwait(false);
 
             if (buckets.Count == 0)
             {
                 logger.LogInformation("No component mapping drift detected.");
-                return Task.CompletedTask;
+                return;
             }
 
             // 2) Attach mapping changes into TMFrameworkDrift
@@ -60,90 +61,87 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
 
             foreach (var bucket in buckets.Values)
             {
-                AttachAddedMappingsForComponent(drift, bucket, guidIndexService, libraryIdList, logger);
-                AttachRemovedMappingsForComponent(drift, bucket, guidIndexService, libraryIdList, logger);
-            }
+                await AttachAddedMappingsForComponentAsync(drift, bucket, guidIndexService, libraryIdList, logger)
+                    .ConfigureAwait(false);
 
-            return Task.CompletedTask;
+                await AttachRemovedMappingsForComponentAsync(drift, bucket, guidIndexService, libraryIdList, logger)
+                    .ConfigureAwait(false);
+            }
         }
 
         // ─────────────────────────────────────────────────────────────
         // STEP 1: Build per-component mapping buckets
         // ─────────────────────────────────────────────────────────────
 
-        private static Dictionary<int, ComponentMappingChangeBucket> BuildComponentMappingBuckets(
+        private static async Task<Dictionary<int, ComponentMappingChangeBucket>> BuildComponentMappingBucketsAsync(
             IRepositoryDiffEntityPathContext pathContext,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             ILogger logger)
         {
             var buckets = new Dictionary<int, ComponentMappingChangeBucket>();
 
-            // For each mapping type, we pull its change set and accumulate into a shared bucket dictionary.
-
-            AccumulateMappingChangeSet(
+            // For each mapping type, pull its change set and accumulate into shared buckets.
+            await AccumulateMappingChangeSetAsync(
                 buckets,
                 pathContext.GetComponentSecurityRequirementsMappingFileChanges(),
                 ComponentMappingType.ComponentSecurityRequirement,
                 guidIndexService,
-                logger);
+                logger).ConfigureAwait(false);
 
-            AccumulateMappingChangeSet(
+            await AccumulateMappingChangeSetAsync(
                 buckets,
                 pathContext.GetComponentThreatMappingFileChanges(),
                 ComponentMappingType.ComponentThreat,
                 guidIndexService,
-                logger);
+                logger).ConfigureAwait(false);
 
-            AccumulateMappingChangeSet(
+            await AccumulateMappingChangeSetAsync(
                 buckets,
                 pathContext.GetComponentThreatSecurityRequirementsMappingFileChanges(),
                 ComponentMappingType.ComponentThreatSecurityRequirement,
                 guidIndexService,
-                logger);
+                logger).ConfigureAwait(false);
 
-            AccumulateMappingChangeSet(
+            await AccumulateMappingChangeSetAsync(
                 buckets,
                 pathContext.GetComponentPropertyMappingFileChanges(),
                 ComponentMappingType.ComponentProperty,
                 guidIndexService,
-                logger);
+                logger).ConfigureAwait(false);
 
-            
-            AccumulateMappingChangeSet(
+            await AccumulateMappingChangeSetAsync(
                 buckets,
                 pathContext.GetComponentPropertyOptionsMappingFileChanges(),
                 ComponentMappingType.ComponentPropertyOption,
                 guidIndexService,
-                logger);
+                logger).ConfigureAwait(false);
 
-            AccumulateMappingChangeSet(
+            await AccumulateMappingChangeSetAsync(
                 buckets,
                 pathContext.GetComponentPropertyOptionThreatsMappingFileChanges(),
                 ComponentMappingType.ComponentPropertyOptionThreat,
                 guidIndexService,
-                logger);
+                logger).ConfigureAwait(false);
 
-            AccumulateMappingChangeSet(
+            await AccumulateMappingChangeSetAsync(
                 buckets,
                 pathContext.GetComponentPropertyOptionThreatSecurityRequirementsMappingFileChanges(),
                 ComponentMappingType.ComponentPropertyOptionThreatSecurityRequirement,
                 guidIndexService,
-                logger);
+                logger).ConfigureAwait(false);
 
             return buckets;
         }
 
-        private static void AccumulateMappingChangeSet(
+        private static async Task AccumulateMappingChangeSetAsync(
             Dictionary<int, ComponentMappingChangeBucket> buckets,
             EntityFileChangeSet changeSet,
             ComponentMappingType mappingType,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             ILogger logger)
         {
             if (changeSet == null)
-            {
                 return;
-            }
 
             // Log modified mappings as warnings (ignored for now)
             if (changeSet.ModifiedFiles != null && changeSet.ModifiedFiles.Count > 0)
@@ -176,7 +174,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                     var componentId = ids[0];
                     var bucket = GetOrCreateBucket(buckets, componentId);
 
-                    AddMappingToBucket(bucket.Added, mappingType, ids, guidIndexService);
+                    await AddMappingToBucketAsync(bucket.Added, mappingType, ids, guidIndexService)
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -201,7 +200,8 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                     var componentId = ids[0];
                     var bucket = GetOrCreateBucket(buckets, componentId);
 
-                    AddMappingToBucket(bucket.Removed, mappingType, ids, guidIndexService);
+                    await AddMappingToBucketAsync(bucket.Removed, mappingType, ids, guidIndexService)
+                        .ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -250,120 +250,94 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
 
         /// <summary>
         /// Adds concrete mapping entries into the given ComponentMappingCollection,
-        /// based on mapping type and numeric IDs.
+        /// based on mapping type and numeric IDs (async Guid lookups).
         /// </summary>
-        private static void AddMappingToBucket(
+        private static async Task AddMappingToBucketAsync(
             ComponentMappingCollectionDto target,
             ComponentMappingType mappingType,
             int[] ids,
-            IGuidIndexService guidIndexService)
+            ITRCGuidIndexService guidIndexService)
         {
             if (ids == null || ids.Length == 0)
-            {
                 return;
-            }
 
             // First ID is always the Component ID; others depend on mapping type
             switch (mappingType)
             {
                 case ComponentMappingType.ComponentSecurityRequirement:
-                    // component-security-requirements: compId_srId.yaml → [comp, sr]
+                    // compId_srId.yaml → [comp, sr]
                     if (ids.Length >= 2)
                     {
-                        var srGuid = guidIndexService.GetGuid(ids[1]);
-                        target.SecurityRequirements.Add(
-                            new SRMappingDto
-                            {
-                                SecurityRequirementId = srGuid,
-                            });
+                        var srGuid = await guidIndexService.GetGuidAsync(ids[1]).ConfigureAwait(false);
+                        target.SecurityRequirements.Add(new SRMappingDto { SecurityRequirementId = srGuid });
                     }
                     break;
 
                 case ComponentMappingType.ComponentThreat:
-                    // component-threat: compId_threatId.yaml → [comp, threat]
+                    // compId_threatId.yaml → [comp, threat]
                     if (ids.Length >= 2)
                     {
-                        var threatGuid = guidIndexService.GetGuid(ids[1]);
-                        target.ThreatSRMappings.Add(
-                            new ThreatSRMappingDto(threatGuid));
+                        var threatGuid = await guidIndexService.GetGuidAsync(ids[1]).ConfigureAwait(false);
+                        target.ThreatSRMappings.Add(new ThreatSRMappingDto(threatGuid));
                     }
                     break;
 
                 case ComponentMappingType.ComponentThreatSecurityRequirement:
-                    // component-threat-security-requirements: comp_threat_sr.yaml → [comp, threat, sr]
+                    // comp_threat_sr.yaml → [comp, threat, sr]
                     if (ids.Length >= 3)
                     {
-                        var threatGuid = guidIndexService.GetGuid(ids[1]);
-                        var srGuid = guidIndexService.GetGuid(ids[2]);
-
-                        target.ThreatSRMappings.Add(
-                            new ThreatSRMappingDto(threatGuid, srGuid));
+                        var threatGuid = await guidIndexService.GetGuidAsync(ids[1]).ConfigureAwait(false);
+                        var srGuid = await guidIndexService.GetGuidAsync(ids[2]).ConfigureAwait(false);
+                        target.ThreatSRMappings.Add(new ThreatSRMappingDto(threatGuid, srGuid));
                     }
                     break;
 
                 case ComponentMappingType.ComponentProperty:
-                    // component-property: comp_property.yaml → [comp, prop]
+                    // comp_property.yaml → [comp, prop]
                     if (ids.Length >= 2)
                     {
-                        var propGuid = guidIndexService.GetGuid(ids[1]);
-
+                        var propGuid = await guidIndexService.GetGuidAsync(ids[1]).ConfigureAwait(false);
                         target.PropertyThreatSRMappings.Add(
-                            new PropertyThreatSRMappingDto(
-                                propGuid,
-                                Guid.Empty,
-                                Guid.Empty,
-                                Guid.Empty));
+                            new PropertyThreatSRMappingDto(propGuid, Guid.Empty, Guid.Empty, Guid.Empty));
                     }
                     break;
 
                 case ComponentMappingType.ComponentPropertyOption:
-                    // component-property-options: comp_prop_propOpt.yaml → [comp, prop, opt]
+                    // comp_prop_propOpt.yaml → [comp, prop, opt]
                     if (ids.Length >= 3)
                     {
-                        var propGuid = guidIndexService.GetGuid(ids[1]);
-                        var optGuid = guidIndexService.GetGuid(ids[2]);
+                        var propGuid = await guidIndexService.GetGuidAsync(ids[1]).ConfigureAwait(false);
+                        var optGuid = await guidIndexService.GetGuidAsync(ids[2]).ConfigureAwait(false);
 
                         target.PropertyThreatSRMappings.Add(
-                            new PropertyThreatSRMappingDto(
-                                propGuid,
-                                optGuid,
-                                Guid.Empty,
-                                Guid.Empty));
+                            new PropertyThreatSRMappingDto(propGuid, optGuid, Guid.Empty, Guid.Empty));
                     }
                     break;
 
                 case ComponentMappingType.ComponentPropertyOptionThreat:
-                    // component-property-option-threats: comp_prop_opt_threat.yaml → [comp, prop, opt, threat]
+                    // comp_prop_opt_threat.yaml → [comp, prop, opt, threat]
                     if (ids.Length >= 4)
                     {
-                        var propGuid = guidIndexService.GetGuid(ids[1]);
-                        var optGuid = guidIndexService.GetGuid(ids[2]);
-                        var threatGuid = guidIndexService.GetGuid(ids[3]);
+                        var propGuid = await guidIndexService.GetGuidAsync(ids[1]).ConfigureAwait(false);
+                        var optGuid = await guidIndexService.GetGuidAsync(ids[2]).ConfigureAwait(false);
+                        var threatGuid = await guidIndexService.GetGuidAsync(ids[3]).ConfigureAwait(false);
 
                         target.PropertyThreatSRMappings.Add(
-                            new PropertyThreatSRMappingDto(
-                                propGuid,
-                                optGuid,
-                                threatGuid,
-                                Guid.Empty));
+                            new PropertyThreatSRMappingDto(propGuid, optGuid, threatGuid, Guid.Empty));
                     }
                     break;
 
                 case ComponentMappingType.ComponentPropertyOptionThreatSecurityRequirement:
-                    // component-property-option-threat-security-requirements: comp_prop_opt_threat_sr.yaml
+                    // comp_prop_opt_threat_sr.yaml → [comp, prop, opt, threat, sr]
                     if (ids.Length >= 5)
                     {
-                        var propGuid = guidIndexService.GetGuid(ids[1]);
-                        var optGuid = guidIndexService.GetGuid(ids[2]);
-                        var threatGuid = guidIndexService.GetGuid(ids[3]);
-                        var srGuid = guidIndexService.GetGuid(ids[4]);
+                        var propGuid = await guidIndexService.GetGuidAsync(ids[1]).ConfigureAwait(false);
+                        var optGuid = await guidIndexService.GetGuidAsync(ids[2]).ConfigureAwait(false);
+                        var threatGuid = await guidIndexService.GetGuidAsync(ids[3]).ConfigureAwait(false);
+                        var srGuid = await guidIndexService.GetGuidAsync(ids[4]).ConfigureAwait(false);
 
                         target.PropertyThreatSRMappings.Add(
-                            new PropertyThreatSRMappingDto(
-                                propGuid,
-                                optGuid,
-                                threatGuid,
-                                srGuid));
+                            new PropertyThreatSRMappingDto(propGuid, optGuid, threatGuid, srGuid));
                     }
                     break;
             }
@@ -373,40 +347,34 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         // STEP 2: Attach added / removed mappings into TMFrameworkDrift
         // ─────────────────────────────────────────────────────────────
 
-        private static void AttachAddedMappingsForComponent(
+        private static async Task AttachAddedMappingsForComponentAsync(
             TMFrameworkDriftDto drift,
             ComponentMappingChangeBucket bucket,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
             ILogger logger)
         {
             if (!HasAnyMappings(bucket.Added))
-            {
                 return;
-            }
 
-            var componentGuid = guidIndexService.GetGuid(bucket.ComponentId);
+            var componentGuid = await guidIndexService.GetGuidAsync(bucket.ComponentId).ConfigureAwait(false);
 
             // 1) Try AddedLibraries → AddedComponent.Mappings
             if (TryAttachToAddedLibraries(drift, componentGuid, bucket.Added, logger))
-            {
                 return;
-            }
 
             // 2) Try ModifiedLibraries → Components.Added[].Mappings
             if (TryAttachToModifiedLibrariesAddedComponents(drift, componentGuid, bucket.Added, logger))
-            {
                 return;
-            }
 
             // 3) Try ModifiedLibraries → Components.Modified[].MappingsAdded
             if (TryAttachToModifiedLibrariesModifiedComponents(drift, componentGuid, bucket.Added, isAdded: true, logger))
-            {
                 return;
-            }
 
             // 4) Fallback – create a new LibraryDrift + ModifiedComponent
-            var libraryGuid = ResolveLibraryGuidForComponent(bucket.ComponentId, libraryIds, guidIndexService, logger);
+            var libraryGuid = await ResolveLibraryGuidForComponentAsync(bucket.ComponentId, libraryIds, guidIndexService, logger)
+                .ConfigureAwait(false);
+
             var libDrift = GetOrCreateLibraryDrift(drift, libraryGuid, logger);
 
             var newModifiedComponent = new ModifiedComponentDto
@@ -431,40 +399,34 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                 libraryGuid);
         }
 
-        private static void AttachRemovedMappingsForComponent(
+        private static async Task AttachRemovedMappingsForComponentAsync(
             TMFrameworkDriftDto drift,
             ComponentMappingChangeBucket bucket,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
             ILogger logger)
         {
             if (!HasAnyMappings(bucket.Removed))
-            {
                 return;
-            }
 
-            var componentGuid = guidIndexService.GetGuid(bucket.ComponentId);
+            var componentGuid = await guidIndexService.GetGuidAsync(bucket.ComponentId).ConfigureAwait(false);
 
             // 1) Try DeletedLibraries → DeletedComponent.Mappings
             if (TryAttachToDeletedLibraries(drift, componentGuid, bucket.Removed, logger))
-            {
                 return;
-            }
 
             // 2) Try ModifiedLibraries → Components.Deleted[].Mappings
             if (TryAttachToModifiedLibrariesDeletedComponents(drift, componentGuid, bucket.Removed, logger))
-            {
                 return;
-            }
 
             // 3) Try ModifiedLibraries → Components.Modified[].MappingsRemoved
             if (TryAttachToModifiedLibrariesModifiedComponents(drift, componentGuid, bucket.Removed, isAdded: false, logger))
-            {
                 return;
-            }
 
             // 4) Fallback – create a new LibraryDrift + ModifiedComponent
-            var libraryGuid = ResolveLibraryGuidForComponent(bucket.ComponentId, libraryIds, guidIndexService, logger);
+            var libraryGuid = await ResolveLibraryGuidForComponentAsync(bucket.ComponentId, libraryIds, guidIndexService, logger)
+                .ConfigureAwait(false);
+
             var libDrift = GetOrCreateLibraryDrift(drift, libraryGuid, logger);
 
             var newModifiedComponent = new ModifiedComponentDto
@@ -490,7 +452,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         }
 
         // ─────────────────────────────────────────────────────────────
-        // Helpers to attach into existing drift structures
+        // Helpers to attach into existing drift structures (sync)
         // ─────────────────────────────────────────────────────────────
 
         private static bool TryAttachToAddedLibraries(
@@ -505,9 +467,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                     .FirstOrDefault(c => c.Component != null && c.Component.Guid == componentGuid);
 
                 if (comp == null)
-                {
                     continue;
-                }
 
                 MergeMappings(comp.Mappings, mappings);
 
@@ -533,9 +493,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                     .FirstOrDefault(c => c.Component != null && c.Component.Guid == componentGuid);
 
                 if (comp == null)
-                {
                     continue;
-                }
 
                 MergeMappings(comp.Mappings, mappings);
 
@@ -561,9 +519,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                     .FirstOrDefault(c => c.Component != null && c.Component.Guid == componentGuid);
 
                 if (addedComp == null)
-                {
                     continue;
-                }
 
                 MergeMappings(addedComp.Mappings, mappings);
 
@@ -589,9 +545,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                     .FirstOrDefault(c => c.Component != null && c.Component.Guid == componentGuid);
 
                 if (deletedComp == null)
-                {
                     continue;
-                }
 
                 MergeMappings(deletedComp.Mappings, mappings);
 
@@ -618,18 +572,12 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
                     .FirstOrDefault(c => c.Component != null && c.Component.Guid == componentGuid);
 
                 if (modifiedComp == null)
-                {
                     continue;
-                }
 
                 if (isAdded)
-                {
                     MergeMappings(modifiedComp.MappingsAdded, mappings);
-                }
                 else
-                {
                     MergeMappings(modifiedComp.MappingsRemoved, mappings);
-                }
 
                 logger.LogInformation(
                     "Component mappings ({Kind}) attached to ModifiedComponent in ModifiedLibrary {LibraryGuid}.",
@@ -645,9 +593,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static void MergeMappings(ComponentMappingCollectionDto target, ComponentMappingCollectionDto source)
         {
             if (target == null || source == null)
-            {
                 return;
-            }
 
             target.SecurityRequirements.AddRange(source.SecurityRequirements);
             target.ThreatSRMappings.AddRange(source.ThreatSRMappings);
@@ -657,24 +603,22 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static bool HasAnyMappings(ComponentMappingCollectionDto mapping)
         {
             if (mapping == null)
-            {
                 return false;
-            }
 
             return mapping.SecurityRequirements.Count > 0
-                || mapping.ThreatSRMappings.Count > 0
-                || mapping.PropertyThreatSRMappings.Count > 0;
+                   || mapping.ThreatSRMappings.Count > 0
+                   || mapping.PropertyThreatSRMappings.Count > 0;
         }
 
-        private static Guid ResolveLibraryGuidForComponent(
+        private static async Task<Guid> ResolveLibraryGuidForComponentAsync(
             int componentId,
             IReadOnlyCollection<Guid> libraryIds,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             ILogger logger)
         {
             foreach (var libraryId in libraryIds)
             {
-                var componentIds = guidIndexService.GetComponentIds(libraryId);
+                var componentIds = await guidIndexService.GetComponentIdsAsync(libraryId).ConfigureAwait(false);
                 if (componentIds != null && componentIds.Contains(componentId))
                 {
                     return libraryId;

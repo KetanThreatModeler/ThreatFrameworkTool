@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Implmentation.Helper;
 using YamlDotNet.RepresentationModel;
 
@@ -11,10 +11,10 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
     public class YamlComponentReader : YamlReaderBase, IYamlComponentReader
     {
         private readonly ILogger<YamlComponentReader>? _logger;
-        private readonly IGuidIndexService _guidIndexService;
+        private readonly ITRCGuidIndexService _guidIndexService;
         private readonly PathOptions _pathOptions;
 
-        public YamlComponentReader(IGuidIndexService guidIndexService, IOptions<PathOptions> pathOptions, ILogger<YamlComponentReader>? logger = null)
+        public YamlComponentReader(ITRCGuidIndexService guidIndexService, IOptions<PathOptions> pathOptions, ILogger<YamlComponentReader>? logger = null)
         {
             _logger = logger;
             _guidIndexService = guidIndexService;
@@ -23,7 +23,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
 
         public async Task<Component> GetComponentByGuid(Guid guid)
         {
-            var componentId = _guidIndexService.GetInt(guid);
+            var componentId = await _guidIndexService.GetIntAsync(guid);
 
             var filePath = Path.Combine(_pathOptions.TrcOutput, "components", $"{componentId}.yaml");
 

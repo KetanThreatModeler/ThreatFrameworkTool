@@ -3,23 +3,23 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Core.Model.Global;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Model;
 using ThreatModeler.TF.Git.Contract.Common;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Drift.Implemenetation
 {
     public sealed class YamlRouter : IYamlRouter
     {
-        private readonly IGuidIndexService _indexService;
+        private readonly ITRCGuidIndexService _indexService;
         private readonly IYamlReaderRouter _yamlReaderRouter;
         private readonly PathOptions _paths;
 
         public YamlRouter(
-            IGuidIndexService indexService,
+            ITRCGuidIndexService indexService,
             IYamlReaderRouter yamlReaderRouter,
             IOptions<PathOptions> paths)
         {
@@ -35,7 +35,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             if (guid == Guid.Empty)
                 throw new ArgumentException("Guid must not be empty.", nameof(guid));
 
-            var libIntId = _indexService.GetInt(guid);
+            var libIntId = await _indexService.GetIntAsync(guid);
             var path = BuildLibraryPath(source, libIntId);
 
             var library = await _yamlReaderRouter
@@ -159,7 +159,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             if (guid == Guid.Empty)
                 throw new ArgumentException("Guid must not be empty.", nameof(guid));
 
-            var intId = _indexService.GetInt(guid);
+            var intId = await _indexService.GetIntAsync(guid);
             var path = BuildGlobalEntityPath(source, FolderNames.PropertyOptions, intId);
 
             var propertyOption = await _yamlReaderRouter

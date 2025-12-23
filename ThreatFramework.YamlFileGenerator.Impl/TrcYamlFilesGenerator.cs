@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract; // Ensure this contains the updated IYamlFilesGeneratorForTRC interface
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
 
@@ -18,7 +18,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly ILogger<TrcYamlFilesGenerator> _logger;
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
-        private readonly IGuidIndexService _indexService;
+        private readonly ITRCGuidIndexService _indexService;
         private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
         private readonly IAssistRuleIndexManager _assistRuleIndexManager;
         private readonly IGitService _gitService;
@@ -32,7 +32,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IOptions<PathOptions> options,
             IOptions<GitSettings> gitOptions,
             IGitService gitService,
-            IGuidIndexService indexService,
+            ITRCGuidIndexService indexService,
             IAssistRuleIndexQuery assistRuleIndexQuery,
             IAssistRuleIndexManager assistRuleIndexManager)
         {
@@ -136,7 +136,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _logger.LogInformation("Generating Index file at {Path}...", indexFilePath);
 
             // Call the service we created previously
-            await _indexService.GenerateForLibraryAsync(libraryIds, indexFilePath);
+            await _indexService.GenerateForLibraryAsync(libraryIds);
 
             _logger.LogInformation("Index file generated successfully.");
 

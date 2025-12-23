@@ -4,20 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Git.Implementation
 {
     public sealed class LibraryScopedDiffService : ILibraryScopedDiffService
     {
-        private readonly IGuidIndexService _guidIndexService;
+        private readonly ITRCGuidIndexService _guidIndexService;
         private readonly IGitFolderDiffService _gitFolderDiffService;
         private readonly ILogger<LibraryScopedDiffService> _logger;
 
         public LibraryScopedDiffService(
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             IGitFolderDiffService gitFolderDiffService,
             ILogger<LibraryScopedDiffService> logger)
         {
@@ -63,15 +63,15 @@ namespace ThreatModeler.TF.Git.Implementation
 
                     foreach (var libraryGuid in libraryGuidList)
                     {
-                        var libraryIntId = _guidIndexService.GetInt(libraryGuid);
+                        var libraryIntId = await _guidIndexService.GetIntAsync(libraryGuid);
                         var libraryFolder = FormatLibraryFolderName(libraryIntId);
 
                         foldersToCheck.Add(libraryFolder);
 
                         // Collect entity IDs for mapping-based comparisons.
-                        AddRange(componentIds, _guidIndexService.GetComponentIds(libraryGuid));
-                        AddRange(threatIds, _guidIndexService.GetThreatIds(libraryGuid));
-                        AddRange(securityRequirementIds, _guidIndexService.GetSecurityRequirementIds(libraryGuid));
+                        AddRange(componentIds, await _guidIndexService.GetComponentIdsAsync(libraryGuid));
+                        AddRange(threatIds, await _guidIndexService.GetThreatIdsAsync(libraryGuid));
+                        AddRange(securityRequirementIds, await _guidIndexService.GetSecurityRequirementIdsAsync(libraryGuid));
 
                         _logger.LogDebug(
                             "Library {LibraryGuid} resolved to Id={LibraryId}, Folder={Folder}. Components={ComponentCount}, Threats={ThreatCount}, SRs={SrCount}.",

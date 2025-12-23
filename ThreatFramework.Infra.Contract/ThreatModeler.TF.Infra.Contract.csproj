@@ -15,4 +15,8 @@
     <ProjectReference Include="..\ThreatFramework.Drift.Contract\ThreatModeler.TF.Drift.Contract.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Index\Common\" />
+  </ItemGroup>
+
 </Project>

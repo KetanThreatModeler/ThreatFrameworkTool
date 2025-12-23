@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ThreatFramework.Core;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
@@ -14,6 +13,7 @@ using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Drift.Implemenetation
 {
@@ -25,7 +25,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         private readonly IRepositoryDiffEntityPathService _repositoryDiffEntityPathService;
         private readonly IYamlReaderRouter _yamlReaderRouter;
         private readonly EntityDriftAggregationOptions _driftOptions;
-        private readonly IGuidIndexService _guidIndexService;
+        private readonly ITRCGuidIndexService _guidIndexService;
         private readonly ITMFrameworkDriftConverter _tMFrameworkDriftConverter;
 
         public DriftService(
@@ -34,7 +34,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             ILibraryScopedDiffService libraryScopedDiffService,
             IYamlReaderRouter yamlReaderRouter,
             IRepositoryDiffEntityPathService repositoryDiffEntityPathService,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             ITMFrameworkDriftConverter tMFrameworkDriftConverter,
             ILogger<DriftService> logger)
         {

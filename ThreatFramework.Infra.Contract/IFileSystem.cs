@@ -13,5 +13,7 @@ namespace ThreatFramework.Infra.Contract
         string Combine(params string[] parts);
         string GetRelativePath(string relativeTo, string path);
         string ReadAllText(string path);
+        bool FileExists(string path);
+        Task AtomicWriteAllTextAsync(string path, string content);
     }
 }

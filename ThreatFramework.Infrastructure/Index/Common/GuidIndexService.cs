@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatModeler.TF.Infra.Contract.Index
+namespace ThreatModeler.TF.Infra.Implmentation.Index.Common
 {
-    internal interface ClientGuidIndexService
+    public class GuidIndexService
     {
     }
 }

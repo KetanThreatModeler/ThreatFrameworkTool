@@ -1,9 +1,9 @@
-﻿using ThreatFramework.Infra.Contract.Index;
-using ThreatFramework.Infra.Contract.Repository;
+﻿using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.Infrastructure;
-using ThreatFramework.Infrastructure.Index;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
+using ThreatModeler.TF.Infra.Implmentation.Index.TRC;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatFramework.API.ServiceRegister
@@ -29,7 +29,7 @@ namespace ThreatFramework.API.ServiceRegister
             services.AddSingleton<IRepositoryHubFactory, RepositoryHubFactory>();
 
             // Cross-cutting services for generator (e.g., GuidIndexService, your YAML templates)
-            services.AddScoped<IGuidIndexService, GuidIndexService>();
+            services.AddScoped<ITRCGuidIndexService, TRCGuidIndexService>();
 
             // Orchestrators (client/TRC)
             services.AddScoped<IYamlFileGeneratorForClient, ClientYamlFilesGenerator>();

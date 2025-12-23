@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatModeler.TF.API.Controllers.Dtos;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Drift.Contract.Model;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Drift.Api.Controllers
 {
@@ -15,7 +15,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
     public class DriftController : ControllerBase
     {
         private readonly IDriftService _finalDriftService;
-        private readonly IGuidIndexService _guidIndexService;
+        private readonly ITRCGuidIndexService _guidIndexService;
         private readonly ILibraryCacheService _libraryCacheService;
         private readonly PathOptions _pathOptions;
         private readonly ILogger<DriftController> _logger;
@@ -23,7 +23,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
 
         public DriftController(
             IDriftService finalDriftService,
-            IGuidIndexService guidIndexService,
+            ITRCGuidIndexService guidIndexService,
             ILibraryCacheService libraryCacheService,
             IOptions<PathOptions> pathOptions,
             ILibraryChangeSummaryMapper libraryChangeSummaryMapper,
@@ -46,7 +46,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
 
             // 👇 Pass a valid path instead of null
             // Use TrcOutput or ClientOutput depending on where your index lives
-            await _guidIndexService.RefreshAsync(_pathOptions.IndexYaml);
+            await _guidIndexService.RefreshAsync();
             _logger.LogInformation("GUID index refresh completed.");
 
             _logger.LogInformation("Refreshing library cache...");
@@ -78,7 +78,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
             public async Task<IActionResult> CalculateReadonlyDriftV2Async(CancellationToken cancellationToken)
             {
                 _logger.LogInformation("Starting readonly drift V2 calculation: refreshing GUID index...");
-                await _guidIndexService.RefreshAsync(_pathOptions.IndexYaml);
+                await _guidIndexService.RefreshAsync();
 
                 _logger.LogInformation("Refreshing library cache...");
                 await _libraryCacheService.RefreshCacheAsync();
@@ -114,7 +114,7 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
         public async Task<IActionResult> GetReadonlyDriftLibraryChangesAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting readonly drift library changes: refreshing GUID index...");
-            await _guidIndexService.RefreshAsync(_pathOptions.IndexYaml);
+            await _guidIndexService.RefreshAsync();
 
             _logger.LogInformation("Refreshing library cache...");
             await _libraryCacheService.RefreshCacheAsync();

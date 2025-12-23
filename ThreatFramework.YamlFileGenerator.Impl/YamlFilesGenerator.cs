@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
-using ThreatFramework.Infra.Contract.Index;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping;
@@ -8,6 +7,7 @@ using ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping;
 using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Git.Contract.Common;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.Global;
@@ -39,7 +39,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly IComponentPropertyOptionMappingRepository _componentPropertyOptionMappingRepository;
         private readonly IComponentPropertyOptionThreatMappingRepository _componentPropertyOptionThreatMappingRepository;
         private readonly IComponentPropertyOptionThreatSecurityRequirementMappingRepository _componentPropertyOptionThreatSecurityRequirementMappingRepository;
-        private readonly IGuidIndexService _indexService;
+        private readonly ITRCGuidIndexService _indexService;
         private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
         private readonly IRelationshipRepository _relationshipRepository;
         private readonly IResourceTypeValuesRepository _resourceTypeValuesRepository;
@@ -64,7 +64,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IComponentPropertyOptionMappingRepository componentPropertyOptionMappingRepository,
             IComponentPropertyOptionThreatMappingRepository componentPropertyOptionThreatMappingRepository,
             IComponentPropertyOptionThreatSecurityRequirementMappingRepository componentPropertyOptionThreatSecurityRequirementMappingRepository,
-            IGuidIndexService indexService,
+            ITRCGuidIndexService indexService,
             IAssistRuleIndexQuery assistRuleIndexQuery,
             IRelationshipRepository relationshipRepository,
             IResourceTypeValuesRepository resourceTypeValuesRepository,
@@ -148,11 +148,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
             foreach (var library in libraries)
             {
-                var libraryIdFolder = _indexService.GetInt(library.Guid).ToString();
+                var libraryIdFolder = _indexService.GetIntAsync(library.Guid).ToString();
                 var libraryFolderPath = Path.Combine(path, libraryIdFolder);
                 EnsureDirectoryExists(libraryFolderPath);
 
-                var fileName = $"{_indexService.GetInt(library.Guid)}.yaml";
+                var fileName = $"{_indexService.GetIntAsync(library.Guid)}.yaml";
                 var filePath = Path.Combine(libraryFolderPath, fileName);
                 var yamlContent = LibraryTemplate.Generate(library);
 
@@ -183,13 +183,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             foreach (var libraryGroup in threatsGroupedByLibrary)
             {
                 var libraryGuid = libraryGroup.Key;
-                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryIdFolder = _indexService.GetIntAsync(libraryGuid).ToString();
                 var libraryFolderPath = Path.Combine(path, libraryIdFolder, FolderNames.Threats);
                 EnsureDirectoryExists(libraryFolderPath);
 
                 foreach (var threat in libraryGroup)
                 {
-                    var fileName = $"{_indexService.GetInt(threat.Guid)}.yaml";
+                    var fileName = $"{_indexService.GetIntAsync(threat.Guid)}.yaml";
                     var filePath = Path.Combine(libraryFolderPath, fileName);
                     var yamlContent = ThreatTemplate.Generate(threat);
 
@@ -221,13 +221,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             foreach (var libraryGroup in componentsGroupedByLibrary)
             {
                 var libraryGuid = libraryGroup.Key;
-                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryIdFolder = _indexService.GetIntAsync(libraryGuid).ToString();
                 var libraryFolderPath = Path.Combine(path, libraryIdFolder, FolderNames.Components);
                 EnsureDirectoryExists(libraryFolderPath);
 
                 foreach (var component in libraryGroup)
                 {
-                    var fileName = $"{_indexService.GetInt(component.Guid)}.yaml";
+                    var fileName = $"{_indexService.GetIntAsync(component.Guid)}.yaml";
                     var filePath = Path.Combine(libraryFolderPath, fileName);
                     var yamlContent = ComponentTemplate.Generate(component);
 
@@ -259,13 +259,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             foreach (var libraryGroup in securityRequirementsGroupedByLibrary)
             {
                 var libraryGuid = libraryGroup.Key;
-                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryIdFolder = _indexService.GetIntAsync(libraryGuid).ToString();
                 var libraryFolderPath = Path.Combine(path, libraryIdFolder, FolderNames.SecurityRequirements);
                 EnsureDirectoryExists(libraryFolderPath);
 
                 foreach (var securityRequirement in libraryGroup)
                 {
-                    var fileName = $"{_indexService.GetInt(securityRequirement.Guid)}.yaml";
+                    var fileName = $"{_indexService.GetIntAsync(securityRequirement.Guid)}.yaml";
                     var filePath = Path.Combine(libraryFolderPath, fileName);
                     var yamlContent = SecurityRequirementTemplate.Generate(securityRequirement);
 
@@ -297,13 +297,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             foreach (var libraryGroup in testCasesGroupedByLibrary)
             {
                 var libraryGuid = libraryGroup.Key;
-                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryIdFolder = _indexService.GetIntAsync(libraryGuid).ToString();
                 var libraryFolderPath = Path.Combine(path, libraryIdFolder, FolderNames.TestCases);
                 EnsureDirectoryExists(libraryFolderPath);
 
                 foreach (var testCase in libraryGroup)
                 {
-                    var fileName = $"{_indexService.GetInt(testCase.Guid)}.yaml";
+                    var fileName = $"{_indexService.GetIntAsync(testCase.Guid)}.yaml";
                     var filePath = Path.Combine(libraryFolderPath, fileName);
                     var yamlContent = TestCaseTemplate.Generate(testCase);
 
@@ -335,13 +335,13 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             foreach (var libraryGroup in propertiesGroupedByLibrary)
             {
                 var libraryGuid = libraryGroup.Key;
-                var libraryIdFolder = _indexService.GetInt(libraryGuid).ToString();
+                var libraryIdFolder = _indexService.GetIntAsync(libraryGuid).ToString();
                 var libraryFolderPath = Path.Combine(path, libraryIdFolder, FolderNames.Properties);
                 EnsureDirectoryExists(libraryFolderPath);
 
                 foreach (var property in libraryGroup)
                 {
-                    var fileName = $"{_indexService.GetInt(property.Guid)}.yaml";
+                    var fileName = $"{_indexService.GetIntAsync(property.Guid)}.yaml";
                     var filePath = Path.Combine(libraryFolderPath, fileName);
                     var yamlContent = PropertyTemplate.Generate(property);
 
@@ -367,7 +367,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 globalFolderPath,
                 propertyOptions,
-                prop => $"{_indexService.GetInt(prop.Guid)}.yaml",
+                prop => $"{_indexService.GetIntAsync(prop.Guid)}.yaml",
                 propItem => PropertyOptionTemplate.Generate(propItem));
         }
 
@@ -378,7 +378,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => CSRMappingTemplate.Generate(mappingItem));
         }
 
@@ -389,7 +389,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.ThreatGuid)}.yaml",
                 mappingItem => CTHMappingTemplate.Generate(mappingItem));
         }
 
@@ -400,7 +400,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => CTSRMappingTemplate.Generate(mappingItem));
         }
 
@@ -411,7 +411,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => TSRMappingTemplate.Generate(mappingItem));
         }
 
@@ -422,7 +422,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.PropertyGuid)}.yaml",
                 mappingItem => CPTemplate.Generate(mappingItem));
         }
 
@@ -433,7 +433,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyOptionGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.PropertyOptionGuid)}.yaml",
                 mappingItem => CPOTemplate.Generate(mappingItem));
         }
 
@@ -444,7 +444,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.ThreatGuid)}.yaml",
                 mappingItem => CPOThreatTemplate.Generate(mappingItem));
         }
 
@@ -455,7 +455,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 path,
                 mappings,
-                mapping => $"{_indexService.GetInt(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetInt(mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetInt(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetInt(mapping.SecurityRequirementGuid)}.yaml",
+                mapping => $"{_indexService.GetIntAsync(mapping.ComponentGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.PropertyGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.PropertyOptionGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.ThreatGuid) + FileNameSeperator + _indexService.GetIntAsync(mapping.SecurityRequirementGuid)}.yaml",
                 mappingItem => CPOTSRTemplate.Generate(mappingItem));
         }
 
@@ -468,7 +468,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 globalFolderPath,
                 componentTypes,
-                componentType => $"{_indexService.GetInt(componentType.Guid)}.yaml",
+                componentType => $"{_indexService.GetIntAsync(componentType.Guid)}.yaml",
                 componentType => ComponentTypeTemplate.Generate(componentType));
         }
 
@@ -481,7 +481,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             return await GenerateYamlFiles(
                 globalFolderPath,
                 propertyTypes,
-                propertyType => $"{_indexService.GetInt(propertyType.Guid)}.yaml",
+                propertyType => $"{_indexService.GetIntAsync(propertyType.Guid)}.yaml",
                 propertyType => PropertyTypeTemplate.Generate(propertyType));
         }
 
@@ -557,11 +557,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                     throw new InvalidOperationException($"AssistRuleIndex ID not found for ResourceTypeValue: {v.ResourceTypeValue}");
                 }
 
-                var libraryFolder = Path.Combine(path, _indexService.GetInt(v.LibraryId).ToString());
+                var libraryFolder = Path.Combine(path, _indexService.GetIntAsync(v.LibraryId).ToString());
                 var rtvFolder = Path.Combine(libraryFolder, FolderNames.ResourceTypeValues);
                 EnsureDirectoryExists(rtvFolder);
 
-                var componentIntId = _indexService.GetInt(v.ComponentGuid);
+                var componentIntId = _indexService.GetIntAsync(v.ComponentGuid);
                 var fileName = $"{assistId}{FileNameSeperator}{componentIntId}.yaml";
                 var filePath = Path.Combine(rtvFolder, fileName);
 
@@ -596,7 +596,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 if (!list.Any())
                     continue;
 
-                var libraryFolder = Path.Combine(path, _indexService.GetInt(libraryGuid).ToString());
+                var libraryFolder = Path.Combine(path, _indexService.GetIntAsync(libraryGuid).ToString());
                 var relFolder = Path.Combine(libraryFolder, FolderNames.ResourceValueTypeRelationship);
                 EnsureDirectoryExists(relFolder);
 
