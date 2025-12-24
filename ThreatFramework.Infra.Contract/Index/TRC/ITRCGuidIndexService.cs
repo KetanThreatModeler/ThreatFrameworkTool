@@ -16,5 +16,6 @@ namespace ThreatModeler.TF.Infra.Contract.Index.TRC
         Task<IReadOnlyCollection<int>> GetSecurityRequirementIdsAsync(Guid libraryId);
         Task<IReadOnlyCollection<int>> GetPropertyIdsAsync(Guid libraryId);
         Task<IReadOnlyCollection<int>> GetTestCaseIdsAsync(Guid libraryId);
+        Task<int> GetMaxAssignedIdAsync();
     }
 }

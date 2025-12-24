@@ -8,41 +8,33 @@ using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Model;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 
 namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
 {
-    public sealed class AssistRuleIndexManager : IAssistRuleIndexManager
+    public sealed class TRCAssistRuleIndexManager : ITRCAssistRuleIndexManager
     {
-        private const string RelationshipPrefix = "REL";
-        private const string ResourceTypeValuePrefix = "RTV";
 
         private readonly IRelationshipRepository _relationshipRepository;
         private readonly IResourceTypeValuesRepository _resourceTypeValuesRepository;
 
-        private readonly AssistRuleIndexCache _cache;
-        private readonly IAssistRuleIndexIdGenerator _idGenerator;
         private readonly IAssistRuleIndexSerializer _serializer;
         private readonly ITextFileStore _fileStore;
         private readonly PathOptions _pathOptions;
-        private readonly ILogger<AssistRuleIndexManager> _logger;
+        private readonly ILogger<TRCAssistRuleIndexManager> _logger;
 
-        public AssistRuleIndexManager(
+        public TRCAssistRuleIndexManager(
             IRelationshipRepository relationshipRepository,
             IResourceTypeValuesRepository resourceTypeValuesRepository,
-            AssistRuleIndexCache cache,
-            IAssistRuleIndexIdGenerator idGenerator,
             IAssistRuleIndexSerializer serializer,
             ITextFileStore fileStore,
             IOptions<PathOptions> pathOptions,
-            ILogger<AssistRuleIndexManager> logger)
+            ILogger<TRCAssistRuleIndexManager> logger)
         {
             _relationshipRepository = relationshipRepository ?? throw new ArgumentNullException(nameof(relationshipRepository));
             _resourceTypeValuesRepository = resourceTypeValuesRepository ?? throw new ArgumentNullException(nameof(resourceTypeValuesRepository));
 
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            _idGenerator = idGenerator ?? throw new ArgumentNullException(nameof(idGenerator));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _fileStore = fileStore ?? throw new ArgumentNullException(nameof(fileStore));
             _pathOptions = pathOptions?.Value ?? throw new ArgumentNullException(nameof(pathOptions));
@@ -53,28 +45,24 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
         {
             try
             {
+                int idCounter = 1;
+                var relationships = await _relationshipRepository.GetAllRelationshipsAsync();
+                var rtvs = await GetResourceTypeValuesAsync(libraryGuids);
 
-                _idGenerator.Reset();
-
-                var relationshipsTask = _relationshipRepository.GetAllRelationshipsAsync();
-                var rtvTask = GetResourceTypeValuesAsync(libraryGuids);
-
-                await Task.WhenAll(relationshipsTask, rtvTask);
-
-                var relationshipEntries = relationshipsTask.Result.Select(r => new AssistRuleIndexEntry
+                var relationshipEntries = relationships.Select(r => new AssistRuleIndexEntry
                 {
                     Type = AssistRuleType.Relationship,
                     Identity = r.Guid.ToString(),
                     LibraryGuid = Guid.Empty,
-                    Id = _idGenerator.Next(RelationshipPrefix)
+                    Id = idCounter++
                 });
 
-                var rtvEntries = rtvTask.Result.Select(v => new AssistRuleIndexEntry
+                var rtvEntries = rtvs.Select(v => new AssistRuleIndexEntry
                 {
                     Type = AssistRuleType.ResourceTypeValues,
                     Identity = v.ResourceTypeValue,
                     LibraryGuid = v.LibraryId,
-                    Id = _idGenerator.Next(ResourceTypeValuePrefix)
+                    Id = idCounter++
                 });
 
                 var all = relationshipEntries
@@ -83,8 +71,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
                     .ThenBy(e => e.LibraryGuid)
                     .ThenBy(e => e.Identity, StringComparer.OrdinalIgnoreCase)
                     .ToList();
-
-                _cache.ReplaceAll(all);
 
                 _logger.LogInformation("AssistRules index built. Entries: {Count}", all.Count);
                 return all;
@@ -132,7 +118,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
             }
         }
 
-        public async Task ReloadFromYamlAsync()
+        public async Task<IReadOnlyList<AssistRuleIndexEntry>> ReloadFromYamlAsync()
         {
             // Always use config path, ignore incoming yamlFilePath
             var configuredPath = _pathOptions.AssistRuleIndexYaml;
@@ -149,11 +135,11 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
                 var yaml = await _fileStore.ReadAllTextAsync(configuredPath);
                 var entries = _serializer.Deserialize(yaml);
 
-                _cache.ReplaceAll(entries);
-
                 _logger.LogInformation(
                     "AssistRules index reloaded successfully. Path: {Path}, Entries: {Count}",
                     configuredPath, entries.Count);
+                return entries.ToList();
+
             }
             catch (Exception ex)
             {
@@ -168,9 +154,51 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
         private async Task<IEnumerable<ResourceTypeValues>> GetResourceTypeValuesAsync(IEnumerable<Guid> libraryGuids)
         {
             if (libraryGuids == null || !libraryGuids.Any())
-                return await _resourceTypeValuesRepository.GetAllAsync();
-
+            {
+                _logger.LogError("GetResourceTypeValuesAsync called with null libraryGuids.");
+                return Enumerable.Empty<ResourceTypeValues>();
+            }
             return await _resourceTypeValuesRepository.GetByLibraryIdsAsync(libraryGuids.ToList());
+        }
+
+        public async Task<IReadOnlyList<AssistRuleIndexEntry>> BuildAndWriteAsync()
+        {
+            var configuredPath = _pathOptions.AssistRuleIndexYaml;
+            int idCounter = 1;
+            var relationships = await _relationshipRepository.GetAllRelationshipsAsync();
+            var rtvs = await _resourceTypeValuesRepository.GetAllAsync();
+
+            var relationshipEntries = relationships.Select(r => new AssistRuleIndexEntry
+            {
+                Type = AssistRuleType.Relationship,
+                Identity = r.Guid.ToString(),
+                LibraryGuid = Guid.Empty,
+                Id = idCounter++
+            });
+
+            var rtvEntries = rtvs.Select(v => new AssistRuleIndexEntry
+            {
+                Type = AssistRuleType.ResourceTypeValues,
+                Identity = v.ResourceTypeValue,
+                LibraryGuid = v.LibraryId,
+                Id = idCounter++
+            });
+
+            var all = relationshipEntries
+                .Concat(rtvEntries)
+                .OrderBy(e => e.Type)
+                .ThenBy(e => e.LibraryGuid)
+                .ThenBy(e => e.Identity, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var yaml = _serializer.Serialize(all);
+            await _fileStore.WriteAllTextAsync(configuredPath, yaml);
+
+            _logger.LogInformation(
+                "AssistRules index YAML written successfully. Path: {Path}, Entries: {Count}",
+                configuredPath, all.Count);
+
+            return all;
         }
     }
 }

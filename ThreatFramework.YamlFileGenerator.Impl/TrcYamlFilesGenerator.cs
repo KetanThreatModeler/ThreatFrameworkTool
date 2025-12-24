@@ -6,7 +6,7 @@ using ThreatFramework.YamlFileGenerator.Contract; // Ensure this contains the up
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
@@ -19,8 +19,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
         private readonly ITRCGuidIndexService _indexService;
-        private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
-        private readonly IAssistRuleIndexManager _assistRuleIndexManager;
+        private readonly ITRCAssistRuleIndexService _assistRuleIndexQuery;
+        private readonly ITRCAssistRuleIndexManager _assistRuleIndexManager;
         private readonly IGitService _gitService;
         private readonly GitSettings _gitSettings;
         private readonly PathOptions _options;
@@ -33,8 +33,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IOptions<GitSettings> gitOptions,
             IGitService gitService,
             ITRCGuidIndexService indexService,
-            IAssistRuleIndexQuery assistRuleIndexQuery,
-            IAssistRuleIndexManager assistRuleIndexManager)
+            ITRCAssistRuleIndexService assistRuleIndexQuery,
+            ITRCAssistRuleIndexManager assistRuleIndexManager)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _yamlLogger = yamlLogger ?? throw new ArgumentNullException(nameof(yamlLogger));

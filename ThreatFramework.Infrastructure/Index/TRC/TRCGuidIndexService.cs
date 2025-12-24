@@ -285,6 +285,36 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.TRC
             }
         }
 
+        public async Task<int> GetMaxAssignedIdAsync()
+        {
+            using (_log.BeginScope("Operation: GetMaxAssignedIdAsync Path={Path}", INDEX_PATH))
+            {
+                try
+                {
+                    var entries = await EnsureEntriesLoadedAsync().ConfigureAwait(false);
+
+                    // If index is empty, max assigned id is 0 (caller can decide to start at 1)
+                    if (entries == null || entries.Count == 0)
+                    {
+                        _log.LogInformation("Index cache is empty. MaxAssignedId=0.");
+                        return 0;
+                    }
+
+                    // GuidIndex ids are sequential, but we compute max defensively.
+                    var maxId = entries.Max(e => e.Id);
+
+                    _log.LogDebug("Resolved MaxAssignedId={MaxId} from cached entries (Count={Count}).",
+                        maxId, entries.Count);
+
+                    return maxId;
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "Failed to compute MaxAssignedId from index cache/path {Path}.", INDEX_PATH);
+                    throw;
+                }
+            }
+        }
         #endregion
     }
 }

@@ -22,7 +22,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Builder
         public string Type { get; set; }
 
         [YamlMember(Alias = "id", ApplyNamingConventions = false)]
-        public string Id { get; set; }
+        public int Id { get; set; }
 
         [YamlMember(Alias = "identity", ApplyNamingConventions = false)]
         public string Identity { get; set; }

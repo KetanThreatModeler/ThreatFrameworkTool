@@ -5,15 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Model;
 
-namespace ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service
+namespace ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC
 {
-    public interface IAssistRuleIndexManager
+    public interface ITRCAssistRuleIndexManager
     {
-        Task<IReadOnlyList<AssistRuleIndexEntry>> BuildAsync(IEnumerable<Guid> libraryGuids);
-
         Task<IReadOnlyList<AssistRuleIndexEntry>> BuildAndWriteAsync(
             IEnumerable<Guid> libraryGuids);
 
-        Task ReloadFromYamlAsync();
+        Task<IReadOnlyList<AssistRuleIndexEntry>> BuildAndWriteAsync();
+
+        Task<IReadOnlyList<AssistRuleIndexEntry>> ReloadFromYamlAsync();
     }
 }

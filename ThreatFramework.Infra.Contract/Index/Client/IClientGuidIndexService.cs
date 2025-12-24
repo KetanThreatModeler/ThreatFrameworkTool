@@ -9,21 +9,17 @@ namespace ThreatModeler.TF.Infra.Contract.Index.Client
 {
     public interface IClientGuidIndexService
     {
-        Task GenerateAsync(string? outputPath = null);
-        Task GenerateForLibraryAsync(IEnumerable<Guid> libIds, string? outputPath = null);
-        Task RefreshAsync(string? path = null);
-        int GetInt(Guid guid);
-
-        Task<(int, int)> GetIntIdOfEntityAndLibIdByGuidAsync(Guid guid);
-
-        Guid GetGuid(int id);
-        IReadOnlyCollection<int> GetIdsByLibraryAndType(Guid libraryId, EntityType entityType);
-
-        // Convenience methods
-        IReadOnlyCollection<int> GetComponentIds(Guid libraryId);
-        IReadOnlyCollection<int> GetThreatIds(Guid libraryId);
-        IReadOnlyCollection<int> GetSecurityRequirementIds(Guid libraryId);
-        IReadOnlyCollection<int> GetPropertyIds(Guid libraryId);
-        IReadOnlyCollection<int> GetTestCaseIds(Guid libraryId);
+        Task GenerateAsync();
+        Task GenerateForLibraryAsync(IEnumerable<Guid> libIds);
+        Task RefreshAsync();
+        Task<int> GetIntAsync(Guid guid);
+        Task<(int entityId, int libId)> GetIntIdOfEntityAndLibIdByGuidAsync(Guid guid);
+        Task<Guid> GetGuidAsync(int id);
+        Task<IReadOnlyCollection<int>> GetIdsByLibraryAndTypeAsync(Guid libraryId, EntityType entityType);
+        Task<IReadOnlyCollection<int>> GetComponentIdsAsync(Guid libraryId);
+        Task<IReadOnlyCollection<int>> GetThreatIdsAsync(Guid libraryId);
+        Task<IReadOnlyCollection<int>> GetSecurityRequirementIdsAsync(Guid libraryId);
+        Task<IReadOnlyCollection<int>> GetPropertyIdsAsync(Guid libraryId);
+        Task<IReadOnlyCollection<int>> GetTestCaseIdsAsync(Guid libraryId);
     }
 }

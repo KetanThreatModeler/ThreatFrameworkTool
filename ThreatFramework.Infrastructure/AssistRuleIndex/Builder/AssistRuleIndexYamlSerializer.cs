@@ -66,7 +66,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Builder
             {
                 if (i == null) continue;
                 if (string.IsNullOrWhiteSpace(i.Type) ||
-                    string.IsNullOrWhiteSpace(i.Id) ||
                     string.IsNullOrWhiteSpace(i.Identity))
                     continue;
 

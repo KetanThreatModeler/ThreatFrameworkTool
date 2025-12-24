@@ -6,7 +6,7 @@ using ThreatFramework.YamlFileGenerator.Impl.Templates.ComponentMapping;
 using ThreatFramework.YamlFileGenerator.Impl.Templates.PropertyMapping;
 using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Git.Contract.Common;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
@@ -40,7 +40,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly IComponentPropertyOptionThreatMappingRepository _componentPropertyOptionThreatMappingRepository;
         private readonly IComponentPropertyOptionThreatSecurityRequirementMappingRepository _componentPropertyOptionThreatSecurityRequirementMappingRepository;
         private readonly ITRCGuidIndexService _indexService;
-        private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
+        private readonly ITRCAssistRuleIndexService _assistRuleIndexQuery;
         private readonly IRelationshipRepository _relationshipRepository;
         private readonly IResourceTypeValuesRepository _resourceTypeValuesRepository;
         private readonly IResourceTypeValueRelationshipRepository _resourceTypeValueRelationshipRepository;
@@ -65,7 +65,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IComponentPropertyOptionThreatMappingRepository componentPropertyOptionThreatMappingRepository,
             IComponentPropertyOptionThreatSecurityRequirementMappingRepository componentPropertyOptionThreatSecurityRequirementMappingRepository,
             ITRCGuidIndexService indexService,
-            IAssistRuleIndexQuery assistRuleIndexQuery,
+            ITRCAssistRuleIndexService assistRuleIndexQuery,
             IRelationshipRepository relationshipRepository,
             IResourceTypeValuesRepository resourceTypeValuesRepository,
             IResourceTypeValueRelationshipRepository resourceTypeValueRelationshipRepository
@@ -507,13 +507,14 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
             foreach (var rel in list)
             {
-                if (!_assistRuleIndexQuery.TryGetIdByRelationshipGuid(rel.Guid, out var id) || string.IsNullOrWhiteSpace(id))
+                var id = await _assistRuleIndexQuery.GetIdByRelationshipGuidAsync(rel.Guid);
+                if (id < 0)
                 {
                     _logger.LogError("AssistRuleIndex ID not found for RelationshipGuid={Guid}", rel.Guid);
                     throw new InvalidOperationException($"AssistRuleIndex ID not found for RelationshipGuid: {rel.Guid}");
                 }
 
-                var fileName = $"{id}.yaml";
+                var fileName = $"REL{id}.yaml";
                 var filePath = Path.Combine(globalFolderPath, fileName);
 
                 var yaml = RelationshipTemplate.Generate(rel);
@@ -550,8 +551,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
             foreach (var v in list)
             {
-                if (!_assistRuleIndexQuery.TryGetIdByResourceTypeValue(v.ResourceTypeValue, out var assistId) ||
-                    string.IsNullOrWhiteSpace(assistId))
+                var assistId = await _assistRuleIndexQuery.GetIdByResourceTypeValueAsync(v.ResourceTypeValue);
+                if (assistId < 0)
                 {
                     _logger.LogError("AssistRuleIndex ID not found for ResourceTypeValue={Value}", v.ResourceTypeValue);
                     throw new InvalidOperationException($"AssistRuleIndex ID not found for ResourceTypeValue: {v.ResourceTypeValue}");
@@ -562,7 +563,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 EnsureDirectoryExists(rtvFolder);
 
                 var componentIntId = _indexService.GetIntAsync(v.ComponentGuid);
-                var fileName = $"{assistId}{FileNameSeperator}{componentIntId}.yaml";
+                var fileName = $"rtv{assistId}{FileNameSeperator}{componentIntId}.yaml";
                 var filePath = Path.Combine(rtvFolder, fileName);
 
                 var yaml = ResourceTypeValuesTemplate.Generate(v);
@@ -602,28 +603,28 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
                 foreach (var item in list)
                 {
-                    if (!_assistRuleIndexQuery.TryGetIdByResourceTypeValue(item.SourceResourceTypeValue, out var sourceId) ||
-                        string.IsNullOrWhiteSpace(sourceId))
+                    var sourceId = await _assistRuleIndexQuery.GetIdByResourceTypeValueAsync(item.SourceResourceTypeValue);
+                    if (sourceId < 0)
                     {
                         _logger.LogError("AssistRuleIndex ID not found for SourceResourceTypeValue={Value}", item.SourceResourceTypeValue);
                         throw new InvalidOperationException($"AssistRuleIndex ID not found for SourceResourceTypeValue: {item.SourceResourceTypeValue}");
                     }
 
-                    if (!_assistRuleIndexQuery.TryGetIdByRelationshipGuid(item.RelationshipGuid, out var relId) ||
-                        string.IsNullOrWhiteSpace(relId))
+                    var relId = await _assistRuleIndexQuery.GetIdByRelationshipGuidAsync(item.RelationshipGuid);
+                    if (relId < 0)
                     {
                         _logger.LogError("AssistRuleIndex ID not found for RelationshipGuid={Guid}", item.RelationshipGuid);
                         throw new InvalidOperationException($"AssistRuleIndex ID not found for RelationshipGuid: {item.RelationshipGuid}");
                     }
 
-                    if (!_assistRuleIndexQuery.TryGetIdByResourceTypeValue(item.TargetResourceTypeValue, out var targetId) ||
-                        string.IsNullOrWhiteSpace(targetId))
+                    var targetId = await _assistRuleIndexQuery.GetIdByResourceTypeValueAsync(item.TargetResourceTypeValue);
+                    if (targetId < 0)
                     {
                         _logger.LogError("AssistRuleIndex ID not found for TargetResourceTypeValue={Value}", item.TargetResourceTypeValue);
                         throw new InvalidOperationException($"AssistRuleIndex ID not found for TargetResourceTypeValue: {item.TargetResourceTypeValue}");
                     }
 
-                    var fileName = $"{sourceId}{FileNameSeperator}{relId}{FileNameSeperator}{targetId}.yaml";
+                    var fileName = $"rtv{sourceId}{FileNameSeperator}{relId}{FileNameSeperator}rtv{targetId}.yaml";
                     var filePath = Path.Combine(relFolder, fileName);
 
                     var yaml = ResourceTypeValueRelationshipTemplate.Generate(item);

@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Index\Common\" />
+    <Folder Include="AssistRuleIndex\Common\" />
   </ItemGroup>
 
 </Project>

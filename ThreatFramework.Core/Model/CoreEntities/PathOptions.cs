@@ -13,5 +13,6 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
         public string TrcOutput { get; set; } = string.Empty;
         public string ClientOutput { get; set; } = string.Empty;
         public string AssistRuleIndexYaml { get; set; } = string.Empty;
+        public string ClientIndexYaml { get; set; } = string.Empty;
     }
 }

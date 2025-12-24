@@ -24,7 +24,7 @@ using ThreatModeler.TF.Git.Contract.PathProcessor;
 using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Git.Implementation.PathProcessor;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
@@ -145,15 +145,12 @@ builder.Services.AddScoped<IDriftService, DriftService>();
 builder.Services.AddScoped<ITMFrameworkDriftConverter, TMFrameworkDriftConverter>();
 builder.Services.AddScoped<IYamlRouter, YamlRouter>();
 
-//assist rule index services
-builder.Services.AddSingleton<AssistRuleIndexCache>();
-builder.Services.AddSingleton<IAssistRuleIndexQuery>(sp => sp.GetRequiredService<AssistRuleIndexCache>());
+builder.Services.AddScoped<ITRCAssistRuleIndexService, TRCAssistRuleIndexService>();
 
 // Manager orchestrates build/write/reload (scoped is typical)
-builder.Services.AddScoped<IAssistRuleIndexManager, AssistRuleIndexManager>();
+builder.Services.AddScoped<ITRCAssistRuleIndexManager, TRCAssistRuleIndexManager>();
 
 // Supporting components
-builder.Services.AddSingleton<IAssistRuleIndexIdGenerator, AssistRuleIndexIdGenerator>();
 builder.Services.AddSingleton<IAssistRuleIndexSerializer, AssistRuleIndexYamlSerializer>();
 builder.Services.AddSingleton<ITextFileStore, FileSystemTextFileStore>();
 

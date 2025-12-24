@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.Core.Model.CoreEntities;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
@@ -15,7 +15,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         private readonly ILogger<YamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
         private readonly ITRCGuidIndexService _indexService;
-        private readonly IAssistRuleIndexQuery _assistRuleIndexQuery;
+        private readonly ITRCAssistRuleIndexService _assistRuleIndexQuery;
         private readonly PathOptions _options;
 
         public ClientYamlFilesGenerator(
@@ -24,7 +24,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             IRepositoryHubFactory hubFactory,
             IOptions<PathOptions> options,
             ITRCGuidIndexService indexService,
-            IAssistRuleIndexQuery assistRuleIndexQuery)
+            ITRCAssistRuleIndexService assistRuleIndexQuery)
         {
             _logger = logger;
             _yamlLogger = yamlLogger;
