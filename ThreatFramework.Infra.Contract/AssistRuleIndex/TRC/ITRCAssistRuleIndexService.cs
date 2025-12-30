@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Model;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Model;
 
 namespace ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC
 {

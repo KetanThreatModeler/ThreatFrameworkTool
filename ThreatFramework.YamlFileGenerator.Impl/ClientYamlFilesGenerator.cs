@@ -3,8 +3,10 @@ using Microsoft.Extensions.Options;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract;
 using ThreatModeler.TF.Core.Model.CoreEntities;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
-using ThreatModeler.TF.Infra.Contract.Index.TRC;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Client;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common;
+using ThreatModeler.TF.Infra.Contract.Index.Client;
+using ThreatModeler.TF.Infra.Contract.Index.Common;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
 namespace ThreatFramework.YamlFileGenerator.Impl
@@ -12,25 +14,26 @@ namespace ThreatFramework.YamlFileGenerator.Impl
     public sealed class ClientYamlFilesGenerator : IYamlFileGeneratorForClient
     {
         private readonly ILogger<ClientYamlFilesGenerator> _logger;
-        private readonly ILogger<YamlFilesGenerator> _yamlLogger;
+        private readonly ILogger<UtilsForClientYamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
-        private readonly ITRCGuidIndexService _indexService;
-        private readonly ITRCAssistRuleIndexService _assistRuleIndexQuery;
+        private readonly IClientGuidIndexService _clientIndexService;
+        private readonly IClientAssistRuleIndexService _clientAssistRuleIndexService;
+
         private readonly PathOptions _options;
 
         public ClientYamlFilesGenerator(
             ILogger<ClientYamlFilesGenerator> logger,
-            ILogger<YamlFilesGenerator> yamlLogger,
+            ILogger<UtilsForClientYamlFilesGenerator> yamlLogger,
             IRepositoryHubFactory hubFactory,
             IOptions<PathOptions> options,
-            ITRCGuidIndexService indexService,
-            ITRCAssistRuleIndexService assistRuleIndexQuery)
+            IClientGuidIndexService clientIndexService,
+            IClientAssistRuleIndexService clientAssistRuleIndexService)
         {
             _logger = logger;
             _yamlLogger = yamlLogger;
             _hub = hubFactory.Create(DataPlane.Client);
-            _indexService = indexService;
-            _assistRuleIndexQuery = assistRuleIndexQuery;
+            _clientIndexService = clientIndexService;
+            _clientAssistRuleIndexService = clientAssistRuleIndexService;
             _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
@@ -43,8 +46,10 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
             Directory.CreateDirectory(outputFolderPath);
 
+            GenerateIndexAsync(libraryIds);
+
             // construct your existing generator with plane-specific repos
-            var gen = new YamlFilesGenerator(
+            var gen = new UtilsForClientYamlFilesGenerator(
                 logger: _yamlLogger,
                 threatRepository: _hub.Threats,
                 componentRepository: _hub.Components,
@@ -63,8 +68,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 componentPropertyOptionMappingRepository: _hub.ComponentPropertyOptionMappings,
                 componentPropertyOptionThreatMappingRepository: _hub.ComponentPropertyOptionThreatMappings,
                 componentPropertyOptionThreatSecurityRequirementMappingRepository: _hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
-                indexService: _indexService,
-                assistRuleIndexQuery: _assistRuleIndexQuery,
+                indexService: _clientIndexService,
+                assistRuleIndexService: _clientAssistRuleIndexService,
                 relationshipRepository: _hub.Relationships,
                 resourceTypeValuesRepository: _hub.ResourceTypeValues,
                 resourceTypeValueRelationshipRepository: _hub.ResourceTypeValueRelationships
@@ -79,14 +84,14 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForPropertyTypes(outputFolderPath);
             await gen.GenerateYamlFilesForSpecificTestCases(outputFolderPath, libraryIds);
             await gen.GenerateYamlFilesForPropertyOptions(outputFolderPath);
-            //await gen.GenerateYamlFilesForRelationships(outputFolderPath);
-            //await gen.GenerateYamlFilesForResourceTypeValues(outputFolderPath, libraryIds);
-            //await gen.GenerateYamlFilesForResourceTypeValueRelationships(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForRelationships(outputFolderPath);
+            await gen.GenerateYamlFilesForResourceTypeValues(outputFolderPath, libraryIds);
+            await gen.GenerateYamlFilesForResourceTypeValueRelationships(outputFolderPath, libraryIds);
             await GenerateMappingsAsync(gen, outputFolderPath, libraryIds);
             _logger.LogInformation("Client export completed to {Root}.", outputFolderPath);
         }
 
-        private async Task GenerateMappingsAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)
+        private async Task GenerateMappingsAsync(UtilsForClientYamlFilesGenerator gen, string root, List<Guid> libraryIds)
         {
             _logger.LogDebug("Generating Mapping YAML files...");
             var mappingsRoot = Path.Combine(root, "mappings");
@@ -99,6 +104,18 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForComponentPropertyOptionMappings(Path.Combine(mappingsRoot, "component-property-option"), libraryIds);
             await gen.GenerateYamlFilesForComponentPropertyOptionThreatMappings(Path.Combine(mappingsRoot, "component-property-option-threat"), libraryIds);
             await gen.GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-property-option-threat-security-requirement"), libraryIds);
+        }
+
+        private async Task GenerateIndexAsync(List<Guid> libraryIds)
+        {
+            _logger.LogInformation("Generating Index file at {Path}...", _options.ClientIndexYaml);
+
+            // Call the service we created previously
+            await _clientIndexService.GenerateForLibraryAsync(libraryIds);
+
+            _logger.LogInformation("Index file generated successfully.");
+
+            await _clientAssistRuleIndexService.GenerateIndexAsync(libraryIds);
         }
     }
 }

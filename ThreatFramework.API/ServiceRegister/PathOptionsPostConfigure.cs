@@ -13,6 +13,7 @@ namespace ThreatModeler.TF.API.ServiceRegister
             options.TrcOutput = Normalize(baseDir, options.TrcOutput);
             options.ClientOutput = Normalize(baseDir, options.ClientOutput);
             options.AssistRuleIndexYaml = Normalize(baseDir, options.AssistRuleIndexYaml);
+            options.ClientIndexYaml = Normalize(baseDir, options.ClientIndexYaml);
         }
 
         static string Normalize(string baseDir, string path) =>

@@ -19,8 +19,4 @@
     <ProjectReference Include="..\ThreatFramework.Infra.Contract\ThreatModeler.TF.Infra.Contract.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="AssistRuleIndex\Common\" />
-  </ItemGroup>
-
 </Project>

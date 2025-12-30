@@ -1,23 +1,21 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using ThreatFramework.Infra.Contract.Repository;
 using ThreatModeler.TF.Core.Model.AssistRules;
 using ThreatModeler.TF.Core.Model.CoreEntities;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Client;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Model;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Model;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Writer;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
-using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
+using ThreatModeler.TF.Infra.Contract.Repository;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Common;
 
 namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
 {
     public sealed class ClientAssistRuleIndexManager : IClientAssistRuleIndexManager
     {
-        private readonly IRelationshipRepository _relationshipRepository;
-        private readonly IResourceTypeValuesRepository _resourceTypeValuesRepository;
+        private readonly IRepositoryHubFactory _hubFactory;
+        private readonly IRepositoryHub _repositoryHub;
         private readonly ITRCAssistRuleIndexService _trcAssistRuleIndexService;
         private readonly IAssistRuleIndexSerializer _serializer;
         private readonly ITextFileStore _fileStore;
@@ -25,16 +23,15 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
         private readonly ILogger<ClientAssistRuleIndexManager> _logger;
 
         public ClientAssistRuleIndexManager(
-            IRelationshipRepository relationshipRepository,
-            IResourceTypeValuesRepository resourceTypeValuesRepository,
+            IRepositoryHubFactory hubFactory,
             ITRCAssistRuleIndexService trcAssistRuleIndexService,
             IAssistRuleIndexSerializer serializer,
             ITextFileStore fileStore,
             IOptions<PathOptions> pathOptions,
             ILogger<ClientAssistRuleIndexManager> logger)
         {
-            _relationshipRepository = relationshipRepository ?? throw new ArgumentNullException(nameof(relationshipRepository));
-            _resourceTypeValuesRepository = resourceTypeValuesRepository ?? throw new ArgumentNullException(nameof(resourceTypeValuesRepository));
+            _hubFactory = hubFactory ?? throw new ArgumentNullException(nameof(hubFactory));
+            _repositoryHub = _hubFactory.Create(DataPlane.Client);
             _trcAssistRuleIndexService = trcAssistRuleIndexService ?? throw new ArgumentNullException(nameof(trcAssistRuleIndexService));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _fileStore = fileStore ?? throw new ArgumentNullException(nameof(fileStore));
@@ -42,190 +39,147 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        // ---------------- IClientAssistRuleIndexManager ----------------
-
         public async Task<IReadOnlyList<AssistRuleIndexEntry>> BuildAndWriteAsync(IEnumerable<Guid> libraryGuids)
         {
-            var configuredPath = GetConfiguredPathOrThrow();
+            var path = GetConfiguredPathOrThrow();
+            var libs = NormalizeLibrariesOrThrow(libraryGuids);
 
             try
             {
-                if (libraryGuids == null) throw new ArgumentNullException(nameof(libraryGuids));
-                var libs = libraryGuids.Where(g => g != Guid.Empty).Distinct().ToList();
-                if (libs.Count == 0)
-                    throw new ArgumentException("At least one non-empty library guid is required.", nameof(libraryGuids));
+                _logger.LogInformation("BuildAndWrite Client AssistRules index started. Path={Path}, Libraries={Count}", path, libs.Count);
 
-                _logger.LogInformation(
-                    "BuildAndWrite Client AssistRules index started. Path={Path}, Libraries={LibCount}",
-                    configuredPath, libs.Count);
+                var relationships = await _repositoryHub.Relationships.GetAllRelationshipsAsync().ConfigureAwait(false);
+                var rtvs = await _repositoryHub.ResourceTypeValues.GetByLibraryIdsAsync(libs).ConfigureAwait(false);
 
-                var entries = await BuildEntriesAsync(() => _resourceTypeValuesRepository.GetByLibraryIdsAsync(libs))
-                    .ConfigureAwait(false);
+                var entries = await ComposeEntriesAsync(relationships, rtvs ?? Enumerable.Empty<ResourceTypeValues>()).ConfigureAwait(false);
 
-                await WriteYamlAsync(configuredPath, entries).ConfigureAwait(false);
-
-                _logger.LogInformation(
-                    "Client AssistRules index YAML written successfully. Path={Path}, Entries={Count}",
-                    configuredPath, entries.Count);
+                await WriteYamlAsync(path, entries).ConfigureAwait(false);
+                _logger.LogInformation("Client AssistRules index YAML written. Path={Path}, Entries={Count}", path, entries.Count);
 
                 return entries;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error while building/writing Client AssistRules index YAML. Path={Path}",
-                    configuredPath);
-
+                _logger.LogError(ex, "Error while building/writing Client AssistRules index YAML. Path={Path}", path);
                 throw new Exception("Something went wrong while writing client assist-rules index.", ex);
             }
         }
 
         public async Task<IReadOnlyList<AssistRuleIndexEntry>> BuildAndWriteAsync()
         {
-            var configuredPath = GetConfiguredPathOrThrow();
+            var path = GetConfiguredPathOrThrow();
 
             try
             {
-                _logger.LogInformation(
-                    "BuildAndWrite Client AssistRules index (global) started. Path={Path}",
-                    configuredPath);
+                _logger.LogInformation("BuildAndWrite Client AssistRules index (global) started. Path={Path}", path);
 
-                var entries = await BuildEntriesAsync(() => _resourceTypeValuesRepository.GetAllAsync())
-                    .ConfigureAwait(false);
+                var relationships = await _repositoryHub.Relationships.GetAllRelationshipsAsync().ConfigureAwait(false);
+                var rtvs = await _repositoryHub.ResourceTypeValues.GetAllAsync().ConfigureAwait(false);
 
-                await WriteYamlAsync(configuredPath, entries).ConfigureAwait(false);
+                var entries = await ComposeEntriesAsync(relationships, rtvs ?? Enumerable.Empty<ResourceTypeValues>()).ConfigureAwait(false);
 
-                _logger.LogInformation(
-                    "Client AssistRules index YAML written successfully. Path={Path}, Entries={Count}",
-                    configuredPath, entries.Count);
+                await WriteYamlAsync(path, entries).ConfigureAwait(false);
+                _logger.LogInformation("Client AssistRules index YAML written (global). Path={Path}, Entries={Count}", path, entries.Count);
 
                 return entries;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error while building/writing Client AssistRules index YAML (global). Path={Path}",
-                    configuredPath);
-
+                _logger.LogError(ex, "Error while building/writing Client AssistRules index YAML (global). Path={Path}", path);
                 throw new Exception("Something went wrong while writing client assist-rules index.", ex);
             }
         }
 
         public async Task<IReadOnlyList<AssistRuleIndexEntry>> ReloadFromYamlAsync()
         {
-            var configuredPath = GetConfiguredPathOrThrow();
+            var path = GetConfiguredPathOrThrow();
 
             try
             {
-                _logger.LogInformation(
-                    "Reload Client AssistRules index started. Path={Path}",
-                    configuredPath);
+                _logger.LogInformation("Reload Client AssistRules index started. Path={Path}", path);
 
-                var yaml = await _fileStore.ReadAllTextAsync(configuredPath).ConfigureAwait(false);
-                var entries = _serializer.Deserialize(yaml);
+                var yaml = await _fileStore.ReadAllTextAsync(path).ConfigureAwait(false);
+                var entries = _serializer.Deserialize(yaml).ToList();
 
-                _logger.LogInformation(
-                    "Client AssistRules index reloaded successfully. Path={Path}, Entries={Count}",
-                    configuredPath, entries.Count);
-
-                return entries.ToList();
+                _logger.LogInformation("Client AssistRules index reloaded. Path={Path}, Entries={Count}", path, entries.Count);
+                return entries;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error while reloading Client AssistRules index from YAML. Path={Path}",
-                    configuredPath);
-
+                _logger.LogError(ex, "Error while reloading Client AssistRules index from YAML. Path={Path}", path);
                 throw new Exception("Something went wrong while reloading client assist-rules index.", ex);
             }
         }
 
-        // ---------------- Helpers (DRY core) ----------------
 
-        private async Task<IReadOnlyList<AssistRuleIndexEntry>> BuildEntriesAsync(
-            Func<Task<IEnumerable<ResourceTypeValues>>> rtvFetcher)
+        private async Task<IReadOnlyList<AssistRuleIndexEntry>> ComposeEntriesAsync(
+            IEnumerable<Relationship> relationships,
+            IEnumerable<ResourceTypeValues> rtvs)
         {
-            try
+            // Start assigning new IDs above TRC max
+            var maxAssignedId = await _trcAssistRuleIndexService.GetMaxAssignedIdAsync().ConfigureAwait(false);
+            var nextNewId = maxAssignedId + 1;
+
+            var list = new List<AssistRuleIndexEntry>();
+
+            foreach (var r in relationships ?? Enumerable.Empty<Relationship>())
             {
-                if (rtvFetcher == null) throw new ArgumentNullException(nameof(rtvFetcher));
+                var id = await _trcAssistRuleIndexService.GetIdByRelationshipGuidAsync(r.Guid).ConfigureAwait(false);
+                if (id < 0) id = nextNewId++;
 
-                int maxAssignedId = await _trcAssistRuleIndexService.GetMaxAssignedIdAsync().ConfigureAwait(false);
-                int idCounter = maxAssignedId + 1;
-
-                var relationships = await _relationshipRepository.GetAllRelationshipsAsync().ConfigureAwait(false);
-                var rtvs = await rtvFetcher().ConfigureAwait(false) ?? Enumerable.Empty<ResourceTypeValues>();
-
-                var relationshipEntries = new List<AssistRuleIndexEntry>();
-
-                foreach (var r in relationships)
+                list.Add(new AssistRuleIndexEntry
                 {
-                    var id = await _trcAssistRuleIndexService.GetIdByRelationshipGuidAsync(r.Guid).ConfigureAwait(false);
-                    if (idCounter < 0)
-                    {
-                        id = idCounter++;
-                    }
-                    relationshipEntries.Add(new AssistRuleIndexEntry
-                    {
-                        Type = AssistRuleType.Relationship,
-                        Identity = r.Guid.ToString(),
-                        LibraryGuid = Guid.Empty,
-                        Id = id
-                    });
-                }
-
-                var rtvEntries = new List<AssistRuleIndexEntry>();
-
-                foreach (var v in rtvs)
-                {
-                    var id = await _trcAssistRuleIndexService.GetIdByResourceTypeValueAsync(v.ResourceTypeValue).ConfigureAwait(false);
-                    if (id < 0)
-                    {
-                        id = idCounter++;
-                    }
-
-                    rtvEntries.Add(new AssistRuleIndexEntry
-                    {
-                        Type = AssistRuleType.ResourceTypeValues,
-                        Identity = v.ResourceTypeValue,
-                        LibraryGuid = v.LibraryId,
-                        Id = id
-                    });
-                }
-
-
-                var all = relationshipEntries
-                    .Concat(rtvEntries)
-                    .OrderBy(e => e.Type)
-                    .ThenBy(e => e.LibraryGuid)
-                    .ThenBy(e => e.Identity, StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-
-                _logger.LogInformation("Client AssistRules index built. Entries={Count}", all.Count);
-                return all;
+                    Type = AssistRuleType.Relationship,
+                    Identity = r.Guid.ToString(),
+                    LibraryGuid = Guid.Empty,
+                    Id = id
+                });
             }
-            catch (Exception ex)
+
+            foreach (var v in rtvs ?? Enumerable.Empty<ResourceTypeValues>())
             {
-                _logger.LogError(ex, "Error while building Client AssistRules index.");
-                throw new Exception("Something went wrong while building client assist-rules index.", ex);
+                var id = await _trcAssistRuleIndexService.GetIdByResourceTypeValueAsync(v.ResourceTypeValue).ConfigureAwait(false);
+                if (id < 0) id = nextNewId++;
+
+                list.Add(new AssistRuleIndexEntry
+                {
+                    Type = AssistRuleType.ResourceTypeValues,
+                    Identity = ResourceTypeValueNormalizer.Normalize(v.ResourceTypeValue),
+                    LibraryGuid = v.LibraryId,
+                    Id = id
+                });
             }
+
+            return list
+                .OrderBy(e => e.Type)
+                .ThenBy(e => e.LibraryGuid)
+                .ThenBy(e => e.Identity, StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
-        private async Task WriteYamlAsync(string configuredPath, IReadOnlyList<AssistRuleIndexEntry> entries)
+        private async Task WriteYamlAsync(string path, IReadOnlyList<AssistRuleIndexEntry> entries)
         {
-            if (entries == null) throw new ArgumentNullException(nameof(entries));
-
             var yaml = _serializer.Serialize(entries);
-            await _fileStore.WriteAllTextAsync(configuredPath, yaml).ConfigureAwait(false);
+            await _fileStore.WriteAllTextAsync(path, yaml).ConfigureAwait(false);
         }
 
         private string GetConfiguredPathOrThrow()
         {
-            var configuredPath = _pathOptions.AssistRuleIndexYaml;
-            if (string.IsNullOrWhiteSpace(configuredPath))
-                throw new ArgumentException(
-                    "AssistRuleIndexYaml is not configured in PathOptions.",
-                    nameof(_pathOptions.AssistRuleIndexYaml));
-            return configuredPath;
+            var path = _pathOptions.AssistRuleIndexYaml;
+            if (string.IsNullOrWhiteSpace(path))
+                throw new ArgumentException("AssistRuleIndexYaml is not configured in PathOptions.", nameof(_pathOptions.AssistRuleIndexYaml));
+            return path;
+        }
+
+        private static List<Guid> NormalizeLibrariesOrThrow(IEnumerable<Guid> libraryGuids)
+        {
+            if (libraryGuids == null) throw new ArgumentNullException(nameof(libraryGuids));
+
+            var libs = libraryGuids.Where(g => g != Guid.Empty).Distinct().ToList();
+            if (libs.Count == 0)
+                throw new ArgumentException("At least one non-empty library guid is required.", nameof(libraryGuids));
+
+            return libs;
         }
     }
 }

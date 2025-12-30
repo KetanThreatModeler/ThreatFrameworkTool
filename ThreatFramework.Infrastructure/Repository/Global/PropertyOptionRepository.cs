@@ -121,9 +121,9 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.Global
                     if (reader.IsDBNull(propertyIdOrdinal))
                     {
                         propertyGuidValue = 0;
-                        _logger.LogWarning(
+                        /*_logger.LogWarning(
                             "PropertyOptions row with Id={Id} has NULL PropertyId. Mapping to 0 in PropertyGuid.",
-                            reader.GetInt32(idOrdinal));
+                            reader.GetInt32(idOrdinal));*/
                     }
                     else
                     {

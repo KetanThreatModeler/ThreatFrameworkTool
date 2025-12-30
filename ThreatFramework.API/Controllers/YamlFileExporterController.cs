@@ -16,6 +16,11 @@ public sealed class YamlExportsController : ControllerBase
     private readonly IYamlFilesGeneratorForTRC _trcGenerator;
     private readonly PathOptions _exportOptions;
     private readonly ILibraryRepository _libraryRepository;
+    private readonly List<Guid> defaultLibList = new()
+    {
+        Guid.Parse("EEF7DCF9-53BD-48E9-849D-21445EBAD101"),
+        Guid.Parse("AE9A4C22-21DF-4455-82BB-279B74E6FB81")
+    };
 
 
     public YamlExportsController(
@@ -51,6 +56,7 @@ public sealed class YamlExportsController : ControllerBase
 
                 // Assuming Client Generator signature hasn't changed yet. 
                 // If it has, pass the push param here too.
+                guids.AddRange(defaultLibList);
                 await _clientGenerator.GenerateForLibraryIdsAsync(path, guids);
 
                 _logger.LogInformation("Completed Client YAML export.");
@@ -137,6 +143,7 @@ public sealed class YamlExportsController : ControllerBase
             {
                 _logger.LogInformation("Starting TRC export for {Count} libraries to {Output}", request.LibraryIds.Count(), path);
 
+                request.LibraryIds.AddRange(defaultLibList);
                 // Updated Contract Call
                 await _trcGenerator.GenerateForLibraryIdsAsync(path, request.LibraryIds, pushToRemote: push);
 

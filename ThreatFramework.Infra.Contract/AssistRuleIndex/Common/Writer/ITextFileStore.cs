@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder
+namespace ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Writer
 {
     public interface ITextFileStore
     {

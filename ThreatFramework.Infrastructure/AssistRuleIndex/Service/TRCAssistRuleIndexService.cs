@@ -3,8 +3,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 using ThreatModeler.TF.Core.Model.CoreEntities;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Model;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Model;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Common;
 
 namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
 {
@@ -155,7 +156,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
 
             var match = entries.FirstOrDefault(e =>
                 e.Type == AssistRuleType.ResourceTypeValues &&
-                string.Equals(e.Identity, resourceTypeValue, StringComparison.OrdinalIgnoreCase));
+                string.Equals(e.Identity, ResourceTypeValueNormalizer.Normalize(resourceTypeValue), StringComparison.OrdinalIgnoreCase));
 
             if (match == null)
             {

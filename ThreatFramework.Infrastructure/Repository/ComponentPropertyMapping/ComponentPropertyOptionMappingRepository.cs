@@ -62,7 +62,7 @@ namespace ThreatFramework.Infrastructure.Repository
             var sql = $@"
 {BuildMappingSelectQuery()}
 WHERE
-    (p.LibraryId IN ({libraryParameters}) OR c.LibraryId IN ({libraryParameters}))
+    c.LibraryId IN ({libraryParameters})
     AND m.ComponentId IS NOT NULL
     AND m.PropertyId IS NOT NULL
     AND m.PropertyOptionId IS NOT NULL;";

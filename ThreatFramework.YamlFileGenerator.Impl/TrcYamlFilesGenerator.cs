@@ -1,12 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Runtime.CompilerServices;
 using ThreatFramework.Infra.Contract.Repository;
 using ThreatFramework.YamlFileGenerator.Contract; // Ensure this contains the updated IYamlFilesGeneratorForTRC interface
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
+using ThreatModeler.TF.Infra.Contract.Index.Common;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository;
 
@@ -16,35 +17,33 @@ namespace ThreatFramework.YamlFileGenerator.Impl
     public sealed class TrcYamlFilesGenerator : IYamlFilesGeneratorForTRC
     {
         private readonly ILogger<TrcYamlFilesGenerator> _logger;
-        private readonly ILogger<YamlFilesGenerator> _yamlLogger;
+        private readonly ILogger<UtilsForTRCYamlFilesGenerator> _yamlLogger;
         private readonly IRepositoryHub _hub;
-        private readonly ITRCGuidIndexService _indexService;
-        private readonly ITRCAssistRuleIndexService _assistRuleIndexQuery;
-        private readonly ITRCAssistRuleIndexManager _assistRuleIndexManager;
+        private readonly ITRCGuidIndexService _trcIndexService;
+        private readonly ITRCAssistRuleIndexService _trcAssistRuleIndexService;
         private readonly IGitService _gitService;
         private readonly GitSettings _gitSettings;
         private readonly PathOptions _options;
 
         public TrcYamlFilesGenerator(
             ILogger<TrcYamlFilesGenerator> logger,
-            ILogger<YamlFilesGenerator> yamlLogger,
+            ILogger<UtilsForTRCYamlFilesGenerator> yamlLogger,
             IRepositoryHubFactory hubFactory,
             IOptions<PathOptions> options,
             IOptions<GitSettings> gitOptions,
             IGitService gitService,
-            ITRCGuidIndexService indexService,
-            ITRCAssistRuleIndexService assistRuleIndexQuery,
-            ITRCAssistRuleIndexManager assistRuleIndexManager)
+            ITRCGuidIndexService trcIndexService,
+            IAssistRuleIndexService assistRuleIndexService,
+            IGuidIndexService indexService,
+            ITRCAssistRuleIndexService trcAssistRuleIndexService)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _yamlLogger = yamlLogger ?? throw new ArgumentNullException(nameof(yamlLogger));
-            _indexService = indexService ?? throw new ArgumentNullException(nameof(indexService));
+            _trcIndexService = trcIndexService ?? throw new ArgumentNullException(nameof(trcIndexService));
             _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
-            _assistRuleIndexQuery = assistRuleIndexQuery ?? throw new ArgumentNullException(nameof(assistRuleIndexQuery));
+            _trcAssistRuleIndexService = trcAssistRuleIndexService ?? throw new ArgumentNullException(nameof(trcAssistRuleIndexService));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             _gitSettings = gitOptions?.Value ?? throw new ArgumentNullException(nameof(gitOptions));
-            _assistRuleIndexManager = assistRuleIndexManager ?? throw new ArgumentNullException(nameof(assistRuleIndexManager));
-            // Create the TRC-scoped hub
             _hub = hubFactory?.Create(DataPlane.Trc) ?? throw new ArgumentNullException(nameof(hubFactory));
         }
 
@@ -136,11 +135,11 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             _logger.LogInformation("Generating Index file at {Path}...", indexFilePath);
 
             // Call the service we created previously
-            await _indexService.GenerateForLibraryAsync(libraryIds);
+            await _trcIndexService.GenerateForLibraryAsync(libraryIds);
 
             _logger.LogInformation("Index file generated successfully.");
 
-            await _assistRuleIndexManager.BuildAndWriteAsync(libraryIds);
+            await _trcAssistRuleIndexService.GenerateIndexAsync(libraryIds);
         }
 
         // --------------------------------------------------------------------------------
@@ -200,7 +199,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
         // Generator Orchestration (Private Helpers)
         // --------------------------------------------------------------------------------
 
-        private async Task GenerateEntitiesAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)
+        private async Task GenerateEntitiesAsync(UtilsForTRCYamlFilesGenerator gen, string root, List<Guid> libraryIds)
         {
             _logger.LogDebug("Generating Entity YAML files...");
             await gen.GenerateYamlFilesForSpecificLibraries(root, libraryIds);
@@ -212,12 +211,12 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForPropertyTypes(root);
             await gen.GenerateYamlFilesForSpecificTestCases(root, libraryIds);
             await gen.GenerateYamlFilesForPropertyOptions(root);
-            //await gen.GenerateYamlFilesForRelationships(root);
-            //await gen.GenerateYamlFilesForResourceTypeValues(root, libraryIds);
-            //await gen.GenerateYamlFilesForResourceTypeValueRelationships(root, libraryIds);
+            await gen.GenerateYamlFilesForRelationships(root);
+            await gen.GenerateYamlFilesForResourceTypeValues(root, libraryIds);
+            await gen.GenerateYamlFilesForResourceTypeValueRelationships(root, libraryIds);
         }
 
-        private async Task GenerateMappingsAsync(YamlFilesGenerator gen, string root, List<Guid> libraryIds)
+        private async Task GenerateMappingsAsync(UtilsForTRCYamlFilesGenerator gen, string root, List<Guid> libraryIds)
         {
             _logger.LogDebug("Generating Mapping YAML files...");
             var mappingsRoot = Path.Combine(root, "mappings");
@@ -232,9 +231,9 @@ namespace ThreatFramework.YamlFileGenerator.Impl
             await gen.GenerateYamlFilesForComponentPropertyOptionThreatSecurityRequirementMappings(Path.Combine(mappingsRoot, "component-property-option-threat-security-requirement"), libraryIds);
         }
 
-        private YamlFilesGenerator CreateInternalGenerator()
+        private UtilsForTRCYamlFilesGenerator CreateInternalGenerator()
         {
-            return new YamlFilesGenerator(
+            return new UtilsForTRCYamlFilesGenerator(
                 logger: _yamlLogger,
                 threatRepository: _hub.Threats,
                 componentRepository: _hub.Components,
@@ -253,8 +252,8 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 componentPropertyOptionMappingRepository: _hub.ComponentPropertyOptionMappings,
                 componentPropertyOptionThreatMappingRepository: _hub.ComponentPropertyOptionThreatMappings,
                 componentPropertyOptionThreatSecurityRequirementMappingRepository: _hub.ComponentPropertyOptionThreatSecurityRequirementMappings,
-                indexService: _indexService,
-                assistRuleIndexQuery: _assistRuleIndexQuery,
+                indexService:  _trcIndexService,
+                assistRuleIndexService: _trcAssistRuleIndexService,
                 relationshipRepository: _hub.Relationships,
                 resourceTypeValuesRepository: _hub.ResourceTypeValues,
                 resourceTypeValueRelationshipRepository: _hub.ResourceTypeValueRelationships

@@ -11,6 +11,5 @@ namespace ThreatModeler.TF.Infra.Contract.Index.Common
         Task RefreshAsync();
         Task<int> GetIntAsync(Guid guid);
         Task<Guid> GetGuidAsync(int id);
-
     }
 }

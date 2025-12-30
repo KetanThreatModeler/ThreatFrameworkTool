@@ -107,7 +107,7 @@ namespace ThreatFramework.Infrastructure.Repository
             var sql = $@"
 {baseQuery}
 WHERE
-    (sr.LibraryId IN ({libraryParameters}) OR c.LibraryId IN ({libraryParameters}))
+    c.LibraryId IN ({libraryParameters})
     AND m.ComponentId IS NOT NULL
     AND m.SecurityRequirementId IS NOT NULL
     AND m.PropertyId IS NULL

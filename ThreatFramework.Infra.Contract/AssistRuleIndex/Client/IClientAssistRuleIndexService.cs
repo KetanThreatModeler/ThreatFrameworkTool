@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Model;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Model;
 
 namespace ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Client
 {

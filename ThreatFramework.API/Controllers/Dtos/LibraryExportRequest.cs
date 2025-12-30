@@ -2,6 +2,6 @@
 {
     public class LibraryExportRequest
     {
-        public IEnumerable<Guid> LibraryIds { get; set; } = new List<Guid>();
+        public List<Guid> LibraryIds { get; set; } = new List<Guid>();
     }
 }

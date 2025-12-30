@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Model;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Model;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Writer;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 

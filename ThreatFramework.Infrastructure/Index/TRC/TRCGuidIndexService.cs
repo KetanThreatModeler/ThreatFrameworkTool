@@ -115,8 +115,8 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.TRC
             var entry = entries.FirstOrDefault(e => e.Guid == guid);
             if (entry is null)
             {
-                _log.LogError("Guid {Guid} not found in cached index.", guid);
-                throw new KeyNotFoundException($"Guid {guid} not found in cached index.");
+                _log.LogError("Guid {Guid} not found in TRC cached index.", guid);
+                throw new KeyNotFoundException($"Guid {guid} ot found in TRC cached index.");
             }
 
             return entry.Id;

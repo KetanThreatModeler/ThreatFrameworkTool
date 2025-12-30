@@ -1,6 +1,6 @@
 ﻿namespace ThreatFramework.YamlFileGenerator.Contract
 {
-    public interface IYamlFileGenerator
+    public interface IClientYamlFileGenerator
     {
         Task<(string path, int fileCount)> GenerateYamlFilesForSpecificLibraries(string path, List<Guid> libraryIds);
         Task<(string path, int fileCount)> GenerateYamlFilesForSpecificThreats(string path, List<Guid> libraryIds);

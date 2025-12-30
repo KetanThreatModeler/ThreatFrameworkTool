@@ -23,8 +23,12 @@ using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
 using ThreatModeler.TF.Git.Implementation;
 using ThreatModeler.TF.Git.Implementation.PathProcessor;
-using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Builder;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Client;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common;
+using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Writer;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
+using ThreatModeler.TF.Infra.Contract.Index.Client;
+using ThreatModeler.TF.Infra.Contract.Index.Common;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
@@ -34,7 +38,11 @@ using ThreatModeler.TF.Infra.Contract.YamlRepository.AssistRules;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Global;
 using ThreatModeler.TF.Infra.Contract.YamlRepository.Mappings;
 using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Builder;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client;
+using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Common;
 using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service;
+using ThreatModeler.TF.Infra.Implmentation.Index.Client;
+using ThreatModeler.TF.Infra.Implmentation.Index.Common;
 using ThreatModeler.TF.Infra.Implmentation.Index.TRC;
 using ThreatModeler.TF.Infra.Implmentation.Repository.AssistRule;
 using ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities;
@@ -43,6 +51,7 @@ using ThreatModeler.TF.Infra.Implmentation.Repository.ThreatMapping;
 using ThreatModeler.TF.Infra.Implmentation.YamlRepository.AssistRules;
 using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Global;
 using ThreatModeler.TF.Infra.Implmentation.YamlRepository.Mappings;
+using ThreatModeler.TF.YamlFileGenerator.Contract;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,13 +133,17 @@ builder.Services.AddSingleton<IIdentityResolver, ReflectionIdentityResolver>();
 builder.Services.AddSingleton(typeof(IEntityRepository<>), typeof(FileSystemEntityRepository<>));
 
 // YAML generator service
-builder.Services.AddScoped<IYamlFileGenerator, YamlFilesGenerator>();
+builder.Services.AddScoped<IClientYamlFileGenerator, UtilsForClientYamlFilesGenerator>();
+builder.Services.AddScoped<ITRCYamlFileGenerator, UtilsForTRCYamlFilesGenerator>();
 
 builder.Services.AddScoped<IYamlReaderRouter, YamlReaderRouter>();
 
 builder.Services.AddScoped<ITRCGuidSource, TRCGuidSource>();
+builder.Services.AddScoped<IClientGuidSource, ClientGuidSource>();
 builder.Services.AddSingleton<IGuidIndexRepository, GuidIndexRepository>(); // <-- interface
 builder.Services.AddScoped<ITRCGuidIndexService, TRCGuidIndexService>();
+builder.Services.AddScoped<IClientGuidIndexService, ClientGuidIndexService>();
+builder.Services.AddScoped<IGuidIndexService, GuidIndexService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddAppServices(builder.Configuration);
 
@@ -146,9 +159,10 @@ builder.Services.AddScoped<ITMFrameworkDriftConverter, TMFrameworkDriftConverter
 builder.Services.AddScoped<IYamlRouter, YamlRouter>();
 
 builder.Services.AddScoped<ITRCAssistRuleIndexService, TRCAssistRuleIndexService>();
-
-// Manager orchestrates build/write/reload (scoped is typical)
+builder.Services.AddScoped<IClientAssistRuleIndexService, ClientAssistRuleIndexService>();
 builder.Services.AddScoped<ITRCAssistRuleIndexManager, TRCAssistRuleIndexManager>();
+builder.Services.AddScoped<IClientAssistRuleIndexManager, ClientAssistRuleIndexManager>();
+builder.Services.AddScoped<IAssistRuleIndexService, AssistRuleIndexService>();
 
 // Supporting components
 builder.Services.AddSingleton<IAssistRuleIndexSerializer, AssistRuleIndexYamlSerializer>();
