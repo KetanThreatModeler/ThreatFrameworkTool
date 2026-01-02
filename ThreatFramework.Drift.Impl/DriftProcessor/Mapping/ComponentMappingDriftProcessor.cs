@@ -3,6 +3,7 @@ using ThreatFramework.Core;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.Index.Common;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
@@ -36,7 +37,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         public static async Task ProcessAsync(
             TMFrameworkDriftDto drift,
             IRepositoryDiffEntityPathContext pathContext,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             IEnumerable<Guid> libraryIds,
             ILogger logger)
         {
@@ -75,7 +76,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
 
         private static async Task<Dictionary<int, ComponentMappingChangeBucket>> BuildComponentMappingBucketsAsync(
             IRepositoryDiffEntityPathContext pathContext,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             ILogger logger)
         {
             var buckets = new Dictionary<int, ComponentMappingChangeBucket>();
@@ -137,7 +138,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
             Dictionary<int, ComponentMappingChangeBucket> buckets,
             EntityFileChangeSet changeSet,
             ComponentMappingType mappingType,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             ILogger logger)
         {
             if (changeSet == null)
@@ -256,7 +257,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
             ComponentMappingCollectionDto target,
             ComponentMappingType mappingType,
             int[] ids,
-            ITRCGuidIndexService guidIndexService)
+            IGuidIndexService guidIndexService)
         {
             if (ids == null || ids.Length == 0)
                 return;
@@ -350,7 +351,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static async Task AttachAddedMappingsForComponentAsync(
             TMFrameworkDriftDto drift,
             ComponentMappingChangeBucket bucket,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
             ILogger logger)
         {
@@ -402,7 +403,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static async Task AttachRemovedMappingsForComponentAsync(
             TMFrameworkDriftDto drift,
             ComponentMappingChangeBucket bucket,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
             ILogger logger)
         {
@@ -613,23 +614,10 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static async Task<Guid> ResolveLibraryGuidForComponentAsync(
             int componentId,
             IReadOnlyCollection<Guid> libraryIds,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             ILogger logger)
         {
-            foreach (var libraryId in libraryIds)
-            {
-                var componentIds = await guidIndexService.GetComponentIdsAsync(libraryId).ConfigureAwait(false);
-                if (componentIds != null && componentIds.Contains(componentId))
-                {
-                    return libraryId;
-                }
-            }
-
-            logger.LogWarning(
-                "Unable to resolve library GUID for component ID {ComponentId}. Returning Guid.Empty.",
-                componentId);
-
-            return Guid.Empty;
+            return await guidIndexService.ResolveLibraryGuidForComponentAsync(componentId);
         }
 
         /// <summary>

@@ -3,6 +3,7 @@ using ThreatFramework.Core;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Drift.Contract.Dto;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.Index.Common;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
@@ -25,7 +26,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         public static async Task ProcessAsync(
             TMFrameworkDriftDto drift,
             IRepositoryDiffEntityPathContext pathContext,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             IEnumerable<Guid> libraryIds,
             ILogger logger)
         {
@@ -62,7 +63,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
 
         private static async Task<Dictionary<int, ThreatMappingChangeBucket>> BuildThreatMappingBucketsAsync(
             IRepositoryDiffEntityPathContext pathContext,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             ILogger logger)
         {
             var buckets = new Dictionary<int, ThreatMappingChangeBucket>();
@@ -83,7 +84,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static async Task AccumulateThreatMappingChangeSetAsync(
             Dictionary<int, ThreatMappingChangeBucket> buckets,
             EntityFileChangeSet changeSet,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             ILogger logger)
         {
             if (changeSet == null)
@@ -203,7 +204,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
             ThreatMappingCollectionDto target,
             int threatId,
             int srId,
-            ITRCGuidIndexService guidIndexService)
+            IGuidIndexService guidIndexService)
         {
             if (target == null)
                 return;
@@ -225,7 +226,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static async Task AttachAddedMappingsForThreatAsync(
             TMFrameworkDriftDto drift,
             ThreatMappingChangeBucket bucket,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
             ILogger logger)
         {
@@ -278,7 +279,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static async Task AttachRemovedMappingsForThreatAsync(
             TMFrameworkDriftDto drift,
             ThreatMappingChangeBucket bucket,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             IReadOnlyCollection<Guid> libraryIds,
             ILogger logger)
         {
@@ -492,23 +493,12 @@ namespace ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping
         private static async Task<Guid> ResolveLibraryGuidForThreatAsync(
             int threatId,
             IReadOnlyCollection<Guid> libraryIds,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             ILogger logger)
         {
-            foreach (var libraryId in libraryIds)
-            {
-                var threatIds = await guidIndexService.GetThreatIdsAsync(libraryId).ConfigureAwait(false);
-                if (threatIds != null && threatIds.Contains(threatId))
-                {
-                    return libraryId;
-                }
-            }
-
-            logger.LogError(
-                "Unable to resolve library GUID for threat ID {ThreatId}. Returning Guid.Empty.",
-                threatId);
-
-            return Guid.Empty;
+            
+                var libId = await guidIndexService.ResolveLibraryGuidForThreatAsync(threatId).ConfigureAwait(false);
+                return libId;
         }
 
         private static LibraryDriftDto GetOrCreateLibraryDrift(

@@ -1,4 +1,5 @@
-﻿using ThreatModeler.TF.Core.Model.CoreEntities;
+﻿using ThreatModeler.TF.Core.Helper;
+using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.YamlFileGenerator.Implementation;
 
 namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.CoreEntitites
@@ -13,7 +14,7 @@ namespace ThreatModeler.TF.YamlFileGenerator.Implementation.Templates.CoreEntiti
                 .AddQuoted("guid", library.Guid.ToString())
                 .AddQuoted("name", library.Name)
                 .AddQuoted("version", library.Version ?? string.Empty)
-                .AddLabels("labels", library.Labels)
+                .AddLabels("labels", library.Labels.ToDelimitedString())
                 .AddQuoted("description", library.Description ?? string.Empty)
                 .AddBool("readonly", library.Readonly)
                 .AddBool("isDefault", library.IsDefault)

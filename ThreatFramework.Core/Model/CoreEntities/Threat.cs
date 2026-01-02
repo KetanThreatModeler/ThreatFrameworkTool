@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ThreatFramework.Core;
+﻿using ThreatFramework.Core;
 using ThreatModeler.TF.Core.CustomException;
 using ThreatModeler.TF.Core.Helper;
 

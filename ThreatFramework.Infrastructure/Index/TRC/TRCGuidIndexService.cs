@@ -20,8 +20,8 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.TRC
 {
     public sealed class TRCGuidIndexService : ITRCGuidIndexService
     {
-        private const string IndexKey = "GuidIndex::Entries";
-        private const string PathKey = "GuidIndex::CurrentPath";
+        private const string IndexKey = "TRCGuidIndex::Entries";
+        private const string PathKey = "TRCGuidIndex::CurrentPath";
 
         private readonly ITRCGuidSource _source;
         private readonly IGuidIndexRepository _reader;
@@ -133,7 +133,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.TRC
             if (entry is null)
             {
                 _log.LogError("Id {Id} not found in cached index.", id);
-                throw new KeyNotFoundException($"Id {id} not found in cached index.");
+                throw new KeyNotFoundException($"Id {id} not found in cached TRC index.");
             }
 
             return entry.Guid;
@@ -314,6 +314,52 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.TRC
                     throw;
                 }
             }
+        }
+
+        public async Task<int> GetIntForClientIndexGenerationAsync(Guid guid)
+        {
+            if (guid == Guid.Empty)
+                throw new ArgumentException("Guid must be a non-empty value.", nameof(guid));
+
+            var entries = await EnsureEntriesLoadedAsync();
+
+            var entry = entries.FirstOrDefault(e => e.Guid == guid);
+            if (entry is null)
+            {
+               return 0;
+            }
+
+            return entry.Id;
+        }
+
+        public async Task<EntityIdentifier> GetIdentifierByIdAsync(int id)
+        {
+            var entries = await EnsureEntriesLoadedAsync();
+
+            var entry = entries.FirstOrDefault(e => e.Id == id);
+            if (entry is null)
+            {
+                _log.LogWarning("Id {Id} not found in cached index of TRC.", id);
+                return null;
+            }
+
+            return entry;
+        }
+
+        public async Task<Guid> GetGuidWithoutThrowingError(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentOutOfRangeException(nameof(id), "Id must be a positive integer.");
+
+            var entries = await EnsureEntriesLoadedAsync();
+
+            var entry = entries.FirstOrDefault(e => e.Id == id);
+            if (entry is null)
+            {
+                return Guid.Empty;
+            }
+
+            return entry.Guid;
         }
         #endregion
     }

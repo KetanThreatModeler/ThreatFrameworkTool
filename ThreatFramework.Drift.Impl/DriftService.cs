@@ -13,6 +13,7 @@ using ThreatModeler.TF.Drift.Implemenetation.DriftProcessor.Mapping;
 using ThreatModeler.TF.Git.Contract;
 using ThreatModeler.TF.Git.Contract.Models;
 using ThreatModeler.TF.Git.Contract.PathProcessor;
+using ThreatModeler.TF.Infra.Contract.Index.Common;
 using ThreatModeler.TF.Infra.Contract.Index.TRC;
 
 namespace ThreatModeler.TF.Drift.Implemenetation
@@ -25,7 +26,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
         private readonly IRepositoryDiffEntityPathService _repositoryDiffEntityPathService;
         private readonly IYamlReaderRouter _yamlReaderRouter;
         private readonly EntityDriftAggregationOptions _driftOptions;
-        private readonly ITRCGuidIndexService _guidIndexService;
+        private readonly IGuidIndexService _guidIndexService;
         private readonly ITMFrameworkDriftConverter _tMFrameworkDriftConverter;
 
         public DriftService(
@@ -34,7 +35,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             ILibraryScopedDiffService libraryScopedDiffService,
             IYamlReaderRouter yamlReaderRouter,
             IRepositoryDiffEntityPathService repositoryDiffEntityPathService,
-            ITRCGuidIndexService guidIndexService,
+            IGuidIndexService guidIndexService,
             ITMFrameworkDriftConverter tMFrameworkDriftConverter,
             ILogger<DriftService> logger)
         {
@@ -59,7 +60,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
             _logger.LogInformation("Starting YAML file generation...");
             //await _yamlFileGeneratorForClient.GenerateForLibraryIdsAsync(_pathOptions.ClientOutput, libraryIds.ToList());
             _logger.LogInformation("YAML file generation completed.");
-
+            await _guidIndexService.RefreshAsync();
 
             _logger.LogInformation("Starting folder diff comparison...");
             FolderDiffReport folderDiffReport = await _libraryScopedDiffService.CompareLibrariesAsync(

@@ -90,7 +90,7 @@ namespace ThreatModeler.TF.Drift.Contract.Model
     public class ModifiedResourceTypeValue
     {
         public ResourceTypeValues ResourceTypeValue { get; init; }
-        public List<FieldChange> ChangedFields { get; set; } = new();
+        public List<FieldChange> ModifiedFields { get; set; } = new();
         public List<ResourceTypeValueRelationship> AddedRelationships { get; init; } = new();
         public List<ResourceTypeValueRelationship> RemovedRelationships { get; init; } = new();
         public List<ModifiedResourceTypeValueRelationship> ModifiedRelationships { get; init; } = new();
@@ -99,6 +99,6 @@ namespace ThreatModeler.TF.Drift.Contract.Model
     public class ModifiedResourceTypeValueRelationship
     {
         public ResourceTypeValueRelationship Relationship { get; init; }
-        public List<FieldChange> ChangedFields { get; set; } = new();
+        public List<FieldChange> ModifiedFields { get; set; } = new();
     }
 }

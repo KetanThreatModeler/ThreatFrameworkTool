@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Implmentation.Helper;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
@@ -107,7 +108,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                 var libraryGuidStr = RequiredScalar(root, "libraryGuid", filePath);
 
                 // labels: sequence -> comma-separated string or null
-                string? labels = null;
+                string labels = string.Empty;
                 if (root.Children.TryGetValue(new YamlScalarNode("labels"), out var labelsNode)
                     && labelsNode is YamlSequenceNode labelsSeq
                     && labelsSeq.Children.Count > 0)
@@ -158,7 +159,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                     IsOverridden = isOverridden,
                     Name = name,
                     ChineseName = chineseName,
-                    Labels = labels,
+                    Labels = labels.ToLabelList(),
                     Description = description,
                     ChineseDescription = chineseDescription
                 };

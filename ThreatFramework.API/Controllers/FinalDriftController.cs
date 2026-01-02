@@ -101,10 +101,6 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
             _logger.LogInformation("Refreshing library cache...");
             await _libraryCacheService.RefreshCacheAsync();
 
-            var readOnlyLibraryGuids = await _libraryCacheService.GetReadonlyLibraryGuidsAsync();
-            if (readOnlyLibraryGuids == null || readOnlyLibraryGuids.Count == 0)
-                return Ok(new TMFrameworkDrift());
-
             var drift = await _finalDriftService.DriftAsync1(guids, cancellationToken);
             return Ok(drift);
         }

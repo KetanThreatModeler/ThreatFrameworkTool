@@ -12,10 +12,8 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
         public Guid LibraryGuid { get; set; }
         public Guid PropertyTypeGuid { get; set; }
 
-        // Excluded from comparison (likely a joined/display value)
         public string PropertyTypeName { get; set; }
 
-        // --- Booleans ---
         public bool IsSelected { get; set; }
         public bool IsOptional { get; set; }
         public bool IsGlobal { get; set; }
@@ -24,7 +22,7 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
 
         public string Name { get; set; }
         public string? ChineseName { get; set; }
-        public string? Labels { get; set; }
+        public List<string> Labels { get; set; }
         public string? Description { get; set; }
         public string? ChineseDescription { get; set; }
 
@@ -57,7 +55,6 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
 
                     // --- GROUP 3: Standard Strings (Case-Sensitive) ---
                     case nameof(ChineseName):
-                    case nameof(Labels):
                     case nameof(Description):
                     case nameof(ChineseDescription):
                         string? s1 = GetStringValue(field);
@@ -65,6 +62,9 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
                         ComparisonHelper.CompareString(changes, field, s1, s2, ignoreCase: false);
                         break;
 
+                    case nameof(Labels):
+                        ComparisonHelper.CompareList(changes, field, Labels, other.Labels);
+                        break;
                     // --- ERROR HANDLING ---
                     default:
                         throw new FieldComparisonNotImplementedException(nameof(Property), field);
@@ -97,7 +97,7 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
         private string? GetStringValue(string fieldName) => fieldName switch
         {
             nameof(ChineseName) => ChineseName,
-            nameof(Labels) => Labels,
+            nameof(Labels) => Labels.ToDelimitedString(),
             nameof(Description) => Description,
             nameof(ChineseDescription) => ChineseDescription,
             _ => null

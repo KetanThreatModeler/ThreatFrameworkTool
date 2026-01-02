@@ -21,5 +21,6 @@ namespace ThreatModeler.TF.Infra.Contract.Index.Client
         Task<IReadOnlyCollection<int>> GetSecurityRequirementIdsAsync(Guid libraryId);
         Task<IReadOnlyCollection<int>> GetPropertyIdsAsync(Guid libraryId);
         Task<IReadOnlyCollection<int>> GetTestCaseIdsAsync(Guid libraryId);
+        Task<EntityIdentifier> GetIdentifierByIdAsync(int id);
     }
 }

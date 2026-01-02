@@ -46,7 +46,7 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
             Directory.CreateDirectory(outputFolderPath);
 
-            GenerateIndexAsync(libraryIds);
+            await GenerateIndexAsync(libraryIds);
 
             // construct your existing generator with plane-specific repos
             var gen = new UtilsForClientYamlFilesGenerator(

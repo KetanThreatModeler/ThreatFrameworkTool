@@ -14,7 +14,7 @@ namespace ThreatModeler.TF.Core.Helper
         {
             if (!EqualityComparer<T>.Default.Equals(val1, val2))
             {
-                changes.Add(new FieldChange(fieldName, val1, val2));
+                changes.Add(new FieldChange(fieldName.ToLower(), val1, val2));
             }
         }
 
@@ -26,7 +26,7 @@ namespace ThreatModeler.TF.Core.Helper
             // Handle nulls gracefully
             if (!string.Equals(val1, val2, comparisonType))
             {
-                changes.Add(new FieldChange(fieldName, val1, val2));
+                changes.Add(new FieldChange(fieldName.ToLower(), val1, val2));
             }
         }
 
@@ -38,7 +38,7 @@ namespace ThreatModeler.TF.Core.Helper
 
             if (l1.Count != l2.Count || !l1.SequenceEqual(l2))
             {
-                changes.Add(new FieldChange(fieldName, list1, list2));
+                changes.Add(new FieldChange(fieldName.ToLower(), list1, list2));
             }
         }
     }

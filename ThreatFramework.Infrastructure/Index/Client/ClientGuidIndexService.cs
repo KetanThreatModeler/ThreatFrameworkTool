@@ -260,7 +260,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.Client
                 if (entity.Guid == Guid.Empty)
                     continue;
 
-                var trcId = await _trcIndex.GetIntAsync(entity.Guid).ConfigureAwait(false);
+                var trcId = await _trcIndex.GetIntForClientIndexGenerationAsync(entity.Guid).ConfigureAwait(false);
                 if(trcId > 0)
                 {
                     dto.Add(new GuidIndex
@@ -351,6 +351,20 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.Client
                     $"Client guid index file not found at '{path}'. This file is required.",
                     path);
             }
+        }
+
+        public async Task<EntityIdentifier> GetIdentifierByIdAsync(int id)
+        {
+            var entries = await EnsureEntriesLoadedAsync();
+
+            var entry = entries.FirstOrDefault(e => e.Id == id);
+            if (entry is null)
+            {
+                _log.LogWarning("Id {Id} not found in cached index of Client.", id);
+                return null;
+            }
+
+            return entry;
         }
 
         #endregion

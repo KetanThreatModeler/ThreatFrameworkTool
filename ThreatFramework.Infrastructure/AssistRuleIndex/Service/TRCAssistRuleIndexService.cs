@@ -11,7 +11,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
 {
     public sealed class TRCAssistRuleIndexService : ITRCAssistRuleIndexService
     {
-        private const string IndexKey = "AssistRuleIndex::Entries";
+        private const string IndexKey = "TRCAssistRuleIndex::Entries";
 
         private readonly ITRCAssistRuleIndexManager _manager;
         private readonly IMemoryCache _cache;
@@ -258,6 +258,45 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
             {
                 gate.Release();
             }
+        }
+
+        public async Task<int> GetIdByRelationshipGuidForClientIndexGenerationAsync(Guid relationshipGuid)
+        {
+            if (relationshipGuid == Guid.Empty)
+                throw new ArgumentException("RelationshipGuid must be a non-empty value.", nameof(relationshipGuid));
+
+            var entries = await EnsureLoadedAsync().ConfigureAwait(false);
+
+            var identity = relationshipGuid.ToString();
+            var match = entries.FirstOrDefault(e =>
+                e.Type == AssistRuleType.Relationship &&
+                string.Equals(e.Identity, identity, StringComparison.OrdinalIgnoreCase));
+
+            if (match == null)
+            {
+                return 0;
+            }
+
+            return match.Id;
+        }
+
+        public async Task<int> GetIdByResourceTypeValueForClientIndexGenerationAsync(string resourceTypeValue)
+        {
+            if (string.IsNullOrWhiteSpace(resourceTypeValue))
+                throw new ArgumentException("ResourceTypeValue is required.", nameof(resourceTypeValue));
+
+            var entries = await EnsureLoadedAsync().ConfigureAwait(false);
+
+            var match = entries.FirstOrDefault(e =>
+                e.Type == AssistRuleType.ResourceTypeValues &&
+                string.Equals(e.Identity, ResourceTypeValueNormalizer.Normalize(resourceTypeValue), StringComparison.OrdinalIgnoreCase));
+
+            if (match == null)
+            {
+                return 0;
+            }
+
+            return match.Id;
         }
     }
 }

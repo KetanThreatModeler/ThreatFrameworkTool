@@ -561,7 +561,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 var modifiedResourceTypeValue = new ModifiedResourceTypeValue
                 {
                     ResourceTypeValue = modifiedResource.ResourceTypeValue,
-                    ChangedFields = modifiedResource.ChangedFields,
+                    ModifiedFields = modifiedResource.ChangedFields,
                     AddedRelationships = modifiedResource.RelationshipsAdded,
                     RemovedRelationships = modifiedResource.RelationshipsRemoved,
                     ModifiedRelationships = await ConvertToModifiedResourceTypeValueRelationship(modifiedResource.RelationshipsModified)
@@ -582,7 +582,7 @@ namespace ThreatModeler.TF.Drift.Implemenetation
                 var modifiedRelationship = new ModifiedResourceTypeValueRelationship
                 {
                     Relationship = relationshipDto.Relationship,
-                    ChangedFields = relationshipDto.ChangedFields
+                    ModifiedFields = relationshipDto.ChangedFields
                 };
                 modifiedRelationships.Add(modifiedRelationship);
             }

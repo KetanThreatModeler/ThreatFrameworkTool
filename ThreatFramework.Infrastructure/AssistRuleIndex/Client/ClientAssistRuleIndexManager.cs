@@ -124,7 +124,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
 
             foreach (var r in relationships ?? Enumerable.Empty<Relationship>())
             {
-                var id = await _trcAssistRuleIndexService.GetIdByRelationshipGuidAsync(r.Guid).ConfigureAwait(false);
+                var id = await _trcAssistRuleIndexService.GetIdByRelationshipGuidForClientIndexGenerationAsync(r.Guid).ConfigureAwait(false);
                 if (id < 0) id = nextNewId++;
 
                 list.Add(new AssistRuleIndexEntry
@@ -138,7 +138,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
 
             foreach (var v in rtvs ?? Enumerable.Empty<ResourceTypeValues>())
             {
-                var id = await _trcAssistRuleIndexService.GetIdByResourceTypeValueAsync(v.ResourceTypeValue).ConfigureAwait(false);
+                var id = await _trcAssistRuleIndexService.GetIdByResourceTypeValueForClientIndexGenerationAsync(v.ResourceTypeValue).ConfigureAwait(false);
                 if (id < 0) id = nextNewId++;
 
                 list.Add(new AssistRuleIndexEntry

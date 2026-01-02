@@ -28,7 +28,7 @@ namespace ThreatFramework.Infrastructure
             var factory = new SqlConnectionFactory(cs);
 
             // construct repos with the same factory
-            var libraries = new LibraryRepository(factory);
+            var libraries = new LibraryRepository(factory, _loggerFactory.CreateLogger<LibraryRepository>());
 
             // plane-scoped cache service backed by the plane’s libraries repo
             var libraryCache = new LibraryCacheService(libraries);

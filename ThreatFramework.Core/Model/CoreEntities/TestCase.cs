@@ -17,7 +17,7 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
 
         public string Name { get; set; }
         public string? ChineseName { get; set; }
-        public string? Labels { get; set; }
+        public List<string> Labels { get; set; }
         public string? Description { get; set; }
         public string? ChineseDescription { get; set; }
 
@@ -46,12 +46,15 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
 
                     // --- GROUP 3: Standard Strings (Case-Sensitive) ---
                     case nameof(ChineseName):
-                    case nameof(Labels):
                     case nameof(Description):
                     case nameof(ChineseDescription):
                         string? s1 = GetStringValue(field);
                         string? s2 = other.GetStringValue(field);
                         ComparisonHelper.CompareString(changes, field, s1, s2, ignoreCase: false);
+                        break;
+
+                    case nameof(Labels):
+                        ComparisonHelper.CompareList(changes, field, Labels, other.Labels);
                         break;
 
                     // --- ERROR HANDLING ---
@@ -75,6 +78,13 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
                 // Booleans
                 case nameof(IsHidden): ComparisonHelper.Compare(changes, field, IsHidden, other.IsHidden); break;
                 case nameof(IsOverridden): ComparisonHelper.Compare(changes, field, IsOverridden, other.IsOverridden); break;
+
+                case nameof(Labels):
+                    ComparisonHelper.CompareList(changes, field, Labels, other.Labels);
+                    break;
+
+                default:
+                    throw new FieldComparisonNotImplementedException(nameof(TestCase), field);
             }
         }
 
@@ -82,7 +92,6 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
         private string? GetStringValue(string fieldName) => fieldName switch
         {
             nameof(ChineseName) => ChineseName,
-            nameof(Labels) => Labels,
             nameof(Description) => Description,
             nameof(ChineseDescription) => ChineseDescription,
             _ => null

@@ -2,6 +2,7 @@
 using ThreatFramework.Infra.Contract;
 using ThreatModeler.TF.Core.Model.CoreEntities;
 using ThreatModeler.TF.Infra.Contract.Repository.CoreEntities;
+using ThreatModeler.TF.Infra.Implmentation.Helper;
 
 namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
 {
@@ -115,7 +116,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.Repository.CoreEntities
                     ChineseName = reader.IsDBNull(ordChineseName) ? null : reader.GetString(ordChineseName),
 
                     // Keep as-is to avoid breaking (if your model expects string)
-                    Labels = reader.IsDBNull(ordLabels) ? null : reader.GetValue(ordLabels)?.ToString(),
+                    Labels = reader.IsDBNull(ordLabels) ? null : reader.GetValue(ordLabels)?.ToString().ToLabelList(),
 
                     Description = reader.IsDBNull(ordDescription) ? null : reader.GetString(ordDescription),
                     ChineseDescription = reader.IsDBNull(ordChineseDescription) ? null : reader.GetString(ordChineseDescription)

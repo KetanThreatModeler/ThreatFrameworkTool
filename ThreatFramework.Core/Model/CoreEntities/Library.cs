@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ThreatFramework.Core;
+﻿using ThreatFramework.Core;
 using ThreatModeler.TF.Core.CustomException;
 using ThreatModeler.TF.Core.Helper;
 
@@ -16,7 +14,7 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
         public string Name { get; set; } = string.Empty;
         public string SharingType { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public string Labels { get; set; } = string.Empty;
+        public List<string> Labels { get; set; } = new List<string>();
         public string Version { get; set; } = string.Empty;
         public string ReleaseNotes { get; set; } = string.Empty;
         public string ImageURL { get; set; } = string.Empty;
@@ -69,7 +67,7 @@ namespace ThreatModeler.TF.Core.Model.CoreEntities
                         break;
 
                     case "labels":
-                        ComparisonHelper.CompareString(changes, nameof(Labels), Labels, other.Labels, ignoreCase: false);
+                        ComparisonHelper.CompareList(changes, nameof(Labels), Labels, other.Labels);
                         break;
 
                     case "version":

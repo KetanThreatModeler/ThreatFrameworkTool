@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using ThreatFramework.Infra.Contract.YamlRepository.CoreEntity;
 using ThreatModeler.TF.Core.Model.CoreEntities;
+using ThreatModeler.TF.Infra.Implmentation.Helper;
 using YamlDotNet.RepresentationModel;
 
 namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
@@ -115,7 +116,7 @@ namespace ThreatFramework.Infrastructure.YamlRepository.CoreEntities
                         Name = name,
                         SharingType = sharingType,          // ✅ new
                         Description = description,
-                        Labels = labels,
+                        Labels = labels.ToLabelList(),
                         Version = version,
                         ReleaseNotes = releaseNote,         // ✅ YAML: releaseNote -> Library.ReleaseNotes
                         ImageURL = imageUrl
