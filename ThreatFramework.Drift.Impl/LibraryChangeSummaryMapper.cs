@@ -51,10 +51,10 @@ public sealed class LibraryChangeSummaryMapper : ILibraryChangeSummaryMapper
             if (lib is null) continue;
 
             // These two lines are the whole point:
-            var oldVersion = GetOldValue(m.LibraryChanges, "Version");
-            var newVersion = GetNewValue(m.LibraryChanges, "Version") ?? lib.Version;
+            var oldVersion = GetOldValue(m.LibraryChanges, "version");
+            var newVersion = GetNewValue(m.LibraryChanges, "version") ?? lib.Version;
 
-            var releaseNotes = GetNewValue(m.LibraryChanges, "ReleaseNotes") ?? lib.ReleaseNotes;
+            var releaseNotes = GetNewValue(m.LibraryChanges, "releasenotes") ?? lib.ReleaseNotes;
 
             result.Add(new LibraryChangeSummaryDto
             {

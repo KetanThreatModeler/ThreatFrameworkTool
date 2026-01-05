@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Data.Entity.Core.Common.CommandTrees;
 using ThreatFramework.Infra.Contract;
 using ThreatModeler.TF.API.Controllers.Dtos;
 using ThreatModeler.TF.Core.Model.CoreEntities;
@@ -117,8 +118,8 @@ namespace ThreatModeler.TF.Drift.Api.Controllers
 
             var readOnlyLibraryGuids = await _libraryCacheService.GetReadonlyLibraryGuidsAsync();
            
-
-            var drift = await _finalDriftService.DriftAsync1(readOnlyLibraryGuids, cancellationToken);
+            var listOfGuids = new List<Guid>() { new Guid("982DDDB5-6887-4E37-A857-70C1B90B2AD4") };
+            var drift = await _finalDriftService.DriftAsync1(listOfGuids, cancellationToken);
             var summary = _libraryChangeSummaryMapper.Map(drift);
 
             return Ok(ApiResponseModel<IReadOnlyList<LibraryChangeSummaryDto>>.Success(summary));
