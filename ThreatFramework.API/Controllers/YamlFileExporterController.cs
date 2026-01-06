@@ -143,9 +143,26 @@ public sealed class YamlExportsController : ControllerBase
             {
                 _logger.LogInformation("Starting TRC export for {Count} libraries to {Output}", request.LibraryIds.Count(), path);
 
-                request.LibraryIds.AddRange(defaultLibList);
+                //request.LibraryIds.AddRange(defaultLibList);
                 // Updated Contract Call
-                await _trcGenerator.GenerateForLibraryIdsAsync(path, request.LibraryIds, pushToRemote: push);
+
+                var LibList = new List<Guid>
+                {
+                    Guid.Parse("EEF7DCF9-53BD-48E9-849D-21445EBAD101"),
+                    Guid.Parse("AE9A4C22-21DF-4455-82BB-279B74E6FB81"),
+                    Guid.Parse("F99B22A9-8676-432D-A365-103DD70FAA7E"),
+                    Guid.Parse("3484F5E4-1185-4482-95DC-E1B88C81C976"),
+                    Guid.Parse("7A402FB6-D4D3-4D75-BF5C-D163F9D7D7EF"),
+                    Guid.Parse("C6A6997C-3FCB-4A2E-843D-E2C5F7F9DC96"),
+                    Guid.Parse("D7CB903D-08DA-4AB6-A32E-40A18203CEC7"),
+                    Guid.Parse("08927410-CDAF-4959-946E-DA5AE3A1496A"),
+                    Guid.Parse("0359A988-F6F7-421A-8A87-E68AB918F79F"),
+                    Guid.Parse("D3E6DEB0-4C0B-41D9-9F54-86F8D76946A2"),
+                    Guid.Parse("E50269F4-B85F-43D5-85F0-4D0BC211A915"),
+
+
+                };
+                await _trcGenerator.GenerateForLibraryIdsAsync(path, LibList, pushToRemote: push);
 
                 _logger.LogInformation("Completed TRC Library export.");
 

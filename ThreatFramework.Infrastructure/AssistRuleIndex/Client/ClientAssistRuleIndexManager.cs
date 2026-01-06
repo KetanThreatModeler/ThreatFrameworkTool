@@ -144,7 +144,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
                 list.Add(new AssistRuleIndexEntry
                 {
                     Type = AssistRuleType.ResourceTypeValues,
-                    Identity = ResourceTypeValueNormalizer.Normalize(v.ResourceTypeValue),
+                    Identity = v.ResourceTypeValue.ToLower(),
                     LibraryGuid = v.LibraryId,
                     Id = id
                 });

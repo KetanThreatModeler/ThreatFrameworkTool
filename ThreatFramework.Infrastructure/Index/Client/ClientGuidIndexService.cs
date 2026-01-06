@@ -367,6 +367,22 @@ namespace ThreatModeler.TF.Infra.Implmentation.Index.Client
             return entry;
         }
 
+        public async Task<int> GetIntAsyncWithoutThrowingErrorAsync(Guid guid)
+        {
+            if (guid == Guid.Empty)
+                throw new ArgumentException("Guid must be a non-empty value.", nameof(guid));
+
+            var entries = await EnsureEntriesLoadedAsync().ConfigureAwait(false);
+
+            var entry = entries.FirstOrDefault(e => e.Guid == guid);
+            if (entry is null)
+            {
+                return 0;
+            }
+
+            return entry.Id;
+        }
+
         #endregion
     }
 }

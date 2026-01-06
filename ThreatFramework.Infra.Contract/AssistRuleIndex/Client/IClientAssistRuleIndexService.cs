@@ -14,6 +14,7 @@ namespace ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Client
         Task RefreshAsync();
         Task<int> GetIdByRelationshipGuidAsync(Guid relationshipGuid);
         Task<int> GetIdByResourceTypeValueAsync(string resourceTypeValue);
+        Task<int> GetIdOrDefaultByResourceTypeValueAsync(string resourceTypeValue);
         Task<IReadOnlyList<AssistRuleIndexEntry>> GetResourceTypeValuesByLibraryGuidAsync(Guid libraryGuid);
         Task<IReadOnlyList<AssistRuleIndexEntry>> GetAllAsync();
         Task<int> GetMaxAssignedIdAsync();

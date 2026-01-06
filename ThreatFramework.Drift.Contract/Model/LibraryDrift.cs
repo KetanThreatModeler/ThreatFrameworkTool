@@ -50,21 +50,21 @@ namespace ThreatModeler.TF.Drift.Contract.Model
     public class AddedThreat
     {
         public Threat Threat { get; init; }
-        public List<SecurityRequirement> SecurityRequirements{ get; init; } = new();
+        public List<SecurityRequirement> SecurityRequirements{ get; set; } = new();
     }
 
     public class DeletedThreat
     {
         public Threat Threat { get; init; }
-        public List<SecurityRequirement> SecurityRequirements { get; init; } = new();
+        public List<SecurityRequirement> SecurityRequirements { get; set; } = new();
     }
 
     public class ModifiedThreat
     {
         public Threat Threat { get; init; }
         public List<FieldChange> ChangedFields { get; set; } = new();
-        public List<SecurityRequirement> SecurityRequirementAdded { get; init; } = new();
-        public List<SecurityRequirement> SecurityRequirementRemoved { get; init; } = new();
+        public List<SecurityRequirement> SecurityRequirementAdded { get; set; } = new();
+        public List<SecurityRequirement> SecurityRequirementRemoved { get; set; } = new();
     }
 
     public class AddedResourceTypeValue

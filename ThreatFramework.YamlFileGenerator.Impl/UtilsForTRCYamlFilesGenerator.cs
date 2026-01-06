@@ -730,8 +730,12 @@ namespace ThreatFramework.YamlFileGenerator.Impl
                 var libraryFolder = await GetLibraryFolderAsync(path, v.LibraryId);
                 var rtvFolder = CombineFolder(libraryFolder, FolderNames.ResourceTypeValues);
 
-                var componentId = await _indexService.GetIntAsync(v.ComponentGuid);
-
+                var componentId = await _indexService.GetIntForClientIndexGenerationAsync(v.ComponentGuid);
+                if(componentId == 0)
+                {
+                    _logger.LogWarning("Component ID not found for ResourceTypeValue={Value} with ComponentGuid={Guid}", v.ResourceTypeValue, v.ComponentGuid);
+                    continue;
+                }
                 var fileName = $"rtv{assistId}{FileNameSeperator}{componentId}.yaml";
                 await WriteYamlAsync(rtvFolder, fileName, ResourceTypeValuesTemplate.Generate(v));
                 count++;
@@ -764,9 +768,19 @@ namespace ThreatFramework.YamlFileGenerator.Impl
 
                 foreach (var item in list)
                 {
-                    var sourceId = await GetAssistResourceTypeValueIdOrThrowAsync(item.SourceResourceTypeValue);
+                    var sourceId = await _assistRuleIndexService.GetIdOrDefaultByResourceTypeValueAsync(item.SourceResourceTypeValue);
+                    if(sourceId == 0)
+                    {
+                        _logger.LogWarning("Source ResourceTypeValue ID not found for ResourceTypeValueRelationship with SourceResourceTypeValue={Value}", item.SourceResourceTypeValue);
+                        continue;
+                    }
                     var relId = await GetAssistRelationshipIdOrThrowAsync(item.RelationshipGuid);
-                    var targetId = await GetAssistResourceTypeValueIdOrThrowAsync(item.TargetResourceTypeValue);
+                    var targetId = await _assistRuleIndexService.GetIdOrDefaultByResourceTypeValueAsync(item.TargetResourceTypeValue);
+                    if(targetId == 0)
+                    {
+                        _logger.LogWarning("Target ResourceTypeValue ID not found for ResourceTypeValueRelationship with TargetResourceTypeValue={Value}", item.TargetResourceTypeValue);
+                        continue;
+                    }
 
                     var fileName = $"rtv{sourceId}{FileNameSeperator}{relId}{FileNameSeperator}rtv{targetId}.yaml";
                     await WriteYamlAsync(relFolder, fileName, ResourceTypeValueRelationshipTemplate.Generate(item));

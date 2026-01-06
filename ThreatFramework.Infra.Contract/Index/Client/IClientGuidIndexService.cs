@@ -13,6 +13,7 @@ namespace ThreatModeler.TF.Infra.Contract.Index.Client
         Task GenerateForLibraryAsync(IEnumerable<Guid> libIds);
         Task RefreshAsync();
         Task<int> GetIntAsync(Guid guid);
+        Task<int> GetIntAsyncWithoutThrowingErrorAsync(Guid guid);
         Task<(int entityId, int libId)> GetIntIdOfEntityAndLibIdByGuidAsync(Guid guid);
         Task<Guid> GetGuidAsync(int id);
         Task<IReadOnlyCollection<int>> GetIdsByLibraryAndTypeAsync(Guid libraryId, EntityType entityType);

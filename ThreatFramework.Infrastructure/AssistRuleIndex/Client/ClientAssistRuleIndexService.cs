@@ -162,7 +162,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
 
             var match = entries.FirstOrDefault(e =>
                 e.Type == AssistRuleType.ResourceTypeValues &&
-                string.Equals(e.Identity, ResourceTypeValueNormalizer.Normalize(resourceTypeValue), StringComparison.OrdinalIgnoreCase));
+                string.Equals(e.Identity, resourceTypeValue.ToLower(), StringComparison.OrdinalIgnoreCase));
 
             if (match == null)
             {
@@ -260,6 +260,26 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Client
             {
                 gate.Release();
             }
+        }
+
+        public async Task<int> GetIdOrDefaultByResourceTypeValueAsync(string resourceTypeValue)
+        {
+            if (string.IsNullOrWhiteSpace(resourceTypeValue))
+                throw new ArgumentException("ResourceTypeValue is required.", nameof(resourceTypeValue));
+
+            var entries = await EnsureLoadedAsync().ConfigureAwait(false);
+
+            var match = entries.FirstOrDefault(e =>
+                e.Type == AssistRuleType.ResourceTypeValues &&
+                string.Equals(e.Identity, resourceTypeValue.ToLower(), StringComparison.OrdinalIgnoreCase));
+
+            if (match == null)
+            {
+                _log.LogWarning("ResourceTypeValue '{Value}' not found in AssistRule index cache.", resourceTypeValue);
+                return 0;
+            }
+
+            return match.Id;
         }
     }
 }

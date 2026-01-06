@@ -11,8 +11,6 @@ using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Model;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.Common.Writer;
 using ThreatModeler.TF.Infra.Contract.AssistRuleIndex.TRC;
 using ThreatModeler.TF.Infra.Contract.Repository;
-using ThreatModeler.TF.Infra.Contract.Repository.AssistRules;
-using ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Common;
 
 namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
 {
@@ -60,7 +58,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
                 var rtvEntries = rtvs.Select(v => new AssistRuleIndexEntry
                 {
                     Type = AssistRuleType.ResourceTypeValues,
-                    Identity = ResourceTypeValueNormalizer.Normalize(v.ResourceTypeValue),
+                    Identity = v.ResourceTypeValue.ToLower(),
                     LibraryGuid = v.LibraryId,
                     Id = idCounter++
                 });
@@ -98,13 +96,6 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
                     configuredPath);
 
                 var entries = await BuildAsync(libraryGuids);
-
-                var temp = entries.Where(e => e.Type == AssistRuleType.ResourceTypeValues &&
-                                     e.Identity.Contains("ApiGateway"));
-                foreach (var e in temp)
-                {
-                    _logger.LogWarning("Index Identity: '{id}' len={len}", e.Identity, e.Identity?.Length ?? 0);
-                }
 
                 var yaml = _serializer.Serialize(entries);
                 await _fileStore.WriteAllTextAsync(configuredPath, yaml);
@@ -186,7 +177,7 @@ namespace ThreatModeler.TF.Infra.Implmentation.AssistRuleIndex.Service
             var rtvEntries = rtvs.Select(v => new AssistRuleIndexEntry
             {
                 Type = AssistRuleType.ResourceTypeValues,
-                Identity = v.ResourceTypeValue,
+                Identity = v.ResourceTypeValue.ToLower(),
                 LibraryGuid = v.LibraryId,
                 Id = idCounter++
             });
